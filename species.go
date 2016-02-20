@@ -16,7 +16,7 @@ type Species struct {
 }
 
 type CanonicalName string
-type IndexKey interface{}
+type IndexKey int
 
 type Media struct {
 	Source string `json:"source" bson:"source"`
@@ -38,7 +38,7 @@ type Source struct {
 }
 
 func (this Source) IsZero() bool {
-	return this.Type == "" || this.IndexKey == nil
+	return this.Type == "" || this.IndexKey == 0
 }
 
 func init() {
@@ -57,3 +57,42 @@ func AllCanonicalNames(c *cxt.Context) (response []CanonicalName, err error) {
 	}
 	return
 }
+
+type Fetcher interface{
+	Get(CanonicalName) (*Species, error)
+}
+
+func NewMockFetcher(list []Species) Fetcher {
+	m := make(map[CanonicalName]Species)
+	for _, l := range list {
+		m[l.CanonicalName] = l
+	}
+	return Fetcher(&mockfetcher{m})
+}
+
+type mockfetcher struct {
+	m map[CanonicalName]Species
+}
+
+func (this *mockfetcher) Get(n CanonicalName) (*Species, error) {
+	if s, ok := this.m[n]; ok {
+		return &s, nil
+	}
+	return nil, nil
+}
+
+type fetcher struct {
+	*cxt.Context
+}
+
+func (this *fetcher) GetSpecies(name CanonicalName) (*Species, error) {
+	s := &Species{
+		CanonicalName: name,
+	}
+	if err := this.Mongo.Coll(cxt.SpeciesColl).Find(s).One(&s); err != nil {
+		return nil, errors.Wrapf(err, "could not fetch species: %s", name)
+	}
+	return s, nil
+}
+
+

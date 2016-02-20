@@ -58,7 +58,7 @@ func gatherSubspecies(name species.CanonicalName) ([]species.Species, error) {
 		for _, i := range v {
 			s.Sources = append(s.Sources, species.Source{
 				Type:     species.SourceTypeGBIF,
-				IndexKey: i,
+				IndexKey: species.IndexKey(i),
 			})
 		}
 		response = append(response, s)

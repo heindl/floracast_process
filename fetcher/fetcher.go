@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type SpeciesFetcher struct {
+type SpeciesFetchHandler struct {
 	*cxt.Context
 }
 
@@ -23,7 +23,7 @@ func init() {
 	})
 }
 
-func (this *SpeciesFetcher) HandleMessage(m *nsq.Message) error {
+func (this *SpeciesFetchHandler) HandleMessage(m *nsq.Message) error {
 
 	s := species.Species{
 		CanonicalName: species.CanonicalName(m.Body),
@@ -55,8 +55,8 @@ func (this *SpeciesFetcher) HandleMessage(m *nsq.Message) error {
 		}
 
 		// Queue data fetch.
-		if err := this.Producer.Publish(cxt.NSQSpeciesDataFetch, []byte(s.CanonicalName)); err != nil {
-			return errors.Wrapf(err, "could not publish message[%s]", cxt.NSQSpeciesDataFetch)
+		if err := this.Producer.Publish(cxt.NSQSpeciesMetaFetch, []byte(s.CanonicalName)); err != nil {
+			return errors.Wrapf(err, "could not publish message[%s]", cxt.NSQSpeciesMetaFetch)
 		}
 
 		if err := this.queueOccurrenceFetch(s); err != nil {
@@ -69,9 +69,14 @@ func (this *SpeciesFetcher) HandleMessage(m *nsq.Message) error {
 
 }
 
-func (this *SpeciesFetcher) queueOccurrenceFetch(s species.Species) error {
+func (this *SpeciesFetchHandler) queueOccurrenceFetch(s species.Species) error {
 
 	for _, src := range s.Sources {
+
+		since := s.LastModified
+		if since == nil {
+			since = &time.Time{}
+		}
 
 		b, err := json.Marshal(fetcher.OccurrenceFetchQuery{
 			Since:  s.LastModified,
@@ -81,8 +86,8 @@ func (this *SpeciesFetcher) queueOccurrenceFetch(s species.Species) error {
 			return errors.Wrap(err, "could not marshal taxon query")
 		}
 
-		if err := this.Producer.Publish(cxt.NSQOccurrencesFetch, b); err != nil {
-			return errors.Wrapf(err, "could not publish message[%s]", cxt.NSQOccurrencesFetch)
+		if err := this.Producer.Publish(cxt.NSQOccurrenceFetch, b); err != nil {
+			return errors.Wrapf(err, "could not publish message[%s]", cxt.NSQOccurrenceFetch)
 		}
 
 	}

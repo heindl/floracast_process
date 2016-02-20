@@ -5,19 +5,17 @@ import (
 	"bitbucket.org/heindl/logkeys"
 	. "bitbucket.org/heindl/malias"
 	"bitbucket.org/heindl/species"
-	"bitbucket.org/heindl/utils"
-	"fmt"
 	"github.com/bitly/go-nsq"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/heindl/eol"
 	"strings"
 )
 
-type MetaFetcher struct {
+type SpeciesMetaFetchHandler struct {
 	*cxt.Context
 }
 
-func (s *MetaFetcher) HandleMessage(m *nsq.Message) (err error) {
+func (s *SpeciesMetaFetchHandler) HandleMessage(m *nsq.Message) (err error) {
 
 	scientificName := strings.Trim(string(m.Body), `"`)
 
@@ -59,8 +57,6 @@ func (s *MetaFetcher) HandleMessage(m *nsq.Message) (err error) {
 		}
 	}
 
-	fmt.Println(utils.JsonOrSpew(highest))
-
 	if highest.Identifier == 0 {
 		s.Log.WithFields(M{
 			logkeys.CanonicalName: scientificName,
@@ -72,8 +68,6 @@ func (s *MetaFetcher) HandleMessage(m *nsq.Message) (err error) {
 		CanonicalName: species.CanonicalName(scientificName),
 	}
 
-	fmt.Println(s.genUpdateFromPage(highest))
-
 	if _, err := s.Mongo.Coll(cxt.SpeciesColl).Upsert(q, s.genUpdateFromPage(highest)); err != nil {
 		return errors.Wrap(err, "could not update taxon data")
 	}
@@ -82,13 +76,13 @@ func (s *MetaFetcher) HandleMessage(m *nsq.Message) (err error) {
 
 }
 
-func (s *MetaFetcher) genUpdateFromPage(p eol.PageResponse) M {
+func (s *SpeciesMetaFetchHandler) genUpdateFromPage(p eol.PageResponse) M {
 
 	u := M{
 		"$addToSet": M{
 			"sources": species.Source{
 				Type:     species.SourceTypeEOL,
-				IndexKey: p.Identifier,
+				IndexKey: species.IndexKey(p.Identifier),
 			},
 		},
 	}

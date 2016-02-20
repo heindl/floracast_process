@@ -33,7 +33,7 @@ func TestMetaFetcher(t *testing.T) {
 
 			b, err := json.Marshal("Limenitis arthemis astyanax")
 			So(err, ShouldBeNil)
-			fetcher := &MetaFetcher{
+			fetcher := &SpeciesMetaFetchHandler{
 				Context: c,
 			}
 			So(fetcher.HandleMessage(nsq.NewMessage(id, b)), ShouldBeNil)
