@@ -2,12 +2,12 @@ package main
 
 import (
 	"bitbucket.org/heindl/species"
+	"bitbucket.org/heindl/species/store"
+	"bitbucket.org/heindl/waypoints/store"
 	"github.com/bitly/go-nsq"
 	"github.com/omidnikta/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/species/store"
-	"bitbucket.org/heindl/waypoints/store"
 )
 
 func TestMetaFetcher(t *testing.T) {
@@ -17,7 +17,7 @@ func TestMetaFetcher(t *testing.T) {
 	Convey("should handle eol fetch message without error", t, func() {
 
 		fetcher := &SpeciesMetaFetchHandler{
-			Log: logrus.New(),
+			Log:          logrus.New(),
 			SpeciesStore: store.NewMockStore(t),
 		}
 

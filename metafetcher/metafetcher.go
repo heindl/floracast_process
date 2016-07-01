@@ -3,14 +3,14 @@ package main
 import (
 	"bitbucket.org/heindl/logkeys"
 	. "bitbucket.org/heindl/malias"
+	"bitbucket.org/heindl/nsqeco"
 	"bitbucket.org/heindl/species"
+	"bitbucket.org/heindl/species/store"
 	"github.com/bitly/go-nsq"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/heindl/eol"
-	"strings"
 	"github.com/omidnikta/logrus"
-	"bitbucket.org/heindl/species/store"
-	"bitbucket.org/heindl/nsqeco"
+	"strings"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	}
 	defer store.Close()
 	if err := nsqeco.Listen(nsqeco.NSQSpeciesMetaFetch, &SpeciesMetaFetchHandler{
-		Log: logrus.New(),
+		Log:          logrus.New(),
 		SpeciesStore: store,
 	}, 10); err != nil {
 		panic(err)

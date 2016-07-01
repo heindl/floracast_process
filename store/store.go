@@ -1,17 +1,17 @@
 package store
 
 import (
-	"bitbucket.org/heindl/species"
-	"time"
 	. "bitbucket.org/heindl/malias"
-	"github.com/saleswise/errors/errors"
 	"bitbucket.org/heindl/mgoeco"
-	"gopkg.in/mgo.v2"
-	"github.com/facebookgo/mgotest"
+	"bitbucket.org/heindl/species"
 	"bitbucket.org/heindl/utils"
+	"github.com/facebookgo/mgotest"
+	"github.com/saleswise/errors/errors"
+	"gopkg.in/mgo.v2"
+	"time"
 )
 
-type SpeciesStore interface{
+type SpeciesStore interface {
 	Read() ([]species.Species, error)
 	ReadFromIndexKey(species.IndexKey) (*species.Species, error)
 	ReadFromCanonicalName(species.CanonicalName) (*species.Species, error)
@@ -48,15 +48,15 @@ func NewSpeciesStore() (SpeciesStore, error) {
 	return SpeciesStore(&store{nil, m}), nil
 }
 
-type store struct{
+type store struct {
 	server *mgotest.Server
 	mongo  *mgoeco.Mongo
 }
 
 func (this *store) Close() {
-	this.mongo.Close();
+	this.mongo.Close()
 	if this.server != nil {
-		this.server.Stop(); // Only relevent for tests.
+		this.server.Stop() // Only relevent for tests.
 	}
 	return
 }
@@ -67,7 +67,6 @@ func (this *store) Read() (res []species.Species, err error) {
 	}
 	return
 }
-
 
 func (this *store) ReadFromIndexKey(species.IndexKey) (*species.Species, error) {
 	return nil, nil
@@ -107,7 +106,7 @@ func (this *store) SetDescription(name species.CanonicalName, media *species.Med
 	if _, err := this.mongo.Coll(SpeciesColl).Upsert(M{"canonicalName": name}, M{
 		"$set": species.Species{
 			Description: media,
-			ModifiedAt: utils.TimePtr(time.Now()),
+			ModifiedAt:  utils.TimePtr(time.Now()),
 		},
 	}); err != nil {
 		errors.Wrap(err, "could not add description")
@@ -119,7 +118,7 @@ func (this *store) SetImage(name species.CanonicalName, media *species.Media) er
 	// Index: SpeciesColl.0
 	if _, err := this.mongo.Coll(SpeciesColl).Upsert(M{"canonicalName": name}, M{
 		"$set": species.Species{
-			Image: media,
+			Image:      media,
 			ModifiedAt: utils.TimePtr(time.Now()),
 		},
 	}); err != nil {

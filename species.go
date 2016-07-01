@@ -36,8 +36,8 @@ type Sources []Source
 type IndexKey int
 
 type Source struct {
-	Type          SourceType `json:"type" bson:"type"`
-	IndexKey IndexKey  `json:"indexKey" bson:"indexKey"`
+	Type     SourceType `json:"type" bson:"type"`
+	IndexKey IndexKey   `json:"indexKey" bson:"indexKey"`
 }
 
 func (this Source) IsZero() bool {

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bitbucket.org/heindl/nsqeco"
+	"bitbucket.org/heindl/species/store"
 	"github.com/bitly/go-nsq"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/species/store"
-	"bitbucket.org/heindl/nsqeco"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -21,8 +21,8 @@ func TestTaxonFetcher(t *testing.T) {
 			id := nsq.MessageID{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 's', 'd', 'f', 'g', 'h'}
 
 			fetcher := &SpeciesFetchHandler{
-				NSQProducer: producer,
-				SpeciesStore:    store,
+				NSQProducer:  producer,
+				SpeciesStore: store,
 			}
 			So(fetcher.HandleMessage(nsq.NewMessage(id, []byte("Limenitis arthemis"))), ShouldBeNil)
 

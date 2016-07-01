@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bitbucket.org/heindl/species"
-	"encoding/json"
-	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/species/store"
 	"bitbucket.org/heindl/nsqeco"
+	"bitbucket.org/heindl/species"
+	"bitbucket.org/heindl/species/store"
+	"encoding/json"
 	"github.com/bitly/go-nsq"
+	"github.com/dropbox/godropbox/errors"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	defer store.Close()
 
 	if err := nsqeco.Listen(nsqeco.NSQSpeciesFetch, &SpeciesFetchHandler{
-		NSQProducer: producer,
+		NSQProducer:  producer,
 		SpeciesStore: store,
 	}, 10); err != nil {
 		panic(err)
