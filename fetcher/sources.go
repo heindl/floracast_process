@@ -1,4 +1,4 @@
-package fetcher
+package main
 
 import (
 	"bitbucket.org/heindl/species"
@@ -36,7 +36,6 @@ func gatherSubspecies(name species.CanonicalName) ([]species.Species, error) {
 		if err := addtoset(sub.CanonicalName, sub); err != nil {
 			return nil, err
 		}
-
 		s := gbif.Species(sub.Key)
 		synonyms, err := s.Synonyms()
 		if err != nil {

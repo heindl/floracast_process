@@ -1,7 +1,6 @@
-package metafetcher
+package main
 
 import (
-	"bitbucket.org/heindl/cxt"
 	"bitbucket.org/heindl/logkeys"
 	. "bitbucket.org/heindl/malias"
 	"bitbucket.org/heindl/species"
@@ -9,31 +8,51 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"github.com/heindl/eol"
 	"strings"
+	"github.com/omidnikta/logrus"
+	"bitbucket.org/heindl/species/store"
+	"bitbucket.org/heindl/nsqeco"
 )
 
-type SpeciesMetaFetchHandler struct {
-	*cxt.Context
+func main() {
+	store, err := store.NewSpeciesStore()
+	if err != nil {
+		panic(err)
+	}
+	defer store.Close()
+	if err := nsqeco.Listen(nsqeco.NSQSpeciesMetaFetch, &SpeciesMetaFetchHandler{
+		Log: logrus.New(),
+		SpeciesStore: store,
+	}, 10); err != nil {
+		panic(err)
+	}
+	<-make(chan bool)
+
 }
 
-func (s *SpeciesMetaFetchHandler) HandleMessage(m *nsq.Message) (err error) {
+type SpeciesMetaFetchHandler struct {
+	Log          *logrus.Logger
+	SpeciesStore store.SpeciesStore
+}
 
-	scientificName := strings.Trim(string(m.Body), `"`)
+func (this *SpeciesMetaFetchHandler) HandleMessage(m *nsq.Message) (err error) {
 
-	if scientificName == "" {
+	name := species.CanonicalName(strings.Trim(string(m.Body), `"`))
+
+	if name == "" {
 		return nil
 	}
 
 	results, err := eol.Search(eol.SearchQuery{
-		Query: scientificName,
+		Query: string(name),
 		Limit: 10,
 	})
 	if err != nil {
-		s.Log.WithFields(M{logkeys.CanonicalName: scientificName}.Fields()).Error("could not search encyclopedia of life")
+		this.Log.WithFields(M{logkeys.CanonicalName: name}.Fields()).Error("could not search encyclopedia of life")
 		return err
 	}
 
 	if len(results) == 0 {
-		s.Log.WithFields(M{logkeys.CanonicalName: scientificName}.Fields()).Warn("no search results found from the encyclopedia of life")
+		this.Log.WithFields(M{logkeys.CanonicalName: name}.Fields()).Warn("no search results found from the encyclopedia of life")
 		return nil
 	}
 
@@ -58,55 +77,36 @@ func (s *SpeciesMetaFetchHandler) HandleMessage(m *nsq.Message) (err error) {
 	}
 
 	if highest.Identifier == 0 {
-		s.Log.WithFields(M{
-			logkeys.CanonicalName: scientificName,
+		this.Log.WithFields(M{
+			logkeys.CanonicalName: name,
 		}.Fields()).Warn("no page identifier found from the encyclopedia of life")
 		return nil
 	}
 
-	q := species.Species{
-		CanonicalName: species.CanonicalName(scientificName),
+	if err := this.SpeciesStore.AddSources(species.CanonicalName(name), species.Source{
+		Type:     species.SourceTypeEOL,
+		IndexKey: species.IndexKey(highest.Identifier),
+	}); err != nil {
+		return err
 	}
 
-	if _, err := s.Mongo.Coll(cxt.SpeciesColl).Upsert(q, s.genUpdateFromPage(highest)); err != nil {
-		return errors.Wrap(err, "could not update taxon data")
+	if len(highest.Texts()) > 0 {
+		if err := this.SpeciesStore.SetDescription(name, &species.Media{
+			Source: highest.Texts()[0].Source,
+			Value:  highest.Texts()[0].Value,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if len(highest.Images()) > 0 {
+		if err := this.SpeciesStore.SetImage(name, &species.Media{
+			Source: highest.Images()[0].Source,
+			Value:  highest.Images()[0].Value,
+		}); err != nil {
+			return err
+		}
 	}
 
 	return nil
-
-}
-
-func (s *SpeciesMetaFetchHandler) genUpdateFromPage(p eol.PageResponse) M {
-
-	u := M{
-		"$addToSet": M{
-			"sources": species.Source{
-				Type:     species.SourceTypeEOL,
-				IndexKey: species.IndexKey(p.Identifier),
-			},
-		},
-	}
-
-	if len(p.Texts()) == 0 || len(p.Images()) == 0 {
-		return u
-	}
-
-	set := species.Species{}
-
-	if len(p.Texts()) > 0 {
-		set.Description = &species.Media{
-			Source: p.Texts()[0].Source,
-			Value:  p.Texts()[0].Value,
-		}
-	}
-
-	if len(p.Images()) > 0 {
-		set.Image = &species.Media{
-			Source: p.Images()[0].Source,
-			Value:  p.Images()[0].Value,
-		}
-	}
-
-	u["$set"] = set
-	return u
 }
