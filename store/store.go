@@ -9,12 +9,13 @@ import (
 	"github.com/saleswise/errors/errors"
 	"gopkg.in/mgo.v2"
 	"time"
+	"bitbucket.org/heindl/logkeys"
 )
 
 type SpeciesStore interface {
 	Read() ([]species.Species, error)
 	ReadFromIndexKey(species.IndexKey) (*species.Species, error)
-	ReadFromCanonicalName(species.CanonicalName) (*species.Species, error)
+	ReadFromCanonicalNames(...species.CanonicalName) ([]species.Species, error)
 	AddSources(name species.CanonicalName, sources ...species.Source) error
 	SetDescription(species.CanonicalName, *species.Media) error
 	SetImage(species.CanonicalName, *species.Media) error
@@ -72,18 +73,15 @@ func (this *store) ReadFromIndexKey(species.IndexKey) (*species.Species, error) 
 	return nil, nil
 }
 
-func (this *store) ReadFromCanonicalName(name species.CanonicalName) (*species.Species, error) {
-	s := species.Species{
-		CanonicalName: name,
+func (this *store) ReadFromCanonicalNames(names ...species.CanonicalName) ([]species.Species, error) {
+	q := M{
+		"canonicalName": M{"$in": names},
 	}
-	err := this.mongo.Coll(SpeciesColl).Find(s).One(&s)
-	if err != nil && err != mgo.ErrNotFound {
-		return nil, errors.Wrap(err, "could not species from canonical name")
+	var list []species.Species
+	if err := this.mongo.Coll(SpeciesColl).Find(q).All(&list); err != nil {
+		return nil, errors.Wrap(err, "could not find species from canonical names").SetState(M{logkeys.Query: q})
 	}
-	if err != nil && err == mgo.ErrNotFound {
-		return nil, nil
-	}
-	return &s, nil
+	return list, nil
 }
 
 func (this *store) AddSources(name species.CanonicalName, sources ...species.Source) error {

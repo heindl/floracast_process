@@ -45,12 +45,12 @@ func (this *SpeciesFetchHandler) HandleMessage(m *nsq.Message) error {
 	name := species.CanonicalName(m.Body)
 
 	// Index: SpeciesColl.0
-	s, err := this.SpeciesStore.ReadFromCanonicalName(name)
+	list, err := this.SpeciesStore.ReadFromCanonicalNames(name)
 	if err != nil {
 		return err
 	}
-	if s != nil {
-		return this.queueOccurrenceFetch(*s)
+	if len(list) != 0 {
+		return this.queueOccurrenceFetch(list[0])
 	}
 
 	subspecies, err := gatherSubspecies(name)
