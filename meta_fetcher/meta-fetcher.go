@@ -22,7 +22,7 @@ func main() {
 	if err := nsqeco.Listen(nsqeco.NSQSpeciesMetaFetch, &SpeciesMetaFetchHandler{
 		Log:          logrus.New(),
 		SpeciesStore: store,
-	}, 10); err != nil {
+	}, 10, nsqeco.DefaultConfig()); err != nil {
 		panic(err)
 	}
 	<-make(chan bool)

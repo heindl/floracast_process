@@ -13,9 +13,10 @@ import (
 )
 
 type SpeciesStore interface {
-	Read() ([]species.Species, error)
-	ReadFromIndexKey(species.IndexKey) (*species.Species, error)
-	ReadFromCanonicalNames(...species.CanonicalName) ([]species.Species, error)
+	Read() (species.SpeciesList, error)
+	NewIterator() *mgo.Iter
+	ReadFromCanonicalNames(...species.CanonicalName) (species.SpeciesList, error)
+	ReadFromSources(...species.Source) (species.SpeciesList, error)
 	AddSources(name species.CanonicalName, sources ...species.Source) error
 	SetDescription(species.CanonicalName, *species.Media) error
 	SetImage(species.CanonicalName, *species.Media) error
@@ -41,6 +42,10 @@ func init() {
 
 var _ SpeciesStore = &store{}
 
+func NewTestSpeciesStore(server *mgotest.Server, m *mgoeco.Mongo) SpeciesStore {
+	return SpeciesStore(&store{server, m})
+}
+
 func NewSpeciesStore() (SpeciesStore, error) {
 	m, err := mgoeco.LiveMongo()
 	if err != nil {
@@ -62,18 +67,40 @@ func (this *store) Close() {
 	return
 }
 
-func (this *store) Read() (res []species.Species, err error) {
+func (this *store) Read() (res species.SpeciesList, err error) {
 	if err := this.mongo.Coll(SpeciesColl).Find(M{}).All(&res); err != nil {
 		return nil, errors.Wrap(err, "could not get all species")
 	}
 	return
 }
 
-func (this *store) ReadFromIndexKey(species.IndexKey) (*species.Species, error) {
-	return nil, nil
+func (this *store) NewIterator() *mgo.Iter {
+	return this.mongo.Coll(SpeciesColl).Find(M{}).Iter()
 }
 
-func (this *store) ReadFromCanonicalNames(names ...species.CanonicalName) ([]species.Species, error) {
+func (this *store) ReadFromSources(sources ...species.Source) (res species.SpeciesList, err error) {
+	for _, src := range sources {
+		if res.HasSource(src) {
+			continue
+		}
+		q := M{
+			"sources": M{
+				"$elemMatch": species.Source{
+					IndexKey: src.IndexKey,
+					Type: src.Type,
+				},
+			},
+		}
+		var s species.Species
+		if err := this.mongo.Coll(SpeciesColl).Find(q).One(&s); err != nil {
+			return nil, errors.Wrap(err, "could not find species").SetState(M{logkeys.Query: q})
+		}
+		res = res.AppendUnique(s)
+	}
+	return res, nil
+}
+
+func (this *store) ReadFromCanonicalNames(names ...species.CanonicalName) (species.SpeciesList, error) {
 	q := M{
 		"canonicalName": M{"$in": names},
 	}

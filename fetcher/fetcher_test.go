@@ -26,11 +26,11 @@ func TestTaxonFetcher(t *testing.T) {
 			}
 			So(fetcher.HandleMessage(nsq.NewMessage(id, []byte("Limenitis arthemis"))), ShouldBeNil)
 
-			So(producer.Count(nsqeco.NSQOccurrenceFetch), ShouldEqual, 25)
-			So(producer.Count(nsqeco.NSQSpeciesMetaFetch), ShouldEqual, 5)
+			So(producer.Count(nsqeco.NSQOccurrenceFetch), ShouldEqual, 42)
+			So(producer.Count(nsqeco.NSQSpeciesMetaFetch), ShouldEqual, 9)
 			specs, err := store.Read()
 			So(err, ShouldBeNil)
-			So(len(specs), ShouldEqual, 5)
+			So(len(specs), ShouldEqual, 9)
 			for _, n := range []string{
 				"Limenitis arthemis arizonensis",
 				"Limenitis arthemis rubrofasciata",

@@ -15,7 +15,8 @@ import (
 )
 
 func main() {
-	producer, err := nsqeco.NewProducer()
+	// Adding species fetch here because that message is produced manually only for now.
+	producer, err := nsqeco.NewProducer(nsqeco.NSQSpeciesFetch, nsqeco.NSQSpeciesMetaFetch, nsqeco.NSQOccurrenceFetch)
 	if err != nil {
 		panic(err)
 	}
@@ -26,10 +27,11 @@ func main() {
 	}
 	defer store.Close()
 
+	// http://localhost:4151/topic/create?topic=fetch-species
 	if err := nsqeco.Listen(nsqeco.NSQSpeciesFetch, &SpeciesFetchHandler{
 		NSQProducer:  producer,
 		SpeciesStore: store,
-	}, 10); err != nil {
+	}, 10, nsqeco.DefaultConfig()); err != nil {
 		panic(err)
 	}
 	<-make(chan bool)
@@ -96,7 +98,8 @@ func gatherSubspecies(name species.CanonicalName) ([]species.Species, error) {
 
 	subspecies, err := gbif.Search(gbif.SearchQuery{
 		Q:    string(name),
-		Rank: "SUBSPECIES",
+		Rank: []gbif.Rank{gbif.RankSUBSPECIES, gbif.RankSPECIES},
+		Status: []gbif.TaxonomicStatus{gbif.TaxonomicStatusACCEPTED},
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "could not search gbif")
