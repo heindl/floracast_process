@@ -7,14 +7,19 @@ import (
 	"bitbucket.org/heindl/species"
 	"bitbucket.org/heindl/species/store"
 	"bitbucket.org/heindl/utils"
-	"encoding/json"
-	"github.com/bitly/go-nsq"
 	"github.com/heindl/gbif"
 	"github.com/saleswise/errors/errors"
 	"time"
+	"github.com/heindl/eol"
+	"flag"
+	"gopkg.in/tomb.v2"
 )
 
 func main() {
+
+	name := flag.String("name", "species canonical name", "species canonical name that will subdivided into lesser species")
+	flag.Parse()
+
 	// Adding species fetch here because that message is produced manually only for now.
 	producer, err := nsqeco.NewProducer(nsqeco.NSQSpeciesFetch, nsqeco.NSQSpeciesMetaFetch, nsqeco.NSQOccurrenceFetch)
 	if err != nil {
@@ -28,73 +33,54 @@ func main() {
 	defer store.Close()
 
 	// http://localhost:4151/topic/create?topic=fetch-species
-	if err := nsqeco.Listen(nsqeco.NSQSpeciesFetch, &SpeciesFetchHandler{
+	fetcher := SpeciesFetcher{
 		NSQProducer:  producer,
 		SpeciesStore: store,
-	}, 10, nsqeco.DefaultConfig()); err != nil {
+	}
+
+	if err := fetcher.FetchSpecies(species.CanonicalName(*name)); err != nil {
 		panic(err)
 	}
-	<-make(chan bool)
 }
 
-type SpeciesFetchHandler struct {
+type SpeciesFetcher struct {
 	NSQProducer  nsqeco.Producer
 	SpeciesStore store.SpeciesStore
 }
 
-func (this *SpeciesFetchHandler) HandleMessage(m *nsq.Message) error {
+func (this *SpeciesFetcher) FetchSpecies(name species.CanonicalName) error {
 
-	name := species.CanonicalName(m.Body)
-
-	// Index: SpeciesColl.0
-	list, err := this.SpeciesStore.ReadFromCanonicalNames(name)
-	if err != nil {
-		return err
-	}
-	if len(list) != 0 {
-		return this.queueOccurrenceFetch(list[0])
+	if !name.Valid() {
+		return errors.New("canonical name not valid")
 	}
 
-	subspecies, err := gatherSubspecies(name)
+	spcs, err := gatherSpecies(name)
 	if err != nil {
 		return err
 	}
 
-	for _, s := range subspecies {
-		if err := this.SpeciesStore.AddSources(s.CanonicalName, s.Sources...); err != nil {
-			return err
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _spc := range spcs {
+			s := _spc
+			tmb.Go(func() error {
+				if err := this.SpeciesStore.AddSources(s.CanonicalName, s.Sources...); err != nil {
+					return err
+				}
+				if err := this.SpeciesStore.SetClassification(s.CanonicalName, s.Classification); err != nil {
+					return err
+				}
+				return this.setEOLMeta(s.CanonicalName)
+			})
 		}
-		if err := this.NSQProducer.Publish(nsqeco.NSQSpeciesMetaFetch, []byte(s.CanonicalName)); err != nil {
-			return errors.Wrap(err, "could not publish message").SetState(M{logkeys.Topic: nsqeco.NSQSpeciesMetaFetch, logkeys.CanonicalName: s.CanonicalName})
-		}
-		if err := this.queueOccurrenceFetch(s); err != nil {
-			return err
-		}
-	}
-
-	return nil
-
+		return nil
+	})
+	return tmb.Wait()
 }
 
-func (this *SpeciesFetchHandler) queueOccurrenceFetch(s species.Species) error {
+func gatherSpecies(name species.CanonicalName) ([]species.Species, error) {
 
-	for _, src := range s.Sources {
-		b, err := json.Marshal(nsqeco.OccurrenceFetchQuery{
-			Since:  &time.Time{}, // Use all of time for now. Eventually use last sync on source data.
-			Source: src,
-		})
-		if err != nil {
-			return errors.Wrap(err, "could not marshal taxon query")
-		}
-		if err := this.NSQProducer.Publish(nsqeco.NSQOccurrenceFetch, b); err != nil {
-			return errors.Wrapf(err, "could not publish message[%s]", nsqeco.NSQOccurrenceFetch)
-		}
-	}
-
-	return nil
-}
-
-func gatherSubspecies(name species.CanonicalName) ([]species.Species, error) {
+	list := make(map[species.CanonicalName]species.Species)
 
 	subspecies, err := gbif.Search(gbif.SearchQuery{
 		Q:    string(name),
@@ -105,52 +91,114 @@ func gatherSubspecies(name species.CanonicalName) ([]species.Species, error) {
 		return nil, errors.Wrap(err, "could not search gbif")
 	}
 
-	m := make(map[string][]int)
-
-	addtoset := func(name string, n gbif.NameUsage) error {
-		if n.Key == 0 {
-			return errors.Wrapf(err, "no key found for subspecies:\n %v", utils.JsonOrSpew(n))
+	for _, sp := range subspecies {
+		if sp.TaxonomicStatus != gbif.TaxonomicStatusACCEPTED {
+			continue
 		}
-		if _, ok := m[name]; ok {
-			m[name] = utils.AddIntToSet(m[name], n.Key)
+		var s species.Species
+		if _, ok := list[species.CanonicalName(sp.CanonicalName)]; !ok {
+			s = species.Species{
+				CanonicalName: species.CanonicalName(sp.CanonicalName),
+				ScientificName: sp.ScientificName,
+				CreatedAt: utils.TimePtr(time.Now()),
+				Sources: species.Sources{{species.SourceTypeGBIF, species.IndexKey(sp.Key)}},
+				Classification: sp.Classification,
+			}
 		} else {
-			m[name] = []int{n.Key}
+			s = list[species.CanonicalName(sp.CanonicalName)]
 		}
-		return nil
-	}
-
-	for _, sub := range subspecies {
-
-		if err := addtoset(sub.CanonicalName, sub); err != nil {
-			return nil, err
-		}
-		s := gbif.Species(sub.Key)
-		synonyms, err := s.Synonyms()
+		synonyms, err := gbif.Species(sp.Key).Synonyms()
 		if err != nil {
 			return nil, err
 		}
-		for _, synonym := range synonyms {
-			if err := addtoset(sub.CanonicalName, synonym); err != nil {
+		for _, sy := range synonyms {
+			//if sy.TaxonomicStatus == gbif.TaxonomicStatusACCEPTED {
+			//	s.Classification = sy.Classification
+			//}
+			s.Sources, err = s.Sources.AddToSet(species.SourceTypeGBIF, species.IndexKey(sy.Key))
+			if err != nil {
 				return nil, err
 			}
 		}
+		list[species.CanonicalName(sp.CanonicalName)] = s
 	}
 
-	var response []species.Species
 
-	for k, v := range m {
-		s := species.Species{
-			CanonicalName: species.CanonicalName(k),
-		}
-		for _, i := range v {
-			s.Sources = append(s.Sources, species.Source{
-				Type:     species.SourceTypeGBIF,
-				IndexKey: species.IndexKey(i),
-			})
-		}
-		response = append(response, s)
+	var response []species.Species
+	for _, v := range list {
+		response = append(response, v)
 	}
 
 	return response, nil
 
+}
+
+func (this *SpeciesFetcher) setEOLMeta(name species.CanonicalName) error {
+
+	if !name.Valid() {
+		return errors.New("canonical name not valid")
+	}
+
+	results, err := eol.Search(eol.SearchQuery{
+		Query: string(name),
+		Limit: 10,
+	})
+	if err != nil {
+		return errors.Wrap(err, "could not search encyclopedia of life").SetState(M{logkeys.CanonicalName: name})
+	}
+
+	if len(results) == 0 {
+		return nil
+	}
+
+	// The first result should be the most relevant, but check the top ten for the highest score.
+
+	var highest eol.PageResponse
+
+	for _, r := range results {
+
+		page, err := eol.Page(eol.PageQuery{
+			ID:      r.ID,
+			Images:  1,
+			Text:    1,
+			Details: true,
+		})
+		if err != nil {
+			return errors.Wrapf(err, "could not find page query from id[%v]", r.ID)
+		}
+		if page.RichnessScore > highest.RichnessScore {
+			highest = *page
+		}
+	}
+
+	if highest.Identifier == 0 {
+		return nil
+	}
+
+	if err := this.SpeciesStore.AddSources(species.CanonicalName(name), species.Source{
+		SourceType:     species.SourceTypeEOL,
+		IndexKey: species.IndexKey(highest.Identifier),
+	}); err != nil {
+		return err
+	}
+
+	if len(highest.Texts()) > 0 {
+		if err := this.SpeciesStore.SetDescription(name, &species.Media{
+			Source: highest.Texts()[0].Source,
+			Value:  highest.Texts()[0].Value,
+		}); err != nil {
+			return err
+		}
+	}
+
+	if len(highest.Images()) > 0 {
+		if err := this.SpeciesStore.SetImage(name, &species.Media{
+			Source: highest.Images()[0].Source,
+			Value:  highest.Images()[0].Value,
+		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

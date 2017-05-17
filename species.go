@@ -2,15 +2,22 @@ package species
 
 import (
 	"time"
+	"github.com/saleswise/errors/errors"
+	"bitbucket.org/heindl/logkeys"
+	"github.com/heindl/gbif"
+	. "bitbucket.org/heindl/malias"
 )
 
 type Species struct {
 	CanonicalName CanonicalName `bson:"canonicalName,omitempty" json:"canonicalName,omitempty"` // Canonical Name
-	CommonName CanonicalName `bson:"commonName,omitempty" json:"commonName,omitempty"`
+	ScientificName string `bson:"scientificName,omitempty" json:"scientificName,omitempty"`
+	CommonName string `bson:"commonName,omitempty" json:"commonName,omitempty"`
 	Sources       Sources       `bson:"sources,omitempty" json:"sources,omitempty"`
 	ModifiedAt    *time.Time    `bson:"modifiedAt,omitempty" json:"modifiedAt,omitempty"`
+	CreatedAt    *time.Time    `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
 	Description   *Media        `bson:"description,omitempty" json:"description,omitempty"`
 	Image         *Media        `bson:"image,omitempty" json:"image,omitempty"`
+	Classification *gbif.Classification   `bson:"classification,omitempty" json:"classification,omitempty"`
 }
 
 type SpeciesList []Species
@@ -39,7 +46,7 @@ func (sp *Species) HasSource(src Source) bool {
 		return false
 	}
 	for _, so := range sp.Sources {
-		if so.IndexKey == src.IndexKey && so.Type == src.Type {
+		if so.IndexKey == src.IndexKey && so.SourceType == src.SourceType {
 			return true
 		}
 	}
@@ -61,7 +68,7 @@ type Media struct {
 type SourceType string
 
 func (s SourceType) Valid() bool {
-	return string(s) != ""
+	return s == SourceTypeGBIF || s == SourceTypeEOL
 }
 
 const (
@@ -78,10 +85,22 @@ func (i IndexKey) Valid() bool {
 }
 
 type Source struct {
-	Type     SourceType `json:"type" bson:"type"`
-	IndexKey IndexKey   `json:"indexKey" bson:"indexKey"`
+	SourceType SourceType `json:"type" bson:"type"`
+	IndexKey   IndexKey   `json:"indexKey" bson:"indexKey"`
+}
+
+func (this Sources) AddToSet(src SourceType, key IndexKey) (Sources, error) {
+	if !src.Valid() {
+		return nil, errors.New("invalid source type").SetState(M{logkeys.Source: src})
+	}
+	for _, s := range this {
+		if s.IndexKey == key && s.SourceType == src {
+			return this, nil
+		}
+	}
+	return append(this, Source{src, key}), nil
 }
 
 func (this Source) IsZero() bool {
-	return this.Type == "" || this.IndexKey == 0
+	return this.SourceType == "" || this.IndexKey == 0
 }

@@ -10,6 +10,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"time"
 	"bitbucket.org/heindl/logkeys"
+	"github.com/heindl/gbif"
 )
 
 type SpeciesStore interface {
@@ -20,6 +21,7 @@ type SpeciesStore interface {
 	AddSources(name species.CanonicalName, sources ...species.Source) error
 	SetDescription(species.CanonicalName, *species.Media) error
 	SetImage(species.CanonicalName, *species.Media) error
+	SetClassification(species.CanonicalName, *gbif.Classification) error
 	Close()
 }
 
@@ -68,7 +70,7 @@ func (this *store) Close() {
 }
 
 func (this *store) Read() (res species.SpeciesList, err error) {
-	if err := this.mongo.Coll(SpeciesColl).Find(M{}).All(&res); err != nil {
+	if err := this.mongo.Coll(SpeciesColl).Find(M{}).Sort("canonicalName").All(&res); err != nil {
 		return nil, errors.Wrap(err, "could not get all species")
 	}
 	return
@@ -87,7 +89,7 @@ func (this *store) ReadFromSources(sources ...species.Source) (res species.Speci
 			"sources": M{
 				"$elemMatch": species.Source{
 					IndexKey: src.IndexKey,
-					Type: src.Type,
+					SourceType: src.SourceType,
 				},
 			},
 		}
@@ -121,7 +123,19 @@ func (this *store) AddSources(name species.CanonicalName, sources ...species.Sou
 			ModifiedAt: utils.TimePtr(time.Now()),
 		},
 	}); err != nil {
-		errors.Wrap(err, "could not upsert taxon")
+		return errors.Wrap(err, "could not upsert taxon")
+	}
+	return nil
+}
+
+func (this *store) SetClassification(name species.CanonicalName, c *gbif.Classification) error {
+	// Index: SpeciesColl.0
+	if _, err := this.mongo.Coll(SpeciesColl).Upsert(M{"canonicalName": name}, M{
+		"$set": species.Species{
+			Classification: c,
+		},
+	}); err != nil {
+		return errors.Wrap(err, "could not add classification")
 	}
 	return nil
 }
@@ -134,7 +148,7 @@ func (this *store) SetDescription(name species.CanonicalName, media *species.Med
 			ModifiedAt:  utils.TimePtr(time.Now()),
 		},
 	}); err != nil {
-		errors.Wrap(err, "could not add description")
+		return errors.Wrap(err, "could not add description")
 	}
 	return nil
 }
@@ -147,7 +161,7 @@ func (this *store) SetImage(name species.CanonicalName, media *species.Media) er
 			ModifiedAt: utils.TimePtr(time.Now()),
 		},
 	}); err != nil {
-		errors.Wrap(err, "could not add image")
+		return errors.Wrap(err, "could not add image")
 	}
 	return nil
 }

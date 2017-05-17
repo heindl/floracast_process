@@ -1,30 +1,32 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: species-meta-fetcher
+  name: species-fetcher
   namespace: phenograph
 spec:
-  replicas: 1
   template:
-    metadata:
-      labels:
-        app: species-meta-fetcher
     spec:
       containers:
-      - name: species-meta-fetcher
-        image: us.gcr.io/phenograph-154419/species-meta-fetcher
+      - name: species-fetcher
+        image: us.gcr.io/phenograph-154419/species-fetcher
         env:
         - name: PHENOGRAPH_MONGO_USERNAME
           valueFrom:
             secretKeyRef:
               name: mongo
               key: user
+        - name: PHENOGRAPH_DARKSKY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: darksky
+              key: token
         - name: PHENOGRAPH_MONGO_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mongo
               key: password
         - name: PHENOGRAPH_MONGO_ADDRESSES
-          value: phenograph-mongodb-repli:27017
+          value: phenograph-mongo-mongodb-replicaset:27017
         - name: PHENOGRAPH_MONGO_RS_NAME
           value: rs0
+      restartPolicy: Never
