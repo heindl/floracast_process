@@ -2,17 +2,20 @@ package species
 
 import (
 	"time"
-	"github.com/saleswise/errors/errors"
-	"bitbucket.org/heindl/logkeys"
 	"github.com/heindl/gbif"
-	. "bitbucket.org/heindl/malias"
+	"fmt"
+	"strings"
+	"strconv"
+	"github.com/saleswise/errors/errors"
+	. "github.com/saleswise/malias"
+	"bitbucket.org/heindl/utils"
 )
 
 type Species struct {
 	CanonicalName CanonicalName `bson:"canonicalName,omitempty" json:"canonicalName,omitempty"` // Canonical Name
 	ScientificName string `bson:"scientificName,omitempty" json:"scientificName,omitempty"`
 	CommonName string `bson:"commonName,omitempty" json:"commonName,omitempty"`
-	Sources       Sources       `bson:"sources,omitempty" json:"sources,omitempty"`
+	Sources       map[SourceKey]SourceData       `bson:"sources,omitempty" json:"sources,omitempty"`
 	ModifiedAt    *time.Time    `bson:"modifiedAt,omitempty" json:"modifiedAt,omitempty"`
 	CreatedAt    *time.Time    `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
 	Description   *Media        `bson:"description,omitempty" json:"description,omitempty"`
@@ -20,37 +23,74 @@ type Species struct {
 	Classification *gbif.Classification   `bson:"classification,omitempty" json:"classification,omitempty"`
 }
 
+type SourceKey string
+const sourceKeySeperator = "-+-"
+
+func (this SourceKey) Valid() bool {
+	return strings.Contains(string(this), sourceKeySeperator)
+}
+
+func NewSourceKey(k IndexKey, t SourceType) SourceKey {
+	return SourceKey(fmt.Sprintf("%s%s%v", t, sourceKeySeperator, k))
+}
+
+func (this SourceKey) Unmarshal() (IndexKey, SourceType, error) {
+	s := strings.Split(string(this), sourceKeySeperator)
+	// Right now we only have integer src keys so convert to integer. In future will consider source type before initial conversion.
+	i, err := strconv.Atoi(s[1])
+	if err != nil {
+		return IndexKey(""), SourceType(""), errors.Wrap(err, "could not convert id string to integer").SetState(M{utils.LogkeyStringValue: s[1]})
+	}
+	return IndexKey(i), SourceType(s[0]), nil
+}
+
+type SourceKeys []SourceKey
+
+func (keys SourceKeys) AddToSet(key SourceKey) SourceKeys {
+	for _, k := range keys {
+		if k == key {
+			return keys
+		}
+	}
+	return append(keys, key)
+}
+
+type SourceData struct{
+	LastFetchedAt *time.Time
+}
+
 type SpeciesList []Species
 
-func (list SpeciesList) HasSource(src Source) bool {
-	for _, l := range list {
-		if l.HasSource(src) {
+func (list SpeciesList) HasSourceKey(key SourceKey) bool {
+	for _, s := range list {
+		if s.HasSourceKey(key) {
 			return true
 		}
 	}
 	return false
 }
 
-func (list SpeciesList) AppendUnique(s Species) SpeciesList {
+func (list SpeciesList) AddToSet(s Species) SpeciesList {
 	for _, l := range list {
 		if l.CanonicalName == s.CanonicalName {
 			return list
 		}
 	}
-	list = append(list, s)
-	return list
+	return append(list, s)
 }
 
-func (sp *Species) HasSource(src Source) bool {
-	if src.IsZero() {
+func (sp *Species) HasSourceKey(key SourceKey) bool {
+	if !key.Valid() {
 		return false
 	}
-	for _, so := range sp.Sources {
-		if so.IndexKey == src.IndexKey && so.SourceType == src.SourceType {
-			return true
-		}
+	if sp == nil {
+		return false
 	}
-	return false
+	if sp.Sources == nil || len(sp.Sources) == 0 {
+		return false
+	}
+	_, ok := sp.Sources[key]
+	return ok
 }
 
 // The canonical name is the scientific name of the species, which can cover multiple subspecies.
@@ -76,31 +116,4 @@ const (
 	SourceTypeEOL  = SourceType("eol")
 )
 
-type Sources []Source
-
-type IndexKey int
-
-func (i IndexKey) Valid() bool {
-	return int(i) != 0
-}
-
-type Source struct {
-	SourceType SourceType `json:"type" bson:"type"`
-	IndexKey   IndexKey   `json:"indexKey" bson:"indexKey"`
-}
-
-func (this Sources) AddToSet(src SourceType, key IndexKey) (Sources, error) {
-	if !src.Valid() {
-		return nil, errors.New("invalid source type").SetState(M{logkeys.Source: src})
-	}
-	for _, s := range this {
-		if s.IndexKey == key && s.SourceType == src {
-			return this, nil
-		}
-	}
-	return append(this, Source{src, key}), nil
-}
-
-func (this Source) IsZero() bool {
-	return this.SourceType == "" || this.IndexKey == 0
-}
+type IndexKey interface{} // Could be a string or an int

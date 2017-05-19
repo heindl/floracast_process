@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bitbucket.org/heindl/nsqeco"
 	"bitbucket.org/heindl/species/store"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
@@ -14,13 +13,11 @@ func TestTaxonFetcher(t *testing.T) {
 
 	Convey("given an environment", t, func() {
 
-		producer := &nsqeco.MockProducer{}
 		store := store.NewMockStore(t)
 
 		Convey("should handle taxon fetch message without error", func() {
 
 			fetcher := &SpeciesFetcher{
-				NSQProducer:  producer,
 				SpeciesStore: store,
 			}
 			So(fetcher.FetchSpecies(species.CanonicalName("Limenitis arthemis")), ShouldBeNil)
@@ -28,7 +25,7 @@ func TestTaxonFetcher(t *testing.T) {
 			specs, err := store.Read()
 			So(err, ShouldBeNil)
 
-			So(len(specs), ShouldEqual, 8)
+			So(len(specs), ShouldEqual, 7)
 			for _, n := range []string{
 				"Limenitis arthemis arizonensis",
 				"Limenitis arthemis rubrofasciata",
@@ -45,9 +42,8 @@ func TestTaxonFetcher(t *testing.T) {
 				So(exists, ShouldBeTrue)
 			}
 			// Check for EOL data
-			So(len(specs), ShouldEqual, 8)
 			So(specs[0].CanonicalName, ShouldEqual, species.CanonicalName("Limenitis arthemis"))
-			So(len(specs[0].Sources), ShouldEqual, 9)
+			So(len(specs[0].Sources), ShouldEqual, 5)
 			So(specs[0].Image, ShouldNotBeNil)
 			So(specs[0].Image.Value, ShouldEqual, "http://media.eol.org/content/2010/12/10/03/77851_orig.jpg")
 			So(specs[0].Description, ShouldNotBeNil)

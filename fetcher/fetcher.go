@@ -1,9 +1,6 @@
 package main
 
 import (
-	"bitbucket.org/heindl/logkeys"
-	. "bitbucket.org/heindl/malias"
-	"bitbucket.org/heindl/nsqeco"
 	"bitbucket.org/heindl/species"
 	"bitbucket.org/heindl/species/store"
 	"bitbucket.org/heindl/utils"
@@ -13,6 +10,7 @@ import (
 	"github.com/heindl/eol"
 	"flag"
 	"gopkg.in/tomb.v2"
+	. "github.com/saleswise/malias"
 )
 
 func main() {
@@ -20,12 +18,7 @@ func main() {
 	name := flag.String("name", "species canonical name", "species canonical name that will subdivided into lesser species")
 	flag.Parse()
 
-	// Adding species fetch here because that message is produced manually only for now.
-	producer, err := nsqeco.NewProducer(nsqeco.NSQSpeciesFetch, nsqeco.NSQSpeciesMetaFetch, nsqeco.NSQOccurrenceFetch)
-	if err != nil {
-		panic(err)
-	}
-	defer producer.Stop()
+
 	store, err := store.NewSpeciesStore()
 	if err != nil {
 		panic(err)
@@ -34,7 +27,6 @@ func main() {
 
 	// http://localhost:4151/topic/create?topic=fetch-species
 	fetcher := SpeciesFetcher{
-		NSQProducer:  producer,
 		SpeciesStore: store,
 	}
 
@@ -44,7 +36,6 @@ func main() {
 }
 
 type SpeciesFetcher struct {
-	NSQProducer  nsqeco.Producer
 	SpeciesStore store.SpeciesStore
 }
 
@@ -64,8 +55,10 @@ func (this *SpeciesFetcher) FetchSpecies(name species.CanonicalName) error {
 		for _, _spc := range spcs {
 			s := _spc
 			tmb.Go(func() error {
-				if err := this.SpeciesStore.AddSources(s.CanonicalName, s.Sources...); err != nil {
-					return err
+				for k, _ := range s.Sources {
+					if err := this.SpeciesStore.AddSource(s.CanonicalName, k); err != nil {
+						return err
+					}
 				}
 				if err := this.SpeciesStore.SetClassification(s.CanonicalName, s.Classification); err != nil {
 					return err
@@ -96,12 +89,17 @@ func gatherSpecies(name species.CanonicalName) ([]species.Species, error) {
 			continue
 		}
 		var s species.Species
+		if sp.NubKey == 0 {
+			continue
+		}
 		if _, ok := list[species.CanonicalName(sp.CanonicalName)]; !ok {
 			s = species.Species{
 				CanonicalName: species.CanonicalName(sp.CanonicalName),
 				ScientificName: sp.ScientificName,
 				CreatedAt: utils.TimePtr(time.Now()),
-				Sources: species.Sources{{species.SourceTypeGBIF, species.IndexKey(sp.Key)}},
+				Sources: map[species.SourceKey]species.SourceData{
+					species.NewSourceKey(species.IndexKey(sp.NubKey), species.SourceTypeGBIF): species.SourceData{},
+				},
 				Classification: sp.Classification,
 			}
 		} else {
@@ -115,10 +113,14 @@ func gatherSpecies(name species.CanonicalName) ([]species.Species, error) {
 			//if sy.TaxonomicStatus == gbif.TaxonomicStatusACCEPTED {
 			//	s.Classification = sy.Classification
 			//}
-			s.Sources, err = s.Sources.AddToSet(species.SourceTypeGBIF, species.IndexKey(sy.Key))
-			if err != nil {
-				return nil, err
+			if sy.NubKey == 0 {
+				continue
 			}
+			k := species.NewSourceKey(species.IndexKey(sy.NubKey), species.SourceTypeGBIF)
+			if _, ok := s.Sources[k]; ok {
+				continue
+			}
+			s.Sources[k] = species.SourceData{}
 		}
 		list[species.CanonicalName(sp.CanonicalName)] = s
 	}
@@ -144,7 +146,7 @@ func (this *SpeciesFetcher) setEOLMeta(name species.CanonicalName) error {
 		Limit: 10,
 	})
 	if err != nil {
-		return errors.Wrap(err, "could not search encyclopedia of life").SetState(M{logkeys.CanonicalName: name})
+		return errors.Wrap(err, "could not search encyclopedia of life").SetState(M{utils.LogkeyCanonicalName: name})
 	}
 
 	if len(results) == 0 {
@@ -175,10 +177,7 @@ func (this *SpeciesFetcher) setEOLMeta(name species.CanonicalName) error {
 		return nil
 	}
 
-	if err := this.SpeciesStore.AddSources(species.CanonicalName(name), species.Source{
-		SourceType:     species.SourceTypeEOL,
-		IndexKey: species.IndexKey(highest.Identifier),
-	}); err != nil {
+	if err := this.SpeciesStore.AddSource(species.CanonicalName(name), species.NewSourceKey(species.IndexKey(highest.Identifier), species.SourceTypeEOL)); err != nil {
 		return err
 	}
 

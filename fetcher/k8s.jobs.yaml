@@ -9,6 +9,7 @@ spec:
       containers:
       - name: species-fetcher
         image: us.gcr.io/phenograph-154419/species-fetcher
+        command: ["/main", "--name={{SPECIES_NAME}}"]
         env:
         - name: PHENOGRAPH_MONGO_USERNAME
           valueFrom:
