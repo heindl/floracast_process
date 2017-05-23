@@ -56,7 +56,7 @@ func (keys SourceKeys) AddToSet(key SourceKey) SourceKeys {
 }
 
 type SourceData struct{
-	LastFetchedAt *time.Time
+	LastFetchedAt *time.Time `json:"lastFetchedAt" bson:"lastFetchedAt"`
 }
 
 type SpeciesList []Species
@@ -117,3 +117,4 @@ const (
 )
 
 type IndexKey interface{} // Could be a string or an int
+

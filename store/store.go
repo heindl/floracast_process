@@ -118,7 +118,7 @@ func (this *store) ReadFromCanonicalNames(names ...species.CanonicalName) (speci
 
 func (this *store) SetSourceLastFetched(key species.SourceKey) error {
 	q := M{
-		fmt.Sprintf("source.%s"): M{"$exists": true},
+		fmt.Sprintf("sources.%s", key): M{"$exists": true},
 	}
 	u := M{
 		"$set": M{
@@ -126,7 +126,7 @@ func (this *store) SetSourceLastFetched(key species.SourceKey) error {
 			"modifiedAt": this.Clock.Now(),
 		},
 	}
-	if err := this.Mongo.Coll(SpeciesColl).Update(q, u); err != nil && err != mgo.ErrNotFound {
+	if err := this.Mongo.Coll(SpeciesColl).Update(q, u); err != nil {
 		return errors.Wrap(err, "could not add new source date").SetState(M{
 			utils.LogkeyQuery: q,
 			utils.LogkeyUpdate: u,
