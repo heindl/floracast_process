@@ -30,4 +30,11 @@ spec:
           value: phenograph-mongo-mongodb-replicaset:27017
         - name: PHENOGRAPH_MONGO_RS_NAME
           value: rs0
+        - name: PHENOGRAPH_REDIS_HOST
+          value: exciting-kitten-redis:6379
+        - name: PHENOGRAPH_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: exciting-kitten-redis
+              key: redis-password
       restartPolicy: Never
