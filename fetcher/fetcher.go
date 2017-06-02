@@ -11,6 +11,8 @@ import (
 	"flag"
 	"gopkg.in/tomb.v2"
 	. "github.com/saleswise/malias"
+	"fmt"
+	"strings"
 )
 
 func main() {
@@ -54,6 +56,9 @@ func (this *SpeciesFetcher) FetchSpecies(name species.CanonicalName) error {
 	tmb.Go(func() error {
 		for _, _spc := range spcs {
 			s := _spc
+			if !s.CanonicalName.Valid() {
+				continue
+			}
 			tmb.Go(func() error {
 				for k, _ := range s.Sources {
 					if err := this.SpeciesStore.AddSource(s.CanonicalName, k); err != nil {
@@ -90,6 +95,9 @@ func gatherSpecies(name species.CanonicalName) ([]species.Species, error) {
 		}
 		var s species.Species
 		if sp.NubKey == 0 {
+			continue
+		}
+		if strings.TrimSpace(sp.CanonicalName) == "" {
 			continue
 		}
 		if _, ok := list[species.CanonicalName(sp.CanonicalName)]; !ok {
@@ -138,7 +146,7 @@ func gatherSpecies(name species.CanonicalName) ([]species.Species, error) {
 func (this *SpeciesFetcher) setEOLMeta(name species.CanonicalName) error {
 
 	if !name.Valid() {
-		return errors.New("canonical name not valid")
+		return errors.Newf("canonical name not valid: %s", name)
 	}
 
 	results, err := eol.Search(eol.SearchQuery{
@@ -165,8 +173,13 @@ func (this *SpeciesFetcher) setEOLMeta(name species.CanonicalName) error {
 			Text:    1,
 			Details: true,
 		})
-		if err != nil {
+		if err != nil && !eol.ErrNotFound(err) {
 			return errors.Wrapf(err, "could not find page query from id[%v]", r.ID)
+		}
+		if err != nil && eol.ErrNotFound(err) {
+			// Log error message here
+			fmt.Println("Could not find EOL page: ", r.ID)
+			return nil
 		}
 		if page.RichnessScore > highest.RichnessScore {
 			highest = *page

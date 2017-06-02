@@ -1,13 +1,13 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: species-fetcher
+  name: species-fetcher-{{POD_NAME}}
   namespace: phenograph
 spec:
   template:
     spec:
       containers:
-      - name: species-fetcher
+      - name: species-fetcher-{{POD_NAME}}
         image: us.gcr.io/phenograph-154419/species-fetcher
         command: ["/main", "--name={{SPECIES_NAME}}"]
         env:

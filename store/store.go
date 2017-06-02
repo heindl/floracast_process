@@ -44,7 +44,7 @@ func init() {
 			{
 				Background: true,
 				Sparse:     true,
-				Key:        []string{"sources"},
+				Key:        []string{"sourceKeys"},
 				Bits:       26,
 			},
 		},
@@ -91,34 +91,31 @@ func (this *store) NewIterator() *mgo.Iter {
 }
 
 func (this *store) ReadFromSourceKeys(keys ...species.SourceKey) (res species.SpeciesList, err error) {
-	for _, key := range keys {
-		if res.HasSourceKey(key) {
-			continue
-		}
-		q := M{fmt.Sprintf("sources.%s", key): M{"$exists": true}}
-		var s species.Species
-		if err := this.Mongo.Coll(SpeciesColl).Find(q).One(&s); err != nil {
-			return nil, errors.Wrap(err, "could not find species").SetState(M{utils.LogkeyQuery: q})
-		}
-		res = res.AddToSet(s)
+
+	q := M{
+		"sourceKeys": M{
+			"$in": keys,
+		},
+	}
+	if err := this.Mongo.Coll(SpeciesColl).Find(q).All(&res); err != nil {
+		return nil, errors.Wrap(err, "could not find species").SetState(M{utils.LogkeyQuery: q})
 	}
 	return res, nil
 }
 
-func (this *store) ReadFromCanonicalNames(names ...species.CanonicalName) (species.SpeciesList, error) {
+func (this *store) ReadFromCanonicalNames(names ...species.CanonicalName) (res species.SpeciesList, err error) {
 	q := M{
 		"canonicalName": M{"$in": names},
 	}
-	var list []species.Species
-	if err := this.Mongo.Coll(SpeciesColl).Find(q).All(&list); err != nil {
+	if err := this.Mongo.Coll(SpeciesColl).Find(q).All(&res); err != nil {
 		return nil, errors.Wrap(err, "could not find species from canonical names").SetState(M{utils.LogkeyQuery: q})
 	}
-	return list, nil
+	return res, nil
 }
 
 func (this *store) SetSourceLastFetched(key species.SourceKey) error {
 	q := M{
-		fmt.Sprintf("sources.%s", key): M{"$exists": true},
+		"sourceKeys": key,
 	}
 	u := M{
 		"$set": M{
@@ -164,10 +161,13 @@ func (this *store) AddSource(name species.CanonicalName, key species.SourceKey) 
 			},
 			"modifiedAt": utils.TimePtr(this.Clock.Now()),
 		},
+		"$addToSet": M{
+			"sourceKeys": key,
+		},
 	}
 	// Index: SpeciesColl.0
 	if err := this.Mongo.Coll(SpeciesColl).Update(q, u); err != nil && err != mgo.ErrNotFound {
-		return errors.Wrap(err, "could not upsert taxon").SetState(M{
+		return errors.Wrap(err, "could not update taxon").SetState(M{
 			utils.LogkeyQuery: q,
 			utils.LogkeyUpdate: u,
 		})

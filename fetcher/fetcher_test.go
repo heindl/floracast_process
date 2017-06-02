@@ -44,6 +44,7 @@ func TestTaxonFetcher(t *testing.T) {
 			// Check for EOL data
 			So(specs[0].CanonicalName, ShouldEqual, species.CanonicalName("Limenitis arthemis"))
 			So(len(specs[0].Sources), ShouldEqual, 5)
+			So(len(specs[0].SourceKeys), ShouldEqual, 5)
 			So(specs[0].Image, ShouldNotBeNil)
 			So(specs[0].Image.Value, ShouldEqual, "http://media.eol.org/content/2010/12/10/03/77851_orig.jpg")
 			So(specs[0].Description, ShouldNotBeNil)

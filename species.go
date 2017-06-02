@@ -16,6 +16,7 @@ type Species struct {
 	ScientificName string `bson:"scientificName,omitempty" json:"scientificName,omitempty"`
 	CommonName string `bson:"commonName,omitempty" json:"commonName,omitempty"`
 	Sources       map[SourceKey]SourceData       `bson:"sources,omitempty" json:"sources,omitempty"`
+	SourceKeys	SourceKeys `bson:"sourceKeys,omitempty" json:"sourceKeys,omitempty"`
 	ModifiedAt    *time.Time    `bson:"modifiedAt,omitempty" json:"modifiedAt,omitempty"`
 	CreatedAt    *time.Time    `bson:"createdAt,omitempty" json:"createdAt,omitempty"`
 	Description   *Media        `bson:"description,omitempty" json:"description,omitempty"`
