@@ -1,0 +1,2391 @@
+PORT 50057
+{
+  "Morchella agaricoides": {
+    "canonicalName": "Morchella agaricoides",
+    "scientificNames": [
+      "Morchella agaricoides DC.",
+      "Monka agaricodes (DC.) Kuntze",
+      "Monka agaricoides (DC.) Kuntze"
+    ],
+    "sources": {
+      "gbif-+-3495716": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3556407": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3556408": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495716",
+      "gbif-+-3556408",
+      "gbif-+-3556407"
+    ],
+    "createdAt": "2017-06-09T19:06:51.332710807-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella agaricoides",
+      "speciesKey": 3495716
+    }
+  },
+  "Morchella alba": {
+    "canonicalName": "Morchella alba",
+    "scientificNames": [
+      "Morchella alba Leuba"
+    ],
+    "sources": {
+      "gbif-+-3495690": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495690"
+    ],
+    "createdAt": "2017-06-09T19:06:52.730793561-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella alba",
+      "speciesKey": 3495690
+    }
+  },
+  "Morchella ambigua": {
+    "canonicalName": "Morchella ambigua",
+    "scientificNames": [
+      "Morchella ambigua Pers."
+    ],
+    "sources": {
+      "gbif-+-2594618": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594618"
+    ],
+    "createdAt": "2017-06-09T19:06:54.522527618-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 108327175,
+      "family": "Morchellaceae",
+      "familyKey": 108327623,
+      "genus": "Morchella",
+      "genusKey": 108327645,
+      "kingdom": "Fungi",
+      "kingdomKey": 108283961,
+      "order": "Pezizales",
+      "orderKey": 108327176,
+      "phylum": "Ascomycota",
+      "phylumKey": 108283962,
+      "species": "Morchella ambigua",
+      "speciesKey": 108327669
+    }
+  },
+  "Morchella angusticeps": {
+    "canonicalName": "Morchella angusticeps",
+    "scientificNames": [
+      "Morchella angusticeps Peck, 1887",
+      "Morchella angusticeps var. angusticeps Peck, 1887",
+      "Morchella angusticeps var. ovoideobrunnea C.J. Mu, 1987"
+    ],
+    "sources": {
+      "gbif-+-2594624": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495607": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495670": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594624",
+      "gbif-+-3495607",
+      "gbif-+-3495670"
+    ],
+    "createdAt": "2017-06-09T19:06:47.068775068-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 108327175,
+      "family": "Morchellaceae",
+      "familyKey": 108327623,
+      "genus": "Morchella",
+      "genusKey": 108327645,
+      "kingdom": "Fungi",
+      "kingdomKey": 108283961,
+      "order": "Pezizales",
+      "orderKey": 108327176,
+      "phylum": "Ascomycota",
+      "phylumKey": 108283962,
+      "species": "Morchella angusticeps",
+      "speciesKey": 108327670
+    }
+  },
+  "Morchella apicata": {
+    "canonicalName": "Morchella apicata",
+    "scientificNames": [
+      "Morchella apicata Smotl., 1921"
+    ],
+    "sources": {
+      "gbif-+-3495666": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495666"
+    ],
+    "createdAt": "2017-06-09T19:06:48.476168448-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella apicata",
+      "speciesKey": 3495666
+    }
+  },
+  "Morchella autumnalis": {
+    "canonicalName": "Morchella autumnalis",
+    "scientificNames": [
+      "Morchella autumnalis Leuba"
+    ],
+    "sources": {
+      "gbif-+-3495702": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495702"
+    ],
+    "createdAt": "2017-06-09T19:06:47.711336965-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella autumnalis",
+      "speciesKey": 3495702
+    }
+  },
+  "Morchella bicostata": {
+    "canonicalName": "Morchella bicostata",
+    "scientificNames": [
+      "Morchella bicostata"
+    ],
+    "sources": {
+      "gbif-+-3495680": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495680"
+    ],
+    "createdAt": "2017-06-09T19:06:44.81136214-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella bicostata",
+      "speciesKey": 3495680
+    }
+  },
+  "Morchella canina": {
+    "canonicalName": "Morchella canina",
+    "scientificNames": [
+      "Morchella canina"
+    ],
+    "sources": {
+      "gbif-+-3495711": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495711"
+    ],
+    "createdAt": "2017-06-09T19:06:45.140265719-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella canina",
+      "speciesKey": 3495711
+    }
+  },
+  "Morchella ceracea": {
+    "canonicalName": "Morchella ceracea",
+    "scientificNames": [
+      "Morchella ceracea Krombh."
+    ],
+    "sources": {
+      "gbif-+-3495692": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495692"
+    ],
+    "createdAt": "2017-06-09T19:06:59.390039336-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella ceracea",
+      "speciesKey": 3495692
+    }
+  },
+  "Morchella claviformis": {
+    "canonicalName": "Morchella claviformis",
+    "scientificNames": [
+      "Morchella claviformis Clowez, 2012"
+    ],
+    "sources": {
+      "gbif-+-8355685": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-8355685"
+    ],
+    "createdAt": "2017-06-09T19:06:55.034416475-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 131181593,
+      "family": "Morchellaceae",
+      "familyKey": 131181781,
+      "genus": "Morchella",
+      "genusKey": 131181791,
+      "kingdom": "Fungi",
+      "kingdomKey": 131177628,
+      "order": "Pezizales",
+      "orderKey": 131181594,
+      "phylum": "Ascomycota",
+      "phylumKey": 131181558,
+      "species": "Morchella claviformis",
+      "speciesKey": 117713360
+    }
+  },
+  "Morchella conica": {
+    "canonicalName": "Morchella conica",
+    "scientificNames": [
+      "Morchella conica Pers.",
+      "Morchella conica Pers.:Fr."
+    ],
+    "sources": {
+      "gbif-+-2594617": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-9014337": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594617",
+      "gbif-+-9014337"
+    ],
+    "createdAt": "2017-06-09T19:06:46.178210998-04:00",
+    "classification": {
+      "class": "",
+      "classKey": 0,
+      "family": "",
+      "familyKey": 0,
+      "genus": "Morchella",
+      "genusKey": 117166509,
+      "kingdom": "",
+      "kingdomKey": 0,
+      "order": "Pezizales",
+      "orderKey": 117166466,
+      "phylum": "Ascomycota",
+      "phylumKey": 117164564,
+      "species": "Morchella conica",
+      "speciesKey": 117166512
+    }
+  },
+  "Morchella conico-papyracea": {
+    "canonicalName": "Morchella conico-papyracea",
+    "scientificNames": [
+      "Morchella conico-papyracea Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495677": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495677"
+    ],
+    "createdAt": "2017-06-09T19:06:58.623483094-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella conico-papyracea",
+      "speciesKey": 113912368
+    }
+  },
+  "Morchella conicopapyracea": {
+    "canonicalName": "Morchella conicopapyracea",
+    "scientificNames": [
+      "Morchella conicopapyracea Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495677": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495677"
+    ],
+    "createdAt": "2017-06-09T19:06:52.478764929-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella conicopapyracea",
+      "speciesKey": 113912369
+    }
+  },
+  "Morchella continua": {
+    "canonicalName": "Morchella continua",
+    "scientificNames": [
+      "Morchella continua Trotter"
+    ],
+    "sources": {
+      "gbif-+-3495728": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495728"
+    ],
+    "createdAt": "2017-06-09T19:06:51.066457187-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella continua",
+      "speciesKey": 3495728
+    }
+  },
+  "Morchella crassipes": {
+    "canonicalName": "Morchella crassipes",
+    "scientificNames": [
+      "Morchella crassipes (Vent.) Pers."
+    ],
+    "sources": {
+      "gbif-+-2594612": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594612"
+    ],
+    "createdAt": "2017-06-09T19:06:57.481782574-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella crassipes",
+      "speciesKey": 113912371
+    }
+  },
+  "Morchella deliciosa": {
+    "canonicalName": "Morchella deliciosa",
+    "scientificNames": [
+      "Morchella deliciosa Fr.",
+      "Morchella conica var. deliciosa (Fr.) Cetto, 1988",
+      "Morchella deliciosa var. deliciosa Fr., 1822",
+      "Morchella deliciosa var. elegans Boud., 1897",
+      "Morchella deliciosa var. incarnata Quél., 1892",
+      "Morchella deliciosa var. purpurascens Boud., 1897",
+      "Morilla deliciosa (Fr.) Quél., 1892",
+      "Morilla deliciosa var. deliciosa (Fr.) Quél., 1892"
+    ],
+    "sources": {
+      "gbif-+-2594620": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594621": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495633": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495738": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-5953080": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7258323": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7479406": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7983236": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594620",
+      "gbif-+-2594621",
+      "gbif-+-7258323",
+      "gbif-+-3495738",
+      "gbif-+-3495633",
+      "gbif-+-7479406",
+      "gbif-+-5953080",
+      "gbif-+-7983236"
+    ],
+    "createdAt": "2017-06-09T19:06:54.267935895-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 125941375,
+      "family": "Morchellaceae",
+      "familyKey": 125941450,
+      "genus": "Morchella",
+      "genusKey": 125941456,
+      "kingdom": "Fungi",
+      "kingdomKey": 101527734,
+      "order": "Pezizales",
+      "orderKey": 125941376,
+      "phylum": "Ascomycota",
+      "phylumKey": 125940715,
+      "species": "Morchella deliciosa",
+      "speciesKey": 101549065
+    }
+  },
+  "Morchella distans": {
+    "canonicalName": "Morchella distans",
+    "scientificNames": [
+      "Morchella distans Fr."
+    ],
+    "sources": {
+      "gbif-+-7258329": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-7258329"
+    ],
+    "createdAt": "2017-06-09T19:06:48.092076883-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella distans",
+      "speciesKey": 113912373
+    }
+  },
+  "Morchella dunalii": {
+    "canonicalName": "Morchella dunalii",
+    "scientificNames": [
+      "Morchella dunalii Boud."
+    ],
+    "sources": {
+      "gbif-+-3495590": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495590"
+    ],
+    "createdAt": "2017-06-09T19:06:48.743984998-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella dunalii",
+      "speciesKey": 3495590
+    }
+  },
+  "Morchella elata": {
+    "canonicalName": "Morchella elata",
+    "scientificNames": [
+      "Morchella elata Fr., 1822",
+      "Morchella elata Fr.:Fr.",
+      "Morchella purpurascens (Krombh. ex Boud.) Jacquet., 1984",
+      "Boletus esculentus P. Micheli, 1729",
+      "Boletus esculentus var. esculentus",
+      "Boletus esculentus var. fuligineus Pers., 1825",
+      "Boletus esculentus var. pinguis (Thore) Pers., 1825",
+      "Morchella conica var. nigripes M.M. Moser, 1949",
+      "Morchella conica var. purpurascens (Krombh. ex Boud.) Boud., 1907",
+      "Morchella elata var. clusii Lév.",
+      "Morchella elata var. elata",
+      "Morchella elata var. nigripes (M.M. Moser) Kreisel, 1984",
+      "Morchella elata var. nivea Konrad, 1923",
+      "Morchella purpurascens f. heteroparaphysa Jacquet., 1985",
+      "Morchella purpurascens f. purpurascens",
+      "Morchella purpurascens var. ionoviridis Jacquet., 1985",
+      "Morchella purpurascens var. purpurascens",
+      "Morchella conica Pers.",
+      "Morchella costata (Vent.) Pers.",
+      "Morchella deliciosa Fr.",
+      "Morchella elata var. purpurascens Krombh. ex Boud., 1897",
+      "Suillus pinguis Thore, 1803"
+    ],
+    "sources": {
+      "gbif-+-2594617": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594620": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594626": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594628": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594629": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594630": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495632": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495635": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495646": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495693": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495694": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495722": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495739": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-6015398": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-6015790": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-6016580": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7186554": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7258327": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7258332": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7864975": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8184905": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-9125542": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594626",
+      "gbif-+-9125542",
+      "gbif-+-2594628",
+      "gbif-+-2594629",
+      "gbif-+-6016580",
+      "gbif-+-6015398",
+      "gbif-+-6015790",
+      "gbif-+-3495635",
+      "gbif-+-3495722",
+      "gbif-+-3495694",
+      "gbif-+-7186554",
+      "gbif-+-3495739",
+      "gbif-+-3495646",
+      "gbif-+-3495693",
+      "gbif-+-7258332",
+      "gbif-+-3495632",
+      "gbif-+-7258327",
+      "gbif-+-2594617",
+      "gbif-+-2594630",
+      "gbif-+-2594620",
+      "gbif-+-7864975",
+      "gbif-+-8184905"
+    ],
+    "createdAt": "2017-06-09T19:06:48.21706246-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella elata",
+      "speciesKey": 113912374
+    }
+  },
+  "Morchella elatovelutipes": {
+    "canonicalName": "Morchella elatovelutipes",
+    "scientificNames": [
+      "Morchella elatovelutipes Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495649": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495649"
+    ],
+    "createdAt": "2017-06-09T19:06:50.935520029-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella elatovelutipes",
+      "speciesKey": 3495649
+    }
+  },
+  "Morchella esculenta": {
+    "canonicalName": "Morchella esculenta",
+    "scientificNames": [
+      "Morchella esculenta (L.) Pers.",
+      "Morchella crassipes (Vent.) Pers.",
+      "Morchella esculenta var. alba Boud.",
+      "Morchella esculenta var. rigida Krombh.",
+      "Morchella vulgaris (Pers.) Boud."
+    ],
+    "sources": {
+      "gbif-+-2594602": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594612": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8281396": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8298968": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8976256": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594602",
+      "gbif-+-2594612",
+      "gbif-+-8281396",
+      "gbif-+-8298968",
+      "gbif-+-8976256"
+    ],
+    "createdAt": "2017-06-09T19:06:56.43995066-04:00",
+    "classification": {
+      "class": "",
+      "classKey": 0,
+      "family": "",
+      "familyKey": 0,
+      "genus": "Morchella",
+      "genusKey": 117166509,
+      "kingdom": "",
+      "kingdomKey": 0,
+      "order": "Pezizales",
+      "orderKey": 117166466,
+      "phylum": "Ascomycota",
+      "phylumKey": 117164564,
+      "species": "Morchella esculenta",
+      "speciesKey": 117166511
+    }
+  },
+  "Morchella eximia": {
+    "canonicalName": "Morchella eximia",
+    "scientificNames": [
+      "Morchella eximia Boud.",
+      "Morchella conica subsp. acuminata (J. Kickx f.) Sacc., 1889",
+      "Morchella conica var. acuminata J. Kickx f., 1867",
+      "Morchella costata var. acuminata (J. Kickx f.) Boud., 1897",
+      "Morchella eximia f. acuminata (J. Kickx f.) Clowez, 2012",
+      "Morchella eximia f. eximia Boud., 1910",
+      "Morchella eximia f. schizocostata Jacquet., 1985"
+    ],
+    "sources": {
+      "gbif-+-3495707": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7258337": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7258338": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7370284": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7822875": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7915475": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8189209": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-7258337",
+      "gbif-+-7915475",
+      "gbif-+-7370284",
+      "gbif-+-8189209",
+      "gbif-+-7822875",
+      "gbif-+-7258338",
+      "gbif-+-3495707"
+    ],
+    "createdAt": "2017-06-09T19:06:49.401743817-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 125941375,
+      "family": "Morchellaceae",
+      "familyKey": 125941450,
+      "genus": "Morchella",
+      "genusKey": 125941456,
+      "kingdom": "Fungi",
+      "kingdomKey": 101527734,
+      "order": "Pezizales",
+      "orderKey": 125941376,
+      "phylum": "Ascomycota",
+      "phylumKey": 125940715,
+      "species": "Morchella eximia",
+      "speciesKey": 101549071
+    }
+  },
+  "Morchella eximioides": {
+    "canonicalName": "Morchella eximioides",
+    "scientificNames": [
+      "Morchella eximioides Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495637": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495637"
+    ],
+    "createdAt": "2017-06-09T19:06:58.876809039-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella eximioides",
+      "speciesKey": 113912385
+    }
+  },
+  "Morchella finoti": {
+    "canonicalName": "Morchella finoti",
+    "scientificNames": [
+      "Morchella finoti Sarrazin \u0026 Feuilleaub."
+    ],
+    "sources": {
+      "gbif-+-3495617": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495617"
+    ],
+    "createdAt": "2017-06-09T19:06:51.195631382-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella finoti",
+      "speciesKey": 3495617
+    }
+  },
+  "Morchella foraminulosa": {
+    "canonicalName": "Morchella foraminulosa",
+    "scientificNames": [
+      "Morchella foraminulosa Schwein."
+    ],
+    "sources": {
+      "gbif-+-3495661": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495661"
+    ],
+    "createdAt": "2017-06-09T19:06:56.834316875-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella foraminulosa",
+      "speciesKey": 3495661
+    }
+  },
+  "Morchella hetieri": {
+    "canonicalName": "Morchella hetieri",
+    "scientificNames": [
+      "Morchella hetieri Boud., 1903"
+    ],
+    "sources": {
+      "gbif-+-3495685": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495685"
+    ],
+    "createdAt": "2017-06-09T19:06:46.434110223-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella hetieri",
+      "speciesKey": 3495685
+    }
+  },
+  "Morchella hiemalis": {
+    "canonicalName": "Morchella hiemalis",
+    "scientificNames": [
+      "Morchella hiemalis (Balb.) Fr."
+    ],
+    "sources": {
+      "gbif-+-3495710": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495710"
+    ],
+    "createdAt": "2017-06-09T19:06:56.567061642-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella hiemalis",
+      "speciesKey": 3495710
+    }
+  },
+  "Morchella hortensis": {
+    "canonicalName": "Morchella hortensis",
+    "scientificNames": [
+      "Morchella hortensis Boud., 1897",
+      "Morchella hortensis var. hortensis Boud., 1897"
+    ],
+    "sources": {
+      "gbif-+-2594623": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7721230": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594623",
+      "gbif-+-7721230"
+    ],
+    "createdAt": "2017-06-09T19:06:47.837559315-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella hortensis",
+      "speciesKey": 2594623
+    }
+  },
+  "Morchella hungarica": {
+    "canonicalName": "Morchella hungarica",
+    "scientificNames": [
+      "Morchella hungarica Bánhegyi, 1941"
+    ],
+    "sources": {
+      "gbif-+-3495651": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495651"
+    ],
+    "createdAt": "2017-06-09T19:06:54.016603158-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella hungarica",
+      "speciesKey": 3495651
+    }
+  },
+  "Morchella inamoena": {
+    "canonicalName": "Morchella inamoena",
+    "scientificNames": [
+      "Morchella inamoena Boud."
+    ],
+    "sources": {
+      "gbif-+-3495619": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495619"
+    ],
+    "createdAt": "2017-06-09T19:06:52.605115911-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella inamoena",
+      "speciesKey": 3495619
+    }
+  },
+  "Morchella intermedia": {
+    "canonicalName": "Morchella intermedia",
+    "scientificNames": [
+      "Morchella intermedia Boud."
+    ],
+    "sources": {
+      "gbif-+-7258342": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-7258342"
+    ],
+    "createdAt": "2017-06-09T19:06:53.115947716-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella intermedia",
+      "speciesKey": 7258342
+    }
+  },
+  "Morchella meiliensis": {
+    "canonicalName": "Morchella meiliensis",
+    "scientificNames": [
+      "Morchella meiliensis"
+    ],
+    "sources": {
+      "gbif-+-3495622": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495622"
+    ],
+    "createdAt": "2017-06-09T19:06:44.940118659-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella meiliensis",
+      "speciesKey": 3495622
+    }
+  },
+  "Morchella mesomorpha": {
+    "canonicalName": "Morchella mesomorpha",
+    "scientificNames": [
+      "Morchella mesomorpha Pers."
+    ],
+    "sources": {
+      "gbif-+-3495593": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495593"
+    ],
+    "createdAt": "2017-06-09T19:06:53.243502691-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella mesomorpha",
+      "speciesKey": 3495593
+    }
+  },
+  "Morchella mitra": {
+    "canonicalName": "Morchella mitra",
+    "scientificNames": [
+      "Morchella mitra Lenz"
+    ],
+    "sources": {
+      "gbif-+-3495644": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495644"
+    ],
+    "createdAt": "2017-06-09T19:06:49.14649956-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella mitra",
+      "speciesKey": 3495644
+    }
+  },
+  "Morchella neuwirthii": {
+    "canonicalName": "Morchella neuwirthii",
+    "scientificNames": [
+      "Morchella neuwirthii Velen., 1922"
+    ],
+    "sources": {
+      "gbif-+-3495606": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495606"
+    ],
+    "createdAt": "2017-06-09T19:06:45.826192939-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella neuwirthii",
+      "speciesKey": 3495606
+    }
+  },
+  "Morchella norvegiensis": {
+    "canonicalName": "Morchella norvegiensis",
+    "scientificNames": [
+      "Morchella norvegiensis Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495611": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495611"
+    ],
+    "createdAt": "2017-06-09T19:06:53.369287366-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella norvegiensis",
+      "speciesKey": 3495611
+    }
+  },
+  "Morchella ochraceoviridis": {
+    "canonicalName": "Morchella ochraceoviridis",
+    "scientificNames": [
+      "Morchella ochraceoviridis Clowez, 2012"
+    ],
+    "sources": {
+      "gbif-+-7596060": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-7596060"
+    ],
+    "createdAt": "2017-06-09T19:07:00.823752173-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 131181593,
+      "family": "Morchellaceae",
+      "familyKey": 131181781,
+      "genus": "Morchella",
+      "genusKey": 131181791,
+      "kingdom": "Fungi",
+      "kingdomKey": 131177628,
+      "order": "Pezizales",
+      "orderKey": 131181594,
+      "phylum": "Ascomycota",
+      "phylumKey": 131181558,
+      "species": "Morchella ochraceoviridis",
+      "speciesKey": 117714353
+    }
+  },
+  "Morchella patagonica": {
+    "canonicalName": "Morchella patagonica",
+    "scientificNames": [
+      "Morchella patagonica Speg., 1909"
+    ],
+    "sources": {
+      "gbif-+-3495701": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495701"
+    ],
+    "createdAt": "2017-06-09T19:06:49.913290967-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 131181593,
+      "family": "Morchellaceae",
+      "familyKey": 131181781,
+      "genus": "Morchella",
+      "genusKey": 131181791,
+      "kingdom": "Fungi",
+      "kingdomKey": 131177628,
+      "order": "Pezizales",
+      "orderKey": 131181594,
+      "phylum": "Ascomycota",
+      "phylumKey": 131181558,
+      "species": "Morchella patagonica",
+      "speciesKey": 117713979
+    }
+  },
+  "Morchella patula": {
+    "canonicalName": "Morchella patula",
+    "scientificNames": [
+      "Morchella patula Pers., 1801",
+      "Mitrophora patula (Pers.) Lév., 1846",
+      "Morchella patula var. patula Pers., 1801"
+    ],
+    "sources": {
+      "gbif-+-2594622": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594653": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495591": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594622",
+      "gbif-+-2594653",
+      "gbif-+-3495591"
+    ],
+    "createdAt": "2017-06-09T19:06:47.964137608-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 108327175,
+      "family": "Morchellaceae",
+      "familyKey": 108327623,
+      "genus": "Morchella",
+      "genusKey": 108327645,
+      "kingdom": "Fungi",
+      "kingdomKey": 108283961,
+      "order": "Pezizales",
+      "orderKey": 108327176,
+      "phylum": "Ascomycota",
+      "phylumKey": 108283962,
+      "species": "Morchella patula",
+      "speciesKey": 108327685
+    }
+  },
+  "Morchella praerosa": {
+    "canonicalName": "Morchella praerosa",
+    "scientificNames": [
+      "Morchella praerosa Krombh."
+    ],
+    "sources": {
+      "gbif-+-3495736": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495736"
+    ],
+    "createdAt": "2017-06-09T19:06:54.651493-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella praerosa",
+      "speciesKey": 3495736
+    }
+  },
+  "Morchella pragensis": {
+    "canonicalName": "Morchella pragensis",
+    "scientificNames": [
+      "Morchella pragensis Smotl., 1952",
+      "Morchella pragensis f. mirabilis Smotl., 1952",
+      "Morchella pragensis f. pragensis",
+      "Morchella pragensis f. pterigoides (Smotl. \u0026 M. Kolarík) J. Veselský, 1975",
+      "Morchella pragensis f. turriformis Smotl., 1952",
+      "Morchella pterigoides Smotl. \u0026 M. Kolarík"
+    ],
+    "sources": {
+      "gbif-+-3495597": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495610": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495695": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495731": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-6019620": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7258345": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-6019620",
+      "gbif-+-3495610",
+      "gbif-+-7258345",
+      "gbif-+-3495695",
+      "gbif-+-3495597",
+      "gbif-+-3495731"
+    ],
+    "createdAt": "2017-06-09T19:06:56.69361639-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella pragensis",
+      "speciesKey": 6019620
+    }
+  },
+  "Morchella pratensis": {
+    "canonicalName": "Morchella pratensis",
+    "scientificNames": [
+      "Morchella pratensis Leuba"
+    ],
+    "sources": {
+      "gbif-+-3495658": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495658"
+    ],
+    "createdAt": "2017-06-09T19:06:47.456219453-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella pratensis",
+      "speciesKey": 3495658
+    }
+  },
+  "Morchella pseudorigida": {
+    "canonicalName": "Morchella pseudorigida",
+    "scientificNames": [
+      "Morchella pseudorigida Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495594": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495594"
+    ],
+    "createdAt": "2017-06-09T19:06:57.736319944-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella pseudorigida",
+      "speciesKey": 3495594
+    }
+  },
+  "Morchella pseudoumbrina": {
+    "canonicalName": "Morchella pseudoumbrina",
+    "scientificNames": [
+      "Morchella pseudoumbrina Jacquet., 1985"
+    ],
+    "sources": {
+      "gbif-+-3495582": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495582"
+    ],
+    "createdAt": "2017-06-09T19:06:54.908684703-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella pseudoumbrina",
+      "speciesKey": 113912388
+    }
+  },
+  "Morchella pseudoviridis": {
+    "canonicalName": "Morchella pseudoviridis",
+    "scientificNames": [
+      "Morchella pseudoviridis Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495615": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495615"
+    ],
+    "createdAt": "2017-06-09T19:06:46.559003531-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella pseudoviridis",
+      "speciesKey": 113912389
+    }
+  },
+  "Morchella punctipes": {
+    "canonicalName": "Morchella punctipes",
+    "scientificNames": [
+      "Morchella punctipes Peck, 1903"
+    ],
+    "sources": {
+      "gbif-+-3495647": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495647"
+    ],
+    "createdAt": "2017-06-09T19:06:46.306949883-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella punctipes",
+      "speciesKey": 3495647
+    }
+  },
+  "Morchella radicosa": {
+    "canonicalName": "Morchella radicosa",
+    "scientificNames": [
+      "Morchella radicosa Leuba"
+    ],
+    "sources": {
+      "gbif-+-3495589": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495589"
+    ],
+    "createdAt": "2017-06-09T19:06:45.635371826-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella radicosa",
+      "speciesKey": 3495589
+    }
+  },
+  "Morchella rhodopoda": {
+    "canonicalName": "Morchella rhodopoda",
+    "scientificNames": [
+      "Morchella rhodopoda Krombh."
+    ],
+    "sources": {
+      "gbif-+-3495686": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495686"
+    ],
+    "createdAt": "2017-06-09T19:06:49.274340107-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella rhodopoda",
+      "speciesKey": 3495686
+    }
+  },
+  "Morchella rielana": {
+    "canonicalName": "Morchella rielana",
+    "scientificNames": [
+      "Morchella rielana Boud., 1907"
+    ],
+    "sources": {
+      "gbif-+-3495614": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495614"
+    ],
+    "createdAt": "2017-06-09T19:06:48.870741657-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella rielana",
+      "speciesKey": 3495614
+    }
+  },
+  "Morchella rimosipes": {
+    "canonicalName": "Morchella rimosipes",
+    "scientificNames": [
+      "Morchella rimosipes DC."
+    ],
+    "sources": {
+      "gbif-+-2594650": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594650"
+    ],
+    "createdAt": "2017-06-09T19:06:51.973112599-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 124704824,
+      "family": "Morchellaceae",
+      "familyKey": 124704922,
+      "genus": "Morchella",
+      "genusKey": 113912366,
+      "kingdom": "Fungi",
+      "kingdomKey": 124704250,
+      "order": "Pezizales",
+      "orderKey": 124704825,
+      "phylum": "Ascomycota",
+      "phylumKey": 124704712,
+      "species": "Morchella rimosipes",
+      "speciesKey": 113912391
+    }
+  },
+  "Morchella robiniae": {
+    "canonicalName": "Morchella robiniae",
+    "scientificNames": [
+      "Morchella robiniae Clowez, 2012"
+    ],
+    "sources": {
+      "gbif-+-7979573": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-7979573"
+    ],
+    "createdAt": "2017-06-09T19:06:49.534241092-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 131181593,
+      "family": "Morchellaceae",
+      "familyKey": 131181781,
+      "genus": "Morchella",
+      "genusKey": 131181791,
+      "kingdom": "Fungi",
+      "kingdomKey": 131177628,
+      "order": "Pezizales",
+      "orderKey": 131181594,
+      "phylum": "Ascomycota",
+      "phylumKey": 131181558,
+      "species": "Morchella robiniae",
+      "speciesKey": 117713351
+    }
+  },
+  "Morchella rudis": {
+    "canonicalName": "Morchella rudis",
+    "scientificNames": [
+      "Morchella rudis Boud."
+    ],
+    "sources": {
+      "gbif-+-3495642": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495642"
+    ],
+    "createdAt": "2017-06-09T19:06:57.861473687-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella rudis",
+      "speciesKey": 3495642
+    }
+  },
+  "Morchella semilibera": {
+    "canonicalName": "Morchella semilibera",
+    "scientificNames": [
+      "Morchella semilibera DC.:Fr.",
+      "Mitrophora gigas (Batsch : Fr.) Lév.",
+      "Mitrophora hybrida Boud.",
+      "Mitrophora semilibera (DC. : Fr.) Lév.",
+      "Morchella gigas (Batsch : Fr.) Pers."
+    ],
+    "sources": {
+      "gbif-+-2594641": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594642": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-2594648": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8794731": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-9159194": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-8794731",
+      "gbif-+-2594641",
+      "gbif-+-2594648",
+      "gbif-+-9159194",
+      "gbif-+-2594642"
+    ],
+    "createdAt": "2017-06-09T19:06:50.554517367-04:00",
+    "classification": {
+      "class": "Ascomycetes",
+      "classKey": 100503000,
+      "family": "Morchellaceae",
+      "familyKey": 100509191,
+      "genus": "Morchella",
+      "genusKey": 100509201,
+      "kingdom": "Fungi",
+      "kingdomKey": 100489794,
+      "order": "Pezizales",
+      "orderKey": 100508995,
+      "phylum": "Ascomycota",
+      "phylumKey": 100502998,
+      "species": "Morchella semilibera",
+      "speciesKey": 100509207
+    }
+  },
+  "Morchella smithiana": {
+    "canonicalName": "Morchella smithiana",
+    "scientificNames": [
+      "Morchella smithiana Cooke, 1878",
+      "Morchella crassipes var. smithiana (Cooke)"
+    ],
+    "sources": {
+      "gbif-+-2594619": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495636": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594619",
+      "gbif-+-3495636"
+    ],
+    "createdAt": "2017-06-09T19:06:45.508776044-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 108327175,
+      "family": "Morchellaceae",
+      "familyKey": 108327623,
+      "genus": "Morchella",
+      "genusKey": 108327645,
+      "kingdom": "Fungi",
+      "kingdomKey": 108283961,
+      "order": "Pezizales",
+      "orderKey": 108327176,
+      "phylum": "Ascomycota",
+      "phylumKey": 108283962,
+      "species": "Morchella smithiana",
+      "speciesKey": 108327686
+    }
+  },
+  "Morchella spongiola": {
+    "canonicalName": "Morchella spongiola",
+    "scientificNames": [
+      "Morchella spongiola Boud."
+    ],
+    "sources": {
+      "gbif-+-6019621": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-6019621"
+    ],
+    "createdAt": "2017-06-09T19:06:46.685385383-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella spongiola",
+      "speciesKey": 6019621
+    }
+  },
+  "Morchella steppicola": {
+    "canonicalName": "Morchella steppicola",
+    "scientificNames": [
+      "Morchella steppicola Zerova, 1941",
+      "Morchella pragensis Smotl.",
+      "Morchella tridentina Bres."
+    ],
+    "sources": {
+      "gbif-+-3495613": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495681": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-6019620": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495613",
+      "gbif-+-6019620",
+      "gbif-+-3495681"
+    ],
+    "createdAt": "2017-06-09T19:06:46.010582746-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 128737847,
+      "family": "Morchellaceae",
+      "familyKey": 128737854,
+      "genus": "",
+      "genusKey": 0,
+      "kingdom": "Fungi",
+      "kingdomKey": 126109398,
+      "order": "Pezizales",
+      "orderKey": 128737848,
+      "phylum": "Ascomycota",
+      "phylumKey": 128737047,
+      "species": "Morchella steppicola",
+      "speciesKey": 126155646
+    }
+  },
+  "Morchella sulcata": {
+    "canonicalName": "Morchella sulcata",
+    "scientificNames": [
+      "Morchella sulcata Velen., 1925"
+    ],
+    "sources": {
+      "gbif-+-3495669": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495669"
+    ],
+    "createdAt": "2017-06-09T19:06:47.583109998-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella sulcata",
+      "speciesKey": 3495669
+    }
+  },
+  "Morchella tasmanica": {
+    "canonicalName": "Morchella tasmanica",
+    "scientificNames": [
+      "Morchella tasmanica Ramsb., 1920"
+    ],
+    "sources": {
+      "gbif-+-3495724": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495724"
+    ],
+    "createdAt": "2017-06-09T19:06:47.196724033-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella tasmanica",
+      "speciesKey": 3495724
+    }
+  },
+  "Morchella tatari": {
+    "canonicalName": "Morchella tatari",
+    "scientificNames": [
+      "Morchella tatari Velen., 1925"
+    ],
+    "sources": {
+      "gbif-+-3495639": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495639"
+    ],
+    "createdAt": "2017-06-09T19:06:53.891063656-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella tatari",
+      "speciesKey": 3495639
+    }
+  },
+  "Morchella tridentina": {
+    "canonicalName": "Morchella tridentina",
+    "scientificNames": [
+      "Morchella tridentina Bres., 1898",
+      "Morchella elatoides Jacquet., 1985",
+      "Morchella elatoides var. elatoides",
+      "Morchella elatoides var. elegans Jacquet., 1985",
+      "Morchella conica var. pseudoeximia Clowez, 2012",
+      "Morchella frustrata M. Kuo, 2012",
+      "Morchella quercus-ilicis Clowez, Ballester \u0026 L. Romero, 2012",
+      "Morchella quercus-ilicis f. quercus-ilicis Clowez, Ballester \u0026 L. Romero, 2012"
+    ],
+    "sources": {
+      "gbif-+-3495626": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-3495681": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-6019622": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7258355": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7606682": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7893565": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8116610": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-8214112": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495681",
+      "gbif-+-6019622",
+      "gbif-+-7258355",
+      "gbif-+-3495626",
+      "gbif-+-7893565",
+      "gbif-+-7606682",
+      "gbif-+-8116610",
+      "gbif-+-8214112"
+    ],
+    "createdAt": "2017-06-09T19:06:48.607912988-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella tridentina",
+      "speciesKey": 3495681
+    }
+  },
+  "Morchella ulmaria": {
+    "canonicalName": "Morchella ulmaria",
+    "scientificNames": [
+      "Morchella ulmaria Clowez, 2012"
+    ],
+    "sources": {
+      "gbif-+-7840797": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-7840797"
+    ],
+    "createdAt": "2017-06-09T19:06:56.063932022-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 131181593,
+      "family": "Morchellaceae",
+      "familyKey": 131181781,
+      "genus": "Morchella",
+      "genusKey": 131181791,
+      "kingdom": "Fungi",
+      "kingdomKey": 131177628,
+      "order": "Pezizales",
+      "orderKey": 131181594,
+      "phylum": "Ascomycota",
+      "phylumKey": 131181558,
+      "species": "Morchella ulmaria",
+      "speciesKey": 117714392
+    }
+  },
+  "Morchella umbrinovelutipes": {
+    "canonicalName": "Morchella umbrinovelutipes",
+    "scientificNames": [
+      "Morchella umbrinovelutipes Jacquet."
+    ],
+    "sources": {
+      "gbif-+-3495718": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495718"
+    ],
+    "createdAt": "2017-06-09T19:06:46.812353463-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella umbrinovelutipes",
+      "speciesKey": 3495718
+    }
+  },
+  "Morchella undosa": {
+    "canonicalName": "Morchella undosa",
+    "scientificNames": [
+      "Morchella undosa (Batsch) Pers."
+    ],
+    "sources": {
+      "gbif-+-3495616": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495616"
+    ],
+    "createdAt": "2017-06-09T19:06:48.998709407-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella undosa",
+      "speciesKey": 3495616
+    }
+  },
+  "Morchella vaporaria": {
+    "canonicalName": "Morchella vaporaria",
+    "scientificNames": [
+      "Morchella vaporaria Brond.",
+      "Morchella hortensis var. vaporarius (Brond.) Boud., 1897",
+      "Morchella vaporaria var. vaporaria Brond., 1830"
+    ],
+    "sources": {
+      "gbif-+-2594625": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7513087": {
+        "lastFetchedAt": null
+      },
+      "gbif-+-7990518": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-2594625",
+      "gbif-+-7513087",
+      "gbif-+-7990518"
+    ],
+    "createdAt": "2017-06-09T19:06:47.325460096-04:00",
+    "classification": {
+      "class": "Ascomycetes",
+      "classKey": 100503000,
+      "family": "Morchellaceae",
+      "familyKey": 100509191,
+      "genus": "Morchella",
+      "genusKey": 100509201,
+      "kingdom": "Fungi",
+      "kingdomKey": 100489794,
+      "order": "Pezizales",
+      "orderKey": 100508995,
+      "phylum": "Ascomycota",
+      "phylumKey": 100502998,
+      "species": "Morchella vaporaria",
+      "speciesKey": 100509208
+    }
+  },
+  "Morchella varisiensis": {
+    "canonicalName": "Morchella varisiensis",
+    "scientificNames": [
+      "Morchella varisiensis Ruini, 2000"
+    ],
+    "sources": {
+      "gbif-+-3495585": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495585"
+    ],
+    "createdAt": "2017-06-09T19:06:58.364913349-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella varisiensis",
+      "speciesKey": 3495585
+    }
+  },
+  "Morchella villica": {
+    "canonicalName": "Morchella villica",
+    "scientificNames": [
+      "Morchella villica Quél."
+    ],
+    "sources": {
+      "gbif-+-3495698": {
+        "lastFetchedAt": null
+      }
+    },
+    "sourceKeys": [
+      "gbif-+-3495698"
+    ],
+    "createdAt": "2017-06-09T19:06:51.843785876-04:00",
+    "classification": {
+      "class": "Pezizomycetes",
+      "classKey": 316,
+      "family": "Morchellaceae",
+      "familyKey": 8398,
+      "genus": "Morchella",
+      "genusKey": 8229116,
+      "kingdom": "Fungi",
+      "kingdomKey": 5,
+      "order": "Pezizales",
+      "orderKey": 1057,
+      "phylum": "Ascomycota",
+      "phylumKey": 95,
+      "species": "Morchella villica",
+      "speciesKey": 3495698
+    }
+  }
+}
+Could not find EOL page:  44861482
+[32m.[0m[31m[0m[33m[0m[32m
+1 total assertion[0m
+
+--- FAIL: TestTaxonFetcher (79.51s)
+exit status 2
+FAIL	bitbucket.org/heindl/species/fetcher	79.525s

@@ -1,13 +1,16 @@
 package store
 
 import (
-	"bitbucket.org/heindl/provision/mgoeco"
 	"testing"
 	"github.com/jonboulle/clockwork"
 	"time"
+	"bitbucket.org/heindl/provision/dseco"
 )
 
-func NewMockStore(t *testing.T) SpeciesStore {
-	server, m := mgoeco.TestMongo(t)
-	return SpeciesStore(&store{server, m, clockwork.NewFakeClockAt(time.Now())})
+func NewMockStore(t *testing.T) TaxaStore {
+	ds, err := dseco.NewMockDatastore()
+	if err != nil {
+		panic(err)
+	}
+	return TaxaStore(&store{clockwork.NewFakeClockAt(time.Now()), ds})
 }
