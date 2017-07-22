@@ -54,7 +54,7 @@ var SchemeSourceIDMap = map[SchemeSourceID]string{
 type SchemeTargetID string
 
 type Scheme struct{
-	Key           *datastore.Key `datastore:"__key__"`
+	Key           *datastore.Key `datastore:"__key__" json:",omitempty" bson:",omitempty"`
 	//SourceID      SchemeSourceID `datastore:",omitempty,noindex" json:"sourceID,omitempty" bson:"sourceID,omitempty"`
 	//TargetID      SchemeTargetID `datastore:",omitempty,noindex" json:"targetID,omitempty" bson:"targetID,omitempty"`
 	CreatedAt     time.Time `datastore:",omitempty,noindex" json:"createdAt,omitempty" bson:"createdAt,omitempty"`
@@ -64,6 +64,11 @@ type Scheme struct{
 
 type SchemeKeyName string
 const schemeKeyNameSeperator  = "|||"
+
+func (Ω SchemeKeyName) Parse() (SchemeSourceID, SchemeTargetID) {
+	s := strings.Split(string(Ω), schemeKeyNameSeperator)
+	return SchemeSourceID(s[0]), SchemeTargetID(s[1])
+}
 
 func NewSchemeKeyName(id SchemeSourceID, targetID SchemeTargetID) SchemeKeyName {
 	return SchemeKeyName(fmt.Sprintf("%s%s%s", id, schemeKeyNameSeperator, targetID))
@@ -149,6 +154,16 @@ func NewOccurrenceScheme(origin SchemeSourceID, id SchemeTargetID, parent *datas
 //
 //}
 
+
+func (Ω *store) NewOccurrenceSchemeIterator(taxonKey *datastore.Key) *datastore.Iterator {
+	q := datastore.NewQuery(EntityKindOccurrenceScheme)
+	if taxonKey != nil {
+		q = q.Ancestor(taxonKey)
+	}
+	q = q.Order("__key__")
+	return Ω.DatastoreClient.Run(context.Background(), q)
+}
+
 func (Ω *store) GetOccurrenceSchema(taxonKey *datastore.Key) (Schema, error) {
 	q := datastore.NewQuery(EntityKindOccurrenceScheme)
 	if taxonKey != nil {
@@ -164,9 +179,9 @@ func (Ω *store) GetOccurrenceSchema(taxonKey *datastore.Key) (Schema, error) {
 
 func (Ω *store) SetSchema(schema Schema) error {
 
-	keys := []*datastore.Key{}
-	for _, s := range schema {
-		keys = append(keys, s.Key)
+	keys := make([]*datastore.Key, len(schema))
+	for i := range schema {
+		keys[i] = schema[i].Key
 	}
 
 	if _, err := Ω.DatastoreClient.PutMulti(context.Background(), keys, schema); err != nil {
@@ -205,35 +220,44 @@ func (Ω *store) SetSchema(schema Schema) error {
 
 func (Ω *store) UpdateSchemaLastFetched(schema Schema) error {
 
-	keys := []*datastore.Key{}
-	for _, s := range schema {
-		keys = append(keys, s.Key)
+	keys := make([]*datastore.Key, len(schema))
+	for i := range schema {
+		keys[i] = schema[i].Key
 	}
 
+	fmt.Println("scheme start", len(keys))
+
 	if _, err := Ω.DatastoreClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-		found := Schema{}
-		if err := tx.GetMulti(keys, &found); err != nil {
-			return errors.Wrap(err, "could not get species data source")
-		}
 
-		if len(found) != len(keys) {
-			return errors.New("number of records found not equal to records requested")
+		found := make(Schema, len(keys))
+		if err := Ω.DatastoreClient.GetMulti(context.Background(), keys, found); err != nil {
+			if multierror, ok := err.(datastore.MultiError); ok {
+				for _, me := range multierror {
+					if me == datastore.ErrNoSuchEntity {
+						continue
+					} else {
+						return errors.Wrap(me, "could not get schema")
+					}
+				}
+			} else {
+				return errors.Wrap(err, "could not get schema")
+			}
 		}
-
-		nkeys := []*datastore.Key{}
 		for i := range found {
-			nkeys = append(nkeys, found[i].Key) // TODO: This step may be unnecessary as the records may be returned in the same order as requested. No time to check now.
-			found[i] = found[i].Combine(schema.Find(found[i].Key))
+			//found[i] = found[i].Combine(schema.Find(found[i].Key))
 			found[i].ModifiedAt = Ω.Clock.Now()
 		}
 
-		if _, err := tx.PutMulti(nkeys, found); err != nil {
+		if _, err := Ω.DatastoreClient.PutMulti(context.Background(), keys, found); err != nil {
 			return errors.Wrap(err, "could not update species data source")
 		}
 		return nil
 	}); err != nil {
 		return err
 	}
+
+	fmt.Println("scheme finished", len(keys))
+
 	return nil
 }
 

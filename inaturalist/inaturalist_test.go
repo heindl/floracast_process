@@ -14,7 +14,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 	t.Parallel()
 
-	SkipConvey("should fetch inaturalist schemes", t, func() {
+	Convey("should fetch inaturalist schemes", t, func() {
 		f := fetcher{}
 		schemes, err := f.fetchSchemes(store.NewTaxonKey(58585), true)
 		So(err, ShouldBeNil)
@@ -50,7 +50,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 		schema, err := f.Store.GetOccurrenceSchema(nil)
 		So(err, ShouldBeNil)
-		So(len(schema), ShouldEqual, 31)
+		So(len(schema), ShouldEqual, 36)
 		have := []string{}
 		for i := range schema {
 			if utils.Contains(have, strconv.Itoa(int(schema[i].Key.Parent.ID))) {

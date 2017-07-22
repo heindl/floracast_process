@@ -70,10 +70,10 @@ func (Ω *fetcher) FetchProcessTaxa(parent_taxa int) error {
 		for _, _taxon := range response.Results {
 			taxon := _taxon
 			// No opt if there are no observations. Likely irrelevant to the project for now because it is to rare or difficult to find.
-			if taxon.Taxon.ObservationsCount == 0 {
-				fmt.Printf("Zero observations for taxon %s [%d].", taxon.Taxon.Name, taxon.Taxon.ID)
-				continue
-			}
+			//if taxon.Taxon.ObservationsCount == 0 {
+			//	fmt.Printf("Zero observations for taxon %s [%d].", taxon.Taxon.Name, taxon.Taxon.ID)
+			//	continue
+			//}
 			<-limiter
 			Ω.Tomb.Go(func() error {
 				defer func() {
@@ -92,19 +92,13 @@ func (Ω *fetcher) FetchProcessTaxa(parent_taxa int) error {
 		return err
 	}
 
-	fmt.Println("TAXA", len(Ω.Taxa))
-
 	if err := Ω.Store.SetTaxa(Ω.Taxa); err != nil {
 		return err
 	}
 
-	fmt.Println("SCHEMA", len(Ω.Schema))
-
 	if err := Ω.Store.SetSchema(Ω.Schema); err != nil {
 		return err
 	}
-
-	fmt.Println("PHOTOS", len(Ω.Photos))
 
 	return Ω.Store.SetPhotos(Ω.Photos)
 

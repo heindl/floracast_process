@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: occurrence-fetcher
+  namespace: phenograph
+spec:
+  template:
+    spec:
+      containers:
+      - name: occurrence-fetcher
+        image: us.gcr.io/phenograph-154419/occurrence-fetcher
+        env:
+        - name: PHENOGRAPH_MONGO_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mongo
+              key: user
+        - name: PHENOGRAPH_DARKSKY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: darksky
+              key: token
+        - name: PHENOGRAPH_MONGO_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo
+              key: password
+        - name: PHENOGRAPH_MONGO_ADDRESSES
+          value: phenograph-mongo-mongodb-replicaset:27017
+        - name: PHENOGRAPH_MONGO_RS_NAME
+          value: rs0
+        - name: PHENOGRAPH_REDIS_HOST
+          value: exciting-kitten-redis:6379
+        - name: PHENOGRAPH_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: exciting-kitten-redis
+              key: redis-password
+      restartPolicy: Never

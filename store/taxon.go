@@ -160,12 +160,12 @@ func (Ω CanonicalName) Valid() bool {
 }
 
 func (Ω *store) SetTaxa(txa Taxa) error {
-	keys := []*datastore.Key{}
-	for _, t := range txa {
-		keys = append(keys, t.Key)
+	keys := make([]*datastore.Key, len(txa))
+	for i := range txa {
+		keys[i] = txa[i].Key
 	}
 	if _, err := Ω.DatastoreClient.PutMulti(context.Background(), keys, txa); err != nil {
-		return err
+		return errors.Wrap(err, "could not set taxa")
 	}
 	return nil
 }
@@ -186,16 +186,26 @@ func (Ω *store) NewIterator() *datastore.Iterator {
 }
 
 func (Ω *store) ReadTaxaFromCanonicalNames(names ...CanonicalName) (Taxa, error) {
-
 	q := datastore.NewQuery(EntityKindTaxon)
 	for _, name := range names {
-		q = q.Filter("CanonicalName =", name)
+		q = q.Filter("CanonicalName =", string(name))
 	}
 	res := Taxa{}
 	if _, err := Ω.DatastoreClient.GetAll(context.Background(), q, &res); err != nil {
 		return nil, errors.Wrap(err, "could not get taxa from canonical names")
 	}
 	return res, nil
+}
+
+func (Ω *store) GetTaxon(k *datastore.Key) (*Taxon, error) {
+	if k.Kind != string(EntityKindTaxon) {
+		return nil, errors.New("invalid entity kind")
+	}
+	res := Taxon{}
+	if err := Ω.DatastoreClient.Get(context.Background(), k , &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 
 func (Ω *store) ReadSpecies() (Taxa, error) {
@@ -242,7 +252,7 @@ func (Ω *store) ReadSpecies() (Taxa, error) {
 //	return k, nil
 //}
 
-// AddTaxonAdminAreas adds geographical areas that contain this taxon.
+// AddTaxonAdminAreas adds geographical areas that contain Ω taxon.
 //func (Ω *store) AddTaxonAdminAreas(k *TaxonKey, states ...string) error {
 //	if !k.Valid() {
 //		return errors.New("invalid taxon key")

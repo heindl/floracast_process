@@ -12,12 +12,17 @@ type TaxaStore interface {
 	ReadTaxa() (Taxa, error)
 	ReadSpecies() (Taxa, error)
 	NewIterator() *datastore.Iterator
+	NewOccurrenceSchemeIterator(*datastore.Key) *datastore.Iterator
 	ReadTaxaFromCanonicalNames(...CanonicalName) (Taxa, error)
+	GetTaxon(*datastore.Key) (*Taxon, error)
 	SetTaxa(Taxa) error
 	SetPhotos(Photos) error
 	SetSchema(Schema) error
 	UpdateSchemaLastFetched(Schema) error
-	GetOccurrenceSchema(taxonKey *datastore.Key) (Schema, error)
+	GetOccurrenceSchema(*datastore.Key) (Schema, error)
+	SetOccurrences(Occurrences) error
+	GetOccurrenceIterator(taxonKey *datastore.Key) *datastore.Iterator
+	GetOccurrences(taxonKey *datastore.Key) (Occurrences, error)
 	Close()
 }
 
@@ -26,7 +31,7 @@ const SpeciesColl = mgoeco.CollectionName("species")
 
 var _ TaxaStore = &store{}
 
-func NewTestSpeciesStore() TaxaStore {
+func NewTestTaxaStore() TaxaStore {
 
 	client, err := dseco.NewMockDatastore()
 	if err != nil {
@@ -36,7 +41,7 @@ func NewTestSpeciesStore() TaxaStore {
 	return TaxaStore(&store{clockwork.NewFakeClockAt(time.Now()), client})
 }
 
-func NewSpeciesStore() (TaxaStore, error) {
+func NewTaxaStore() (TaxaStore, error) {
 
 	client, err := dseco.NewLiveDatastore()
 	if err != nil {
