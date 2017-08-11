@@ -11,9 +11,21 @@ type Occurrences []*Occurrence
 
 func (Ω Occurrences) Find(k *datastore.Key) *Occurrence {
 	for _, o := range Ω {
-		if o.Key.Name == k.Name {
-			return o
+		if o.Key.Kind != k.Kind {
+			continue
 		}
+		if o.Key.ID != k.ID {
+			continue
+		}
+		// The occurrence parent should be a scheme.
+		if o.Key.Parent.Name != k.Parent.Name {
+			continue
+		}
+		// The occurrence grandparent should be a taxon.
+		if o.Key.Parent.Parent.ID != o.Key.Parent.Parent.ID {
+			continue
+		}
+		return o
 	}
 	return nil
 }
@@ -41,6 +53,9 @@ func (Ω Occurrence) Combine(o *Occurrence) *Occurrence {
 	if !o.ModifiedAt.IsZero() && o.ModifiedAt.After(Ω.ModifiedAt) {
 		Ω.ModifiedAt = o.ModifiedAt
 	}
+	if o.Elevation != 0 {
+		Ω.Elevation = o.Elevation
+	}
 	return &Ω
 }
 
@@ -56,6 +71,7 @@ type Occurrence struct {
 	ModifiedAt time.Time `datastore:",omitempty,noindex" bson:"modifiedAt,omitempty" json:"modifiedAt,omitempty"`
 	// A globally unique identifier. Although missing in some cases, will be helpful in identifying source of data.
 	OccurrenceID string `datastore:",omitempty,noindex" bson:",omitempty" json:",omitempty"`
+	Elevation float64 `datastore:",omitempty,noindex" bson:"elevation,omitempty" json:"elevation,omitempty"`
 }
 
 func (Ω *Occurrence) Validate() error {
@@ -71,20 +87,12 @@ func (Ω *Occurrence) Validate() error {
 	return nil
 }
 
-//var occurrenceIDs = []string{}
-//var occurrenceLength = 0
-
 func (Ω *store) SetOccurrences(occurrences Occurrences) error {
-
-	//occurrenceLength = occurrenceLength + len(occurrences)
 
 	keys := make([]*datastore.Key, len(occurrences))
 	for i := range occurrences {
-		//occurrenceIDs = utils.AddStringToSet(occurrenceIDs, occurrences[i].Key.Name)
 		keys[i] = occurrences[i].Key
 	}
-	//fmt.Println("keys", len(occurrenceIDs))
-	//fmt.Println("occurrences", occurrenceLength)
 
 	if _, err := Ω.DatastoreClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
 		found := make(Occurrences, len(keys))

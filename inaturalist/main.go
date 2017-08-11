@@ -1,10 +1,9 @@
-package inaturalist
+package main
 
 import (
 	"fmt"
 	"strings"
 	"io/ioutil"
-	"net/http"
 	"github.com/saleswise/errors/errors"
 	"encoding/json"
 	"gopkg.in/tomb.v2"
@@ -18,8 +17,25 @@ import (
 	"sync"
 	"cloud.google.com/go/datastore"
 	"github.com/jonboulle/clockwork"
+	"github.com/sethgrid/pester"
+	"bytes"
 )
 
+
+func main() {
+	ts, err := store.NewTaxaStore()
+	if err != nil {
+		panic(err)
+	}
+	f := fetcher{
+		Store: ts,
+		Clock: clockwork.NewRealClock(),
+	}
+
+	if err := f.FetchProcessTaxa(58583); err != nil {
+		panic(err)
+	}
+}
 
 type fetcher struct {
 	// Reference to google data store.
@@ -360,14 +376,24 @@ func (Ω *fetcher) processTaxon(txn *Taxon, parent *datastore.Key, shouldHavePar
 
 var schemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
+var schemeFetchRateLimiter = time.Tick(time.Second / 2)
+
 func (Ω *fetcher) fetchSchemes(txn *datastore.Key, isSpecies bool) ([]*store.Scheme, error) {
 
 	if !store.ValidTaxonKey(txn) {
 		return nil, errors.New("invalid taxonID").SetState(M{utils.LogkeyTaxon: txn})
 	}
 
+	<-schemeFetchRateLimiter
+
 	url := fmt.Sprintf("http://www.inaturalist.org/taxa/%d/schemes", txn.ID)
-	doc, err := goquery.NewDocument(url)
+
+	r := bytes.NewReader([]byte{})
+	if err := request(url, r); err != nil {
+		return nil, err
+	}
+
+	doc, err := goquery.NewDocumentFromReader(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "could parse site for goquery").SetState(M{utils.LogkeyURL: url})
 	}
@@ -407,23 +433,34 @@ func (Ω *fetcher) fetchSchemes(txn *datastore.Key, isSpecies bool) ([]*store.Sc
 
 func request(url string, response interface{}) error {
 
-	resp, err := http.Get(url)
+	client := pester.New()
+	client.Concurrency = 1
+	client.MaxRetries = 5
+	client.Backoff = pester.ExponentialJitterBackoff
+	client.KeepLog = true
+
+	resp, err := client.Get(url)
 	if err != nil {
-		return errors.Wrapf(err, "could not get gbif http response from request: %s", url)
+		return errors.Wrap(err, "could not get http response")
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return errors.Wrapf(errors.New(resp.Status), "code: %d; request: %s", resp.StatusCode, url)
+		return errors.Wrapf(errors.New(resp.Status), "StatusCode: %d; URL: %s", resp.StatusCode, url)
 	}
 
-	b, err := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return errors.Wrap(err, "could not read http response body")
 	}
 
-	if err := json.Unmarshal(b, &response); err != nil {
-		return errors.Wrap(err, "could not unmarshal http response")
+	if res, ok := response.(*bytes.Reader); ok {
+		res.Reset(body)
+		return nil
+	}
+
+	if err := json.Unmarshal(body, &response); err != nil {
+		return errors.Wrapf(err, "could not unmarshal http response: %s", url)
 	}
 
 	return nil

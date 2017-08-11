@@ -1,4 +1,4 @@
-package occurrences
+package main
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -8,6 +8,7 @@ import (
 	//"bitbucket.org/heindl/utils"
 	"github.com/jonboulle/clockwork"
 	"fmt"
+	"bitbucket.org/heindl/utils"
 )
 
 func TestOccurrenceFetcher(t *testing.T) {
@@ -27,6 +28,10 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 		fmt.Println(len(ocs))
 
-		//fmt.Println(utils.JsonOrSpew(ocs[0:20]))
+		fmt.Println(utils.JsonOrSpew(ocs[0:20]))
+
+		Reset(func() {
+			So(taxastore.Close(), ShouldBeNil)
+		})
 	})
 }

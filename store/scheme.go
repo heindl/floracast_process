@@ -220,12 +220,11 @@ func (Ω *store) SetSchema(schema Schema) error {
 
 func (Ω *store) UpdateSchemaLastFetched(schema Schema) error {
 
-	keys := make([]*datastore.Key, len(schema))
+	old := make([]*datastore.Key, len(schema))
 	for i := range schema {
-		keys[i] = schema[i].Key
+		old[i] = schema[i].Key
 	}
-
-	fmt.Println("scheme start", len(keys))
+	keys := utils.RemoveDuplicateDatastoreKeys(old)
 
 	if _, err := Ω.DatastoreClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
 
@@ -244,8 +243,15 @@ func (Ω *store) UpdateSchemaLastFetched(schema Schema) error {
 			}
 		}
 		for i := range found {
+			if found[i] == nil {
+				found[i] = &Scheme{
+					Key: keys[i],
+					CreatedAt: Ω.Clock.Now(),
+				}
+			}
 			//found[i] = found[i].Combine(schema.Find(found[i].Key))
 			found[i].ModifiedAt = Ω.Clock.Now()
+			found[i].LastFetchedAt = Ω.Clock.Now()
 		}
 
 		if _, err := Ω.DatastoreClient.PutMulti(context.Background(), keys, found); err != nil {
@@ -255,8 +261,6 @@ func (Ω *store) UpdateSchemaLastFetched(schema Schema) error {
 	}); err != nil {
 		return err
 	}
-
-	fmt.Println("scheme finished", len(keys))
 
 	return nil
 }

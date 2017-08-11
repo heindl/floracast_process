@@ -1,4 +1,4 @@
-package inaturalist
+package main
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -70,6 +70,10 @@ func TestTaxonFetcher(t *testing.T) {
 		schema, err = f.Store.GetOccurrenceSchema(taxa[2].Key)
 		So(err, ShouldBeNil)
 		So(len(schema), ShouldEqual, 1)
+
+		Reset(func() {
+			So(f.Store.Close(), ShouldBeNil)
+		})
 
 	})
 }

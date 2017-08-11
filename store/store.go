@@ -1,7 +1,6 @@
 package store
 
 import (
-	"bitbucket.org/heindl/provision/mgoeco"
 	"time"
 	"github.com/jonboulle/clockwork"
 	"cloud.google.com/go/datastore"
@@ -23,10 +22,8 @@ type TaxaStore interface {
 	SetOccurrences(Occurrences) error
 	GetOccurrenceIterator(taxonKey *datastore.Key) *datastore.Iterator
 	GetOccurrences(taxonKey *datastore.Key) (Occurrences, error)
-	Close()
+	Close() error
 }
-
-const SpeciesColl = mgoeco.CollectionName("species")
 
 
 var _ TaxaStore = &store{}
@@ -56,7 +53,7 @@ type store struct {
 	DatastoreClient *datastore.Client
 }
 
-func (Ω *store) Close() {
-	return
+func (Ω *store) Close() error {
+	return Ω.DatastoreClient.Close()
 }
 

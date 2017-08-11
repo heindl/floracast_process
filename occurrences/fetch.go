@@ -1,16 +1,18 @@
-package occurrences
+package main
 
 import (
-	"github.com/omidnikta/logrus"
-	"github.com/saleswise/errors/errors"
 	"time"
 	"github.com/jonboulle/clockwork"
 	"gopkg.in/tomb.v2"
 	"bitbucket.org/heindl/species/store"
-	"strconv"
-	"cloud.google.com/go/datastore"
 	"google.golang.org/api/iterator"
 	"sync"
+	"bitbucket.org/heindl/utils"
+	"github.com/heindl/gbif"
+	"github.com/saleswise/errors/errors"
+	"cloud.google.com/go/datastore"
+	"strconv"
+	"fmt"
 )
 
 func main() {
@@ -53,7 +55,6 @@ type OccurrenceFetcher interface{
 }
 
 type fetcher struct {
-	Log             *logrus.Logger
 	TaxaStore       store.TaxaStore
 	Clock           clockwork.Clock
 	//NSQProducer     nsqeco.Producer
@@ -74,63 +75,66 @@ func (Ω *fetcher) FetchOccurrences() error {
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
 
-		taxa, err := Ω.TaxaStore.ReadTaxaFromCanonicalNames(store.CanonicalName("Limenitis camilla"))
+		taxa, err := Ω.TaxaStore.ReadTaxa()
 		if err != nil {
 			return err
 		}
 
-		iter := Ω.TaxaStore.NewOccurrenceSchemeIterator(taxa[0].Key)
-		i := 0
-		for {
-
-			s := store.Scheme{}
-			k, err := iter.Next(&s)
-			if i > 0 {
-				break
-			}
-			i++
-			if err != nil {
-				if err != iterator.Done {
-					return errors.Wrap(err, "could not fetch occurrence scheme")
-				} else {
-					break
-				}
-			}
-			if err != nil && err != iterator.Done {
-				return errors.Wrap(err, "could not fetch occurrence scheme")
-			}
-			if err != nil && err == iterator.Done {
-				break
-			}
-			<-Ω.Limiter
+		for _, _taxon := range taxa {
+			taxon := _taxon
 			tmb.Go(func() error {
-				defer func() {
-					Ω.Limiter <- struct{}{}
-				}()
+				iter := Ω.TaxaStore.NewOccurrenceSchemeIterator(taxon.Key)
+				for {
+					s := store.Scheme{}
+					k, err := iter.Next(&s)
+					if err != nil {
+						if err != iterator.Done {
+							return errors.Wrap(err, "could not fetch occurrence scheme")
+						} else {
+							break
+						}
+					}
+					if err != nil && err != iterator.Done {
+						return errors.Wrap(err, "could not fetch occurrence scheme")
+					}
+					if err != nil && err == iterator.Done {
+						break
+					}
+					<-Ω.Limiter
+					tmb.Go(func() error {
+						defer func() {
+							Ω.Limiter <- struct{}{}
+						}()
 
-				t, err := Ω.TaxaStore.GetTaxon(s.Key.Parent)
-				if err != nil {
-					return err
-				}
+						t, err := Ω.TaxaStore.GetTaxon(s.Key.Parent)
+						if err != nil {
+							return err
+						}
 
-				if _, err := Ω.fetchSource(k, t.CanonicalName, t.Rank, s.LastFetchedAt); err != nil {
-					return err
-				}
-				s.LastFetchedAt = Ω.Clock.Now()
-				if err := Ω.batchScheme(&s); err != nil {
-					return err
-				}
+						if _, err := Ω.fetchSource(k, t.CanonicalName, t.Rank, s.LastFetchedAt); err != nil {
+							return err
+						}
+						s.LastFetchedAt = Ω.Clock.Now()
+						if err := Ω.batchScheme(&s); err != nil {
+							return err
+						}
 
-				//if !hasNew {
-				//	return nil
-				//}
-				//modelReprocess.Lock()
-				//defer modelReprocess.Unlock()
-				//modelReprocess.Names = utils.AddStringToSet(modelReprocess.Names, string(spcs.CanonicalName))
+						//if !hasNew {
+						//	return nil
+						//}
+						//modelReprocess.Lock()
+						//defer modelReprocess.Unlock()
+						//modelReprocess.Names = utils.AddStringToSet(modelReprocess.Names, string(spcs.CanonicalName))
+						return nil
+					})
+				}
 				return nil
 			})
 		}
+
 		return nil
+
+
 	})
 
 	if err := tmb.Wait(); err != nil {
@@ -140,6 +144,7 @@ func (Ω *fetcher) FetchOccurrences() error {
 	if err := Ω.flushOccurrences(); err != nil {
 		return err
 	}
+
 	if err := Ω.flushSchema(); err != nil {
 		return err
 	}
@@ -168,6 +173,15 @@ func (Ω *fetcher) batchOccurrence(o *store.Occurrence) error {
 	return nil
 }
 func (Ω *fetcher) flushOccurrences() error {
+
+	if len(occurrences.List) == 0 {
+		return nil
+	}
+
+	if err := setElevations(occurrences.List); err != nil {
+		return err
+	}
+
 	if err := Ω.TaxaStore.SetOccurrences(occurrences.List); err != nil {
 		return err
 	}
@@ -225,6 +239,11 @@ func (Ω *fetcher) fetchSource(schemeKey *datastore.Key, name store.CanonicalNam
 			continue
 		}
 
+		// Ensure the location is North/South America.
+		if occurrences[i].Location.Lng > -52.2330 {
+			continue
+		}
+
 		occurrences[i].Key.Parent = schemeKey
 		if err := Ω.batchOccurrence(occurrences[i]); err != nil {
 			return false, errors.Wrap(err, "could not run occurrence in batch")
@@ -254,3 +273,71 @@ func newfetcher(sourceID store.SchemeSourceID, targetID store.SchemeTargetID) (F
 type Fetcher interface {
 	Fetch(begin *time.Time, end time.Time) (store.Occurrences, error)
 }
+
+
+type GBIF int
+
+func (this GBIF) Fetch(begin *time.Time, end time.Time) (store.Occurrences, error) {
+
+	if begin == nil || begin.IsZero() {
+		begin = utils.TimePtr(time.Date(1900, time.January, 1, 0, 0, 0, 0, time.UTC))
+	}
+
+	q := gbif.OccurrenceSearchQuery{
+		TaxonKey:          int(this),
+		LastInterpreted:    fmt.Sprintf("%s,%s", begin.Format("2006-01-02"), end.Format("2006-01-02")),
+		HasCoordinate:      true,
+		HasGeospatialIssue: false,
+	}
+
+	results, err := gbif.Occurrences(q)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not request occurrences")
+	}
+
+	if len(results) == 0 {
+		return nil, nil
+	}
+
+	res := store.Occurrences{}
+	for _, r := range results {
+		o := this.parse(r)
+		if o == nil {
+			continue
+		}
+		res = append(res, o)
+	}
+
+	return res, nil
+}
+
+func (this GBIF) parse(o gbif.Occurrence) *store.Occurrence {
+	// Note that the OccurrenceID, which I originally used, appears to be incomplete, duplicated, and missing in some cases.
+
+	id, err := strconv.ParseInt(o.GbifID, 10, 64)
+	if err != nil {
+		fmt.Println("error parsing gbifId", err)
+		return nil
+	}
+	if id == 0 {
+		return nil
+	}
+	if o.EventDate == nil || o.EventDate.Time.IsZero() {
+		// TODO: Consider reporting malformed occurrence error.
+		return nil
+	}
+	p := datastore.GeoPoint{o.DecimalLatitude, o.DecimalLongitude}
+	if !p.Valid() {
+		return nil
+	}
+	return &store.Occurrence{
+		Key: datastore.IDKey(store.EntityKindOccurrence, id, nil),
+		OccurrenceID: o.OccurrenceID,
+		Location: &p,
+		Date:      o.EventDate.Time,
+		RecordedBy: o.RecordedBy,
+		References: o.References,
+		CreatedAt: time.Now(),
+	}
+}
+
