@@ -15,7 +15,52 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 	t.Parallel()
 
+	SkipConvey("show occurrences", t, func() {
+
+		taxastore := speciesstore.NewTestTaxaStore()
+
+		ocs, err := taxastore.GetOccurrences(nil)
+		So(err, ShouldBeNil)
+
+		for _, o := range ocs {
+			if o.Elevation == 0 {
+				fmt.Println(utils.JsonOrSpew(o))
+			}
+		}
+
+		Reset(func() {
+			So(taxastore.Close(), ShouldBeNil)
+		})
+	})
+
 	Convey("should fetch occurrences and add to queue", t, func() {
+
+		taxastore := speciesstore.NewTestTaxaStore()
+
+		//taxa, err := taxastore.ReadTaxa()
+		//So(err, ShouldBeNil)
+
+		//for _, t := range taxa {
+			list, err := taxastore.GetOccurrences(nil)
+			So(err, ShouldBeNil)
+			m := map[int64]int{}
+			for _, l := range list {
+				if _, ok := m[l.Key.Parent.Parent.ID]; !ok {
+					m[l.Key.Parent.Parent.ID] = 1
+				} else {
+					m[l.Key.Parent.Parent.ID] += 1
+				}
+			}
+
+
+			fmt.Println(m)
+
+		Reset(func() {
+			So(taxastore.Close(), ShouldBeNil)
+		})
+	})
+
+	SkipConvey("should fetch occurrences and add to queue", t, func() {
 
 		taxastore := speciesstore.NewTestTaxaStore()
 

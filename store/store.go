@@ -10,9 +10,8 @@ import (
 type TaxaStore interface {
 	ReadTaxa() (Taxa, error)
 	ReadSpecies() (Taxa, error)
-	NewIterator() *datastore.Iterator
 	NewOccurrenceSchemeIterator(*datastore.Key) *datastore.Iterator
-	ReadTaxaFromCanonicalNames(...CanonicalName) (Taxa, error)
+	ReadTaxaFromCanonicalNames(TaxonRank, ...CanonicalName) (Taxa, error)
 	GetTaxon(*datastore.Key) (*Taxon, error)
 	SetTaxa(Taxa) error
 	SetPhotos(Photos) error

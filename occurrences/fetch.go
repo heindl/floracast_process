@@ -75,7 +75,7 @@ func (Ω *fetcher) FetchOccurrences() error {
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
 
-		taxa, err := Ω.TaxaStore.ReadTaxa()
+		taxa, err := Ω.TaxaStore.ReadSpecies()
 		if err != nil {
 			return err
 		}
@@ -167,7 +167,7 @@ func (Ω *fetcher) batchOccurrence(o *store.Occurrence) error {
 	occurrences.Lock()
 	defer occurrences.Unlock()
 	occurrences.List = append(occurrences.List, o)
-	if len(occurrences.List) >= 1000 {
+	if len(occurrences.List) >= 450 {
 		return Ω.flushOccurrences()
 	}
 	return nil
@@ -197,7 +197,7 @@ func (Ω *fetcher) batchScheme(s *store.Scheme) error {
 	schema.Lock()
 	defer schema.Unlock()
 	schema.List = append(schema.List, s)
-	if len(schema.List) >= 1000 {
+	if len(schema.List) >= 450 {
 		return Ω.flushSchema()
 	}
 	return nil

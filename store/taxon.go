@@ -5,12 +5,13 @@ import (
 	"cloud.google.com/go/datastore"
 	"golang.org/x/net/context"
 	"github.com/saleswise/errors/errors"
+	"strings"
 )
 
 const EntityKindTaxon = "Taxon"
 
 func ValidTaxonKey(k *datastore.Key) bool {
-	return k != nil && k.Kind == EntityKindTaxon && k.ID != 0
+	return k != nil && TaxonRank(k.Kind).Valid() && k.ID != 0
 }
 
 // TaxonID is the iNaturalist taxon_id. In order to move quickly we'll be using their taxonomy
@@ -22,11 +23,14 @@ func (Ω TaxonID) Valid() bool {
 	return Ω != 0
 }
 
-func NewTaxonKey(id int64) *datastore.Key {
+func NewTaxonKey(id int64, rank TaxonRank) *datastore.Key {
 	if !TaxonID(id).Valid() {
 		return nil
 	}
-	return datastore.IDKey(EntityKindTaxon, id, nil)
+	if !rank.Valid() {
+		return nil
+	}
+	return datastore.IDKey(string(rank), id, nil)
 }
 
 type TaxonKeys []*datastore.Key
@@ -38,6 +42,51 @@ func (Ω TaxonKeys) Find(id int64, kind string) *datastore.Key {
 		}
 	}
 	return nil
+}
+
+type TaxonRank string
+const (
+	// Originating from INaturalist:
+	RankKingdom = TaxonRank("Kingdom")
+	RankPhylum = TaxonRank("Phylum")
+	RankSubPhylum = TaxonRank("SubPhylum")
+	RankClass = TaxonRank("Class")
+	RankSubClass = TaxonRank("SubClass")
+	RankOrder = TaxonRank("Order")
+	RankSuperFamily = TaxonRank("SuperFamily")
+	RankFamily = TaxonRank("Family")
+	RankSubFamily = TaxonRank("SubFamily")
+	RankTribe = TaxonRank("Tribe")
+	RankSubTribe = TaxonRank("SubTribe")
+	RankGenus = TaxonRank("Genus")
+	RankSpecies = TaxonRank("Species")
+	RankSubSpecies = TaxonRank("SubSpecies")
+	RankForm = TaxonRank("Form")
+)
+
+var TaxonRankMap = map[string]TaxonRank{
+	"kingdom": RankKingdom,
+	"phylum": RankPhylum,
+	"subphylum": RankSubPhylum,
+	"class": RankClass,
+	"subclass": RankSubClass,
+	"order": RankOrder,
+	"superfamily": RankSuperFamily,
+	"family": RankFamily,
+	"subfamily": RankSubFamily,
+	"tribe": RankTribe,
+	"subtribe": RankSubTribe,
+	"genus": RankGenus,
+	"species": RankSpecies,
+	"subspecies": RankSubSpecies,
+	"form": RankForm,
+}
+
+func (Ω TaxonRank) Valid() bool {
+	if _, ok := TaxonRankMap[strings.ToLower(string(Ω))]; !ok {
+		return false
+	}
+	return true
 }
 
 type RankLevel int
@@ -62,6 +111,7 @@ const (
 type Taxon struct {
 	Key             *datastore.Key `datastore:"__key__"`
 	CanonicalName CanonicalName `datastore:",omitempty" bson:"canonicalName,omitempty" json:"canonicalName,omitempty"`
+	TaxonID TaxonID `datastore:",omitempty" bson:"taxonID,omitempty" json:"taxonID,omitempty"`
 	Rank	TaxonRank `datastore:",omitempty,noindex" bson:"rank,omitempty" json:"rank,omitempty"`
 	RankLevel RankLevel `datastore:"RankLevel,omitempty" bson:"rankLevel,omitempty" json:"rankLevel,omitempty"`
 	CommonName string `datastore:",omitempty,noindex" bson:"commonName,omitempty" json:"commonName,omitempty"`
@@ -83,6 +133,11 @@ func (Ω Taxon) Combine(s *Taxon) *Taxon {
 	if s.CanonicalName.Valid() {
 		Ω.CanonicalName = s.CanonicalName
 	}
+
+	if TaxonID(s.TaxonID).Valid() {
+		Ω.TaxonID = s.TaxonID
+	}
+
 	if s.Rank.Valid() {
 		Ω.Rank = s.Rank
 	}
@@ -108,13 +163,25 @@ type State struct {
 	Name               string `datastore:",omitempty" bson:"name,omitempty" json:"name,omitempty"`
 }
 
-type TaxonRank string
+type Taxa []*Taxon
 
-func (Ω TaxonRank) Valid() bool {
-	return Ω != ""
+func (Ω Taxa) RemoveDuplicates() (response Taxa) {
+	for _, t := range Ω {
+		if response.Find(t.Key) == nil {
+			response = append(response, t)
+		}
+	}
+	return
 }
 
-type Taxa []*Taxon
+func (Ω Taxa) Find(k *datastore.Key) *Taxon {
+	for _, t := range Ω {
+		if t.Key.Equal(k) {
+			return t
+		}
+	}
+	return nil
+}
 
 func (Ω Taxa) AddToSet(s *Taxon) (Taxa, error) {
 
@@ -123,6 +190,9 @@ func (Ω Taxa) AddToSet(s *Taxon) (Taxa, error) {
 	}
 
 	for i := range Ω {
+		if Ω[i].Key.Kind != s.Key.Kind {
+			continue
+		}
 		if Ω[i].Key.ID != s.Key.ID {
 			continue
 		}
@@ -160,6 +230,16 @@ func (Ω CanonicalName) Valid() bool {
 }
 
 func (Ω *store) SetTaxa(txa Taxa) error {
+
+	txa = txa.RemoveDuplicates()
+
+	// Validate
+	for _, t := range txa {
+		if !t.TaxonID.Valid() {
+			return errors.New("invalid taxa")
+		}
+	}
+
 	keys := make([]*datastore.Key, len(txa))
 	for i := range txa {
 		keys[i] = txa[i].Key
@@ -170,23 +250,18 @@ func (Ω *store) SetTaxa(txa Taxa) error {
 	return nil
 }
 
-func (Ω *store) ReadTaxa() (res Taxa, err error) {
-	// Filter only to species and subspecies.
-	//q := datastore.NewQuery(EntityKindTaxon).Filter("RankLevel =", 5).Filter("RankLevel =", 10).Order("__key__")
-	q := datastore.NewQuery(EntityKindTaxon)
-	if _, err := Ω.DatastoreClient.GetAll(context.Background(), q, &res); err != nil {
-		return nil, errors.Wrap(err, "could not fetch taxa from datastore")
-	}
-	return res, nil
-}
+//func (Ω *store) ReadTaxa() (res Taxa, err error) {
+//	// Filter only to species and subspecies.
+//	//q := datastore.NewQuery(EntityKindTaxon).Filter("RankLevel =", 5).Filter("RankLevel =", 10).Order("__key__")
+//	q := datastore.NewQuery(EntityKindTaxon)
+//	if _, err := Ω.DatastoreClient.GetAll(context.Background(), q, &res); err != nil {
+//		return nil, errors.Wrap(err, "could not fetch taxa from datastore")
+//	}
+//	return res, nil
+//}
 
-func (Ω *store) NewIterator() *datastore.Iterator {
-	// Filter only to species and subspecies.
-	return Ω.DatastoreClient.Run(context.Background(), datastore.NewQuery(EntityKindTaxon).Filter("RankLevel =", 5).Filter("RankLevel =", 10))
-}
-
-func (Ω *store) ReadTaxaFromCanonicalNames(names ...CanonicalName) (Taxa, error) {
-	q := datastore.NewQuery(EntityKindTaxon)
+func (Ω *store) ReadTaxaFromCanonicalNames(rank TaxonRank, names ...CanonicalName) (Taxa, error) {
+	q := datastore.NewQuery(string(rank))
 	for _, name := range names {
 		q = q.Filter("CanonicalName =", string(name))
 	}
@@ -198,7 +273,7 @@ func (Ω *store) ReadTaxaFromCanonicalNames(names ...CanonicalName) (Taxa, error
 }
 
 func (Ω *store) GetTaxon(k *datastore.Key) (*Taxon, error) {
-	if k.Kind != string(EntityKindTaxon) {
+	if !TaxonRank(k.Kind).Valid() {
 		return nil, errors.New("invalid entity kind")
 	}
 	res := Taxon{}
@@ -208,13 +283,33 @@ func (Ω *store) GetTaxon(k *datastore.Key) (*Taxon, error) {
 	return &res, nil
 }
 
-func (Ω *store) ReadSpecies() (Taxa, error) {
-	// Filter only to species and subspecies.
-	q := datastore.NewQuery(EntityKindTaxon).Filter("RankLevel <=", int(RankLevelSpecies))
-	var res Taxa
-	if _, err := Ω.DatastoreClient.GetAll(context.Background(), q, &res); err != nil {
-		return nil, errors.Wrap(err, "could not fetch species from datastore")
+func (Ω *store) ReadTaxa() (Taxa, error) {
+	// Filter only to species, subspecies, and forms
+	res := Taxa{}
+
+	for _, v := range TaxonRankMap {
+		q := datastore.NewQuery(string(v))
+		taxa := Taxa{}
+		if _, err := Ω.DatastoreClient.GetAll(context.Background(), q, &taxa); err != nil {
+			return nil, errors.Wrap(err, "could not fetch taxa from datastore")
+		}
+		res = append(res, taxa...)
 	}
+	return res, nil
+}
+
+func (Ω *store) ReadSpecies() (Taxa, error) {
+	// Filter only to species, subspecies, and forms
+	res := Taxa{}
+	for _, rank := range []TaxonRank{RankSpecies, RankSubSpecies, RankForm}{
+		q := datastore.NewQuery(string(rank))
+		taxa := Taxa{}
+		if _, err := Ω.DatastoreClient.GetAll(context.Background(), q, &taxa); err != nil {
+			return nil, errors.Wrap(err, "could not fetch species from datastore")
+		}
+		res = append(res, taxa...)
+	}
+
 	return res, nil
 }
 

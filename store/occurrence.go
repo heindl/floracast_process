@@ -9,6 +9,15 @@ import (
 
 type Occurrences []*Occurrence
 
+func (Ω Occurrences) RemoveDuplicates() (response Occurrences) {
+	for _, o := range Ω {
+		if response.Find(o.Key) == nil {
+			response = append(response, o)
+		}
+	}
+	return
+}
+
 func (Ω Occurrences) Find(k *datastore.Key) *Occurrence {
 	for _, o := range Ω {
 		if o.Key.Kind != k.Kind {
@@ -21,6 +30,7 @@ func (Ω Occurrences) Find(k *datastore.Key) *Occurrence {
 		if o.Key.Parent.Name != k.Parent.Name {
 			continue
 		}
+
 		// The occurrence grandparent should be a taxon.
 		if o.Key.Parent.Parent.ID != o.Key.Parent.Parent.ID {
 			continue
@@ -88,6 +98,8 @@ func (Ω *Occurrence) Validate() error {
 }
 
 func (Ω *store) SetOccurrences(occurrences Occurrences) error {
+
+	occurrences = occurrences.RemoveDuplicates()
 
 	keys := make([]*datastore.Key, len(occurrences))
 	for i := range occurrences {

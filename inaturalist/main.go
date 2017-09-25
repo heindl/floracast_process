@@ -277,7 +277,12 @@ func (Ω *fetcher) processTaxon(txn *Taxon, parent *datastore.Key, shouldHavePar
 	//	return taxonKey, nil
 	//}
 
-	taxonKey := store.NewTaxonKey(txn.ID)
+	rank, ok := store.TaxonRankMap[txn.Rank]
+	if !ok {
+		return nil, errors.Newf("unsupported rank: %s", txn.Rank)
+	}
+
+	taxonKey := store.NewTaxonKey(txn.ID, rank)
 	// Add parent as last ancestory. Again, these should be in order.
 	if parent != nil {
 		taxonKey.Parent = parent
@@ -286,7 +291,8 @@ func (Ω *fetcher) processTaxon(txn *Taxon, parent *datastore.Key, shouldHavePar
 	t := &store.Taxon{
 		Key: taxonKey,
 		CanonicalName: store.CanonicalName(txn.Name),
-		Rank: store.TaxonRank(txn.Rank),
+		Rank: rank,
+		TaxonID: store.TaxonID(txn.ID),
 		RankLevel: store.RankLevel(txn.RankLevel),
 		CommonName: txn.PreferredCommonName,
 		CreatedAt: Ω.Clock.Now(),

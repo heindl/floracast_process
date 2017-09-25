@@ -179,6 +179,8 @@ func (Ω *store) GetOccurrenceSchema(taxonKey *datastore.Key) (Schema, error) {
 
 func (Ω *store) SetSchema(schema Schema) error {
 
+	schema = schema.RemoveDuplicates()
+
 	keys := make([]*datastore.Key, len(schema))
 	for i := range schema {
 		keys[i] = schema[i].Key
@@ -266,6 +268,15 @@ func (Ω *store) UpdateSchemaLastFetched(schema Schema) error {
 }
 
 type Schema []*Scheme
+
+func (Ω Schema) RemoveDuplicates() (response Schema) {
+	for _, s := range Ω {
+		if response.Find(s.Key) == nil {
+			response = append(response, s)
+		}
+	}
+	return
+}
 
 func (Ω Schema) Find(k *datastore.Key) *Scheme {
 	for _, s := range Ω {
