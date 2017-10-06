@@ -4,11 +4,10 @@ import (
 	"testing"
 	"github.com/jonboulle/clockwork"
 	"time"
-	"bitbucket.org/heindl/provision/dseco"
 )
 
 func NewMockStore(t *testing.T) TaxaStore {
-	ds, err := dseco.NewMockDatastore()
+	ds, err := NewMockFirestore()
 	if err != nil {
 		panic(err)
 	}

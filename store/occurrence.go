@@ -8,71 +8,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/fatih/structs"
+	"strings"
 )
 
 type Occurrences []Occurrence
-
-//func (Ω Occurrences) RemoveDuplicates() (response Occurrences) {
-//	for _, o := range Ω {
-//		if response.Find(o.Key) == nil {
-//			response = append(response, o)
-//		}
-//	}
-//	return
-//}
-
-//func (Ω Occurrences) Find(k *datastore.Key) *Occurrence {
-//	for _, o := range Ω {
-//		if o.Key.Kind != k.Kind {
-//			continue
-//		}
-//		if o.Key.ID != k.ID {
-//			continue
-//		}
-//		// The occurrence parent should be a scheme.
-//		if o.Key.Parent.Name != k.Parent.Name {
-//			continue
-//		}
-//
-//		// The occurrence grandparent should be a taxon.
-//		if o.Key.Parent.Parent.ID != o.Key.Parent.Parent.ID {
-//			continue
-//		}
-//		return o
-//	}
-//	return nil
-//}
-
-//func (Ω Occurrence) Combine(o *Occurrence) *Occurrence {
-//
-//	if !o.Key.Incomplete() {
-//		Ω.Key = o.Key
-//	}
-//	if o.Location != nil && o.Location.Valid() {
-//		Ω.Location = o.Location
-//	}
-//	if !o.Date.IsZero() {
-//		Ω.Date = o.Date
-//	}
-//	if o.References != "" {
-//		Ω.References = o.References
-//	}
-//	if o.RecordedBy != "" {
-//		Ω.RecordedBy = o.RecordedBy
-//	}
-//	if !o.CreatedAt.IsZero() && o.CreatedAt.Before(Ω.CreatedAt) {
-//		Ω.CreatedAt = o.CreatedAt
-//	}
-//	if !o.ModifiedAt.IsZero() && o.ModifiedAt.After(Ω.ModifiedAt) {
-//		Ω.ModifiedAt = o.ModifiedAt
-//	}
-//	if o.Elevation != 0 {
-//		Ω.Elevation = o.Elevation
-//	}
-//	return &Ω
-//}
-
-const EntityKindOccurrence = "Occurrence"
 
 type Occurrence struct {
 	GBIFID string `firestore:",omitempty"`
@@ -115,7 +54,7 @@ func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSour
 	}
 
 	return Ω.FirestoreClient.Collection(CollectionTypeOccurrences).
-		Doc(fmt.Sprintf("%s|%s|%s", taxonID, dataSourceID, gbifID)), nil
+		Doc(fmt.Sprintf("%s|%s|%s", string(taxonID), dataSourceID, gbifID)), nil
 
 }
 
@@ -127,7 +66,14 @@ func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) error {
 	}
 
 	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
-			return tx.UpdateMap(ref, structs.Map(o))
+		if _, err := tx.Get(ref); err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return tx.Set(ref, o)
+			} else {
+				return err
+			}
+		}
+		return tx.UpdateMap(ref, structs.Map(o))
 	}); err != nil {
 		return errors.Wrap(err, "could not update occurrence")
 	}

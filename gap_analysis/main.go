@@ -37,7 +37,7 @@ func main() {
 
 	parser := &Parser{store}
 
-	areas, err := parser.Parse("../shapefiles/parsed.shp", 20)
+	areas, err := parser.Parse("./shapefiles/parsed.shp", 20)
 	if err != nil {
 		panic(err)
 	}
@@ -113,8 +113,8 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 
 	// Not certain why there are duplicates, except that perhaps different sources are not merged correctly.
 	// No time to dig into it now, keep a match to avoid.
-	duplicateFilter := map[int64]struct{}{}
-	isDuplicate := func(id int64) bool {
+	duplicateFilter := map[string]struct{}{}
+	isDuplicate := func(id string) bool {
 		if _, ok := duplicateFilter[id]; !ok {
 			duplicateFilter[id] = struct{}{}
 			return false
@@ -199,11 +199,8 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 			continue
 		}
 
-		id, err := strconv.ParseInt(reader.ReadAttribute(i, attrs["WDPA_Cd"]), 10, 64)
-		if err != nil {
-			return nil, errors.Wrap(err, "could not parse WDPA_Cd")
-		}
-		if id == 0 {
+		id := reader.ReadAttribute(i, attrs["WDPA_Cd"])
+		if id == "" {
 			filterCounter["WDPA_Cd"]++
 			continue
 		}

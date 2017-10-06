@@ -10,11 +10,11 @@ import (
 
 // gcloud beta emulators datastore start --project=floracast-20c01 --store-on-disk=false
 
-func NewLiveDatastore() (*firestore.Client, error) {
+func NewLiveFirestore() (*firestore.Client, error) {
 
-	projectID := os.Getenv("FLORACAST_GCLOUD_PROJECT_ID")
+	projectID := os.Getenv("FIRESTORE_PROJECT_ID")
 	if projectID == "" {
-		return nil, errors.New("FLORACAST_GCLOUD_PROJECT_ID invalid")
+		return nil, errors.New("FIRESTORE_PROJECT_ID invalid")
 	}
 
 	var opts []option.ClientOption
@@ -31,8 +31,8 @@ func NewLiveDatastore() (*firestore.Client, error) {
 }
 
 // In the short term just make this a test project.
-func NewMockDatastore() (*firestore.Client, error) {
-	return NewLiveDatastore()
+func NewMockFirestore() (*firestore.Client, error) {
+	return NewLiveFirestore()
 
 
 	//projectID := os.Getenv("FLORACAST_GCLOUD_PROJECT_ID")

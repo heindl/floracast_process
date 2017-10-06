@@ -7,7 +7,7 @@ import (
 	"github.com/saleswise/errors/errors"
 	"strings"
 	"github.com/fatih/structs"
-	"gopkg.in/mgo.v2/txn"
+	"fmt"
 )
 
 //const EntityKindTaxon = "Taxon"
@@ -23,27 +23,6 @@ type TaxonID string
 func (Ω TaxonID) Valid() bool {
 	return Ω != ""
 }
-
-//func NewTaxonKey(id int64, rank TaxonRank) *datastore.Key {
-//	if !ID(id).Valid() {
-//		return nil
-//	}
-//	if !rank.Valid() {
-//		return nil
-//	}
-//	return datastore.IDKey(string(rank), id, nil)
-//}
-//
-//type TaxonKeys []*datastore.Key
-//
-//func (Ω TaxonKeys) Find(id int64, kind string) *datastore.Key {
-//	for _, k := range Ω {
-//		if k.ID == id && k.Kind == kind {
-//			return k
-//		}
-//	}
-//	return nil
-//}
 
 type TaxonRank string
 const (
@@ -123,42 +102,34 @@ type Taxon struct {
 	WikipediaSummary string        `firestore:",omitempty"`
 }
 
-//func (Ω Taxon) Combine(s *Taxon) *Taxon {
-//
-//	if s.Key.Parent != nil && ID(s.Key.Parent.ID).Valid() {
-//		Ω.Key.Parent = s.Key.Parent
-//	}
-//
-//	if s.CreatedAt.Before(Ω.CreatedAt) {
-//		Ω.CreatedAt = s.CreatedAt
-//	}
-//	if s.CanonicalName.Valid() {
-//		Ω.CanonicalName = s.CanonicalName
-//	}
-//
-//	if ID(s.ID).Valid() {
-//		Ω.ID = s.ID
-//	}
-//
-//	if s.Rank.Valid() {
-//		Ω.Rank = s.Rank
-//	}
-//	if s.RankLevel != 0 {
-//		Ω.RankLevel = s.RankLevel
-//	}
-//	if s.CommonName == "" {
-//		Ω.CommonName = s.CommonName
-//	}
-//	if len(s.States) > 0 {
-//		Ω.States = s.States
-//	}
-//
-//	if s.WikipediaSummary != "" {
-//		Ω.WikipediaSummary = s.WikipediaSummary
-//	}
-//
-//	return &Ω
-//}
+func (Ω Taxon) Combine(s *Taxon) *Taxon {
+
+	if s.CreatedAt.Before(Ω.CreatedAt) {
+		Ω.CreatedAt = s.CreatedAt
+	}
+	if s.CanonicalName.Valid() {
+		Ω.CanonicalName = s.CanonicalName
+	}
+
+	if s.Rank.Valid() {
+		Ω.Rank = s.Rank
+	}
+	if s.RankLevel != 0 {
+		Ω.RankLevel = s.RankLevel
+	}
+	if s.CommonName == "" {
+		Ω.CommonName = s.CommonName
+	}
+	if len(s.States) > 0 {
+		Ω.States = s.States
+	}
+
+	if s.WikipediaSummary != "" {
+		Ω.WikipediaSummary = s.WikipediaSummary
+	}
+
+	return &Ω
+}
 
 type State struct {
 	EstablishmentMeans string `datastore:",omitempty,noindex" bson:"establishmentMeans,omitempty" json:"establishmentMeans,omitempty"`
@@ -238,9 +209,17 @@ func (Ω *store) UpsertTaxon(cxt context.Context, txn Taxon) error {
 		return errors.New("invalid taxa")
 	}
 
+	fmt.Println("upserting taxon", txn.ID)
 	ref := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(txn.ID))
 
 	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
+		if _, err := tx.Get(ref); err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return tx.Set(ref, txn)
+			} else {
+				return err
+			}
+		}
 		return tx.UpdateMap(ref, structs.Map(txn))
 	}); err != nil {
 		return errors.Wrap(err, "could not update occurrence")
@@ -259,18 +238,8 @@ func (Ω *store) SetTaxonPhoto(cxt context.Context, taxonID TaxonID, photoURL st
 	}); err != nil {
 		return errors.Wrap(err, "could not update taxon photo")
 	}
+	return nil
 }
-
-//func (Ω *store) ReadTaxa() (res Taxa, err error) {
-//	// Filter only to species and subspecies.
-//	//q := datastore.NewQuery(EntityKindTaxon).Filter("RankLevel =", 5).Filter("RankLevel =", 10).Order("__key__")
-//	q := datastore.NewQuery(EntityKindTaxon)
-//	if _, err := Ω.FirebaseClient.GetAll(context.Background(), q, &res); err != nil {
-//		return nil, errors.Wrap(err, "could not fetch taxa from datastore")
-//	}
-//	return res, nil
-//}
-
 func (Ω *store) ReadTaxaFromCanonicalNames(cxt context.Context, rank TaxonRank, names ...CanonicalName) (res Taxa, err error) {
 
 	q := Ω.FirestoreClient.Collection(CollectionTypeTaxa).
@@ -336,9 +305,9 @@ func (Ω *store) ReadTaxa(cxt context.Context) (res Taxa, err error) {
 func (Ω *store) ReadSpecies(cxt context.Context) (res Taxa, err error) {
 
 	q := Ω.FirestoreClient.Collection(CollectionTypeTaxa).
-		Where("Rank", "==", RankSpecies).
-		Where("Rank", "==", RankSubSpecies).
-		Where("Rank", "==", RankForm)
+		Where("RankLevel", "<=", 10)
+		//Where("Rank", "==", RankSubSpecies).
+		//Where("Rank", "==", RankForm)
 
 	snapshots, err := q.Documents(cxt).GetAll()
 	if err != nil {
@@ -355,107 +324,3 @@ func (Ω *store) ReadSpecies(cxt context.Context) (res Taxa, err error) {
 
 	return
 }
-
-//func (Ω *store) CreateTaxon(txn *Taxon, shouldHaveParent bool) (*datastore.Key, error) {
-//	if txn == nil || !ValidTaxonKey(txn.Key) {
-//		return nil, errors.New("invalid taxon").SetState(M{utils.LogkeyTaxon: txn})
-//	}
-//	if shouldHaveParent {
-//		if !ValidTaxonKey(txn.Key.Parent) {
-//			return nil, errors.New("invalid parent taxon key").SetState(M{utils.LogkeyTaxon: txn})
-//		}
-//	}
-//
-//	if !txn.CanonicalName.Valid() {
-//		return nil, errors.New("taxon name invalid").SetState(M{utils.LogkeyTaxon: txn})
-//	}
-//
-//	if !txn.Rank.Valid() {
-//		return nil, errors.New("taxon rank invalid").SetState(M{utils.LogkeyTaxon: txn})
-//	}
-//
-//	// No-op if it the taxon already exists. We're just creating here.
-//	var t Taxon
-//	if err := Ω.FirebaseClient.Get(context.Background(), txn.Key, &t); err != nil && err != datastore.ErrNoSuchEntity {
-//		return nil, errors.Wrap(err, "could not get taxon").SetState(M{utils.LogkeyDatastoreKey: txn.Key.Kind})
-//	} else if err == nil {
-//		// We have the entity, so exit early.
-//		return t.Key, nil
-//	}
-//
-//	k, err := Ω.FirebaseClient.Put(context.Background(), txn.Key, txn)
-//	if err != nil {
-//		return nil, errors.Wrap(err, "could not set taxon").SetState(M{utils.LogkeyDatastoreKey: txn.Key.Kind})
-//	}
-//	return k, nil
-//}
-
-// AddTaxonAdminAreas adds geographical areas that contain Ω taxon.
-//func (Ω *store) AddTaxonAdminAreas(k *TaxonKey, states ...string) error {
-//	if !k.Valid() {
-//		return errors.New("invalid taxon key")
-//	}
-//	_, err := Ω.FirebaseClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-//		src := Taxon{}
-//		if err := tx.Get(k, src); err != nil {
-//			return errors.Wrap(err, "could not get species data source")
-//		}
-//		src.States = append(src.States, states...)
-//		src.ModifiedAt = Ω.Clock.Now()
-//		if src.CreatedAt.IsZero() {
-//			src.CreatedAt = Ω.Clock.Now()
-//		}
-//		if _, err := tx.Put(src.Key, src); err != nil {
-//			return errors.Wrap(err, "could not update species data source")
-//		}
-//		return nil
-//	})
-//	return err
-//}
-//
-//// AddTaxonCommonName adds a common name to taxon
-//func (Ω *store) AddTaxonCommonName(k *TaxonKey, name string) error {
-//	if !k.Valid() {
-//		return errors.New("invalid taxon key")
-//	}
-//	_, err := Ω.FirebaseClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-//		src := Taxon{}
-//		if err := tx.Get(k, src); err != nil {
-//			return errors.Wrap(err, "could not get species data source")
-//		}
-//		src.CommonName = name
-//		src.ModifiedAt = Ω.Clock.Now()
-//		if src.CreatedAt.IsZero() {
-//			src.CreatedAt = Ω.Clock.Now()
-//		}
-//		if _, err := tx.Put(src.Key, src); err != nil {
-//			return errors.Wrap(err, "could not update species data source")
-//		}
-//		return nil
-//	})
-//	return err
-//}
-//
-//// AddTaxonCommonName adds a common name to taxon
-//func (Ω *store) AddTaxonWikipediaSummary(k *TaxonKey, summary string) error {
-//	if !k.Valid() {
-//		return errors.New("invalid taxon key")
-//	}
-//	_, err := Ω.FirebaseClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-//		src := Taxon{}
-//		if err := tx.Get(k, src); err != nil {
-//			return errors.Wrap(err, "could not get species data source")
-//		}
-//		src.WikipediaSummary = summary
-//		src.ModifiedAt = Ω.Clock.Now()
-//		if src.CreatedAt.IsZero() {
-//			src.CreatedAt = Ω.Clock.Now()
-//		}
-//		if _, err := tx.Put(src.Key, src); err != nil {
-//			return errors.Wrap(err, "could not update species data source")
-//		}
-//		return nil
-//	})
-//	return err
-//}
-

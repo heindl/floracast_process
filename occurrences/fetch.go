@@ -32,17 +32,17 @@ func main() {
 }
 
 const (
-	speciesFetchLimit = 100
+	occurrenceFetchLimit = 1000
 )
 
 func NewOccurrenceFetcher(store store.TaxaStore, clock clockwork.Clock) OccurrenceFetcher {
 	f := fetcher{
 		//Log:                           logrus.New(),
 		TaxaStore:                     store,
-		Limiter:                       make(chan struct{}, speciesFetchLimit),
+		Limiter:                       make(chan struct{}, occurrenceFetchLimit),
 		Clock:                         clock,
 	}
-	for i := 0; i < speciesFetchLimit; i++ {
+	for i := 0; i < occurrenceFetchLimit; i++ {
 		f.Limiter <- struct{}{}
 	}
 
@@ -80,6 +80,8 @@ func (Ω *fetcher) FetchOccurrences() error {
 			return err
 		}
 
+		fmt.Println("taxa length", len(taxa))
+
 		for _, _taxon := range taxa {
 			taxon := _taxon
 			tmb.Go(func() error {
@@ -89,11 +91,7 @@ func (Ω *fetcher) FetchOccurrences() error {
 				}
 				for _, _dataSource := range dataSources {
 					dataSource := _dataSource
-					<-Ω.Limiter
 					tmb.Go(func() error {
-						defer func() {
-							Ω.Limiter <- struct{}{}
-						}()
 
 						occurrences, err := Ω.fetchSourceData(dataSource)
 						if err != nil {
@@ -102,10 +100,16 @@ func (Ω *fetcher) FetchOccurrences() error {
 						if err := setElevations(occurrences); err != nil {
 							return err
 						}
-						for _, o := range occurrences {
-							if err := Ω.TaxaStore.UpsertOccurrence(cxt, o); err != nil {
-								return err
-							}
+
+						for _, _o := range occurrences {
+							o := _o
+							<-Ω.Limiter
+							tmb.Go(func() error {
+								defer func() {
+									Ω.Limiter <- struct{}{}
+								}()
+								return Ω.TaxaStore.UpsertOccurrence(cxt, o)
+							})
 						}
 
 						if err := Ω.TaxaStore.UpdateDataSourceLastFetched(cxt, dataSource); err != nil {
@@ -134,7 +138,7 @@ func (Ω *fetcher) FetchOccurrences() error {
 
 func (Ω *fetcher) fetchSourceData(src store.DataSource) (store.Occurrences, error) {
 
-	hasBeenFetchedInLastDay := !src.LastFetchedAt.IsZero() && src.LastFetchedAt.After(Ω.Clock.Now().Add(time.Hour * -24))
+	hasBeenFetchedInLastDay := src.LastFetchedAt != nil && !src.LastFetchedAt.IsZero() && src.LastFetchedAt.After(Ω.Clock.Now().Add(time.Hour * -24))
 	if hasBeenFetchedInLastDay {
 		return nil, nil
 	}
@@ -155,21 +159,23 @@ func (Ω *fetcher) fetchSourceData(src store.DataSource) (store.Occurrences, err
 		return nil, err
 	}
 
-	for i := range occurrences {
-		if occurrences[i].OccurrenceID == "" {
+	res := store.Occurrences{}
+
+	for _, o := range occurrences {
+		if o.OccurrenceID == "" {
 			continue
 		}
-
 		// Ensure the location is North/South America.
-		if occurrences[i].Location.GetLongitude() > -52.2330 {
+		if o.Location.GetLongitude() > -52.2330 {
 			continue
 		}
 
-		occurrences[i].DataSourceID = src.SourceID
-		occurrences[i].TaxonID = src.TaxonID
+		o.DataSourceID = src.SourceID
+		o.TaxonID = src.TaxonID
+		res = append(res, o)
 	}
 
-	return occurrences, nil
+	return res, nil
 }
 
 func newfetcher(sourceID store.DataSourceID, targetID store.DataSourceTargetID) (Fetcher, error) {
@@ -223,7 +229,7 @@ func (this GBIF) Fetch(begin *time.Time, end time.Time) (store.Occurrences, erro
 		if o == nil {
 			continue
 		}
-		res = append(res, o)
+		res = append(res, *o)
 	}
 
 	return res, nil

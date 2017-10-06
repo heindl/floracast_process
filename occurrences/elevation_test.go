@@ -4,7 +4,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	speciesstore "bitbucket.org/heindl/taxa/store"
-	"cloud.google.com/go/datastore"
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
 

@@ -6,6 +6,7 @@ import (
 	"github.com/saleswise/errors/errors"
 	"cloud.google.com/go/firestore"
 	"context"
+	"strings"
 )
 
 type WildernessArea struct {
@@ -34,7 +35,7 @@ func (a WildernessAreas) Len() int           { return len(a) }
 func (a WildernessAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a WildernessAreas) Less(i, j int) bool { return a[i].Acres > a[j].Acres }
 
-func (Ω *store) SetWildernessArea(cxt context.Context, wa WildernessArea) error {
+func (Ω *store) UpsertWildernessArea(cxt context.Context, wa WildernessArea) error {
 
 	// Validate
 	if wa.ID == "" {
@@ -44,6 +45,13 @@ func (Ω *store) SetWildernessArea(cxt context.Context, wa WildernessArea) error
 	ref := Ω.FirestoreClient.Collection(CollectionTypeWildernessAreas).Doc(wa.ID)
 
 	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
+		if _, err := tx.Get(ref); err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return tx.Set(ref, wa)
+			} else {
+				return err
+			}
+		}
 		return tx.UpdateMap(ref, structs.Map(wa))
 	}); err != nil {
 		return errors.Wrap(err, "could not update occurrence")

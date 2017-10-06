@@ -4,7 +4,6 @@ import (
 	"time"
 	"github.com/jonboulle/clockwork"
 	"cloud.google.com/go/firestore"
-	"bitbucket.org/heindl/provision/fseco"
 	"context"
 )
 
@@ -29,7 +28,7 @@ var _ TaxaStore = &store{}
 
 func NewTestTaxaStore() TaxaStore {
 
-	client, err := fseco.NewMockDatastore()
+	client, err := NewMockFirestore()
 	if err != nil {
 		return nil
 	}
@@ -39,7 +38,7 @@ func NewTestTaxaStore() TaxaStore {
 
 func NewTaxaStore() (TaxaStore, error) {
 
-	client, err := fseco.NewLiveDatastore()
+	client, err := NewLiveFirestore()
 	if err != nil {
 		return nil, err
 	}

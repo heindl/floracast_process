@@ -6,8 +6,8 @@ import (
 	"bitbucket.org/heindl/taxa/store"
 	"github.com/jonboulle/clockwork"
 	"fmt"
-	"bitbucket.org/taxa/utils"
-	"strconv"
+	"bitbucket.org/heindl/taxa/utils"
+	"golang.org/x/net/context"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -16,15 +16,15 @@ func TestTaxonFetcher(t *testing.T) {
 
 	SkipConvey("should fetch inaturalist schemes", t, func() {
 		f := fetcher{}
-		schemes, err := f.fetchSchemes(store.NewTaxonKey(58585, store.RankSubSpecies), true)
+		srcs, err := f.fetchDataSources(store.TaxonID("58583"), true)
 		So(err, ShouldBeNil)
-		So(len(schemes), ShouldEqual, 3)
-		So(schemes[0].Key.Name, ShouldEqual, store.DataSourceID("11|||ELEMENT_GLOBAL.2.108251"))
-		So(schemes[0].Key.Kind, ShouldEqual, store.EntityKindMetaScheme)
-		So(schemes[1].Key.Name, ShouldEqual, store.DataSourceID("27|||5714327"))
-		So(schemes[1].Key.Kind, ShouldEqual, store.EntityKindOccurrenceScheme)
-		So(schemes[2].Key.Name, ShouldEqual, store.DataSourceID("27|||5714327"))
-		So(schemes[2].Key.Kind,ShouldEqual, store.EntityKindMetaScheme)
+		So(len(srcs), ShouldEqual, 3)
+		So(srcs[0].SourceID, ShouldEqual, store.DataSourceID("11"))
+		So(srcs[0].Kind, ShouldEqual, store.DataSourceKindDescription)
+		So(srcs[1].SourceID, ShouldEqual, store.DataSourceID("27"))
+		So(srcs[1].Kind, ShouldEqual, store.DataSourceKindOccurrence)
+		So(srcs[2].SourceID, ShouldEqual, store.DataSourceID("27"))
+		So(srcs[2].Kind,ShouldEqual, store.DataSourceKindPhoto)
 	})
 
 	Convey("should fetch all species in subfamily Limenitidinae", t, func() {
@@ -34,42 +34,44 @@ func TestTaxonFetcher(t *testing.T) {
 			Clock: clockwork.NewFakeClock(),
 		}
 
-		taxa, err := f.Store.ReadTaxa()
+		cxt := context.Background()
+
+		taxa, err := f.Store.ReadTaxa(cxt)
 		So(err, ShouldBeNil)
 		So(len(taxa), ShouldEqual, 0)
 
-		So(f.FetchProcessTaxa(50881), ShouldBeNil)
+		So(f.FetchProcessTaxa(cxt,store.TaxonID("58583")), ShouldBeNil)
 
-		taxa, err = f.Store.ReadTaxa()
+		taxa, err = f.Store.ReadTaxa(cxt)
 		So(err, ShouldBeNil)
-		So(len(taxa), ShouldEqual, 51)
+		So(len(taxa), ShouldEqual, 19)
 
-		taxa, err = f.Store.ReadSpecies()
+		taxa, err = f.Store.ReadSpecies(cxt)
 		So(err, ShouldBeNil)
-		So(len(taxa), ShouldEqual, 39)
+		So(len(taxa), ShouldEqual, 7)
 
-		schema, err := f.Store.GetOccurrenceSchema(nil)
+		dataSources, err := f.Store.GetOccurrenceDataSources(cxt, store.TaxonID(""))
 		So(err, ShouldBeNil)
-		So(len(schema), ShouldEqual, 36)
+		So(len(dataSources), ShouldEqual, 6)
 		have := []string{}
-		for i := range schema {
-			if utils.Contains(have, strconv.Itoa(int(schema[i].Key.Parent.ID))) {
-				fmt.Println(schema[i].Key.Parent.ID)
+		for i := range dataSources {
+			if utils.Contains(have, string(dataSources[i].TaxonID)) {
+				fmt.Println(dataSources[i].TaxonID)
 			}
-			have = append(have, strconv.Itoa(int(schema[i].Key.Parent.ID)))
+			have = append(have, string(dataSources[i].TaxonID))
 		}
 
-		schema, err = f.Store.GetOccurrenceSchema(taxa[0].Key)
+		dataSources, err = f.Store.GetOccurrenceDataSources(cxt, taxa[0].ID)
 		So(err, ShouldBeNil)
-		So(len(schema), ShouldEqual, 1)
+		So(len(dataSources), ShouldEqual, 1)
 
-		schema, err = f.Store.GetOccurrenceSchema(taxa[1].Key)
+		dataSources, err = f.Store.GetOccurrenceDataSources(cxt, taxa[2].ID)
 		So(err, ShouldBeNil)
-		So(len(schema), ShouldEqual, 1)
+		So(len(dataSources), ShouldEqual, 1)
 
-		schema, err = f.Store.GetOccurrenceSchema(taxa[2].Key)
+		dataSources, err = f.Store.GetOccurrenceDataSources(cxt, taxa[3].ID)
 		So(err, ShouldBeNil)
-		So(len(schema), ShouldEqual, 1)
+		So(len(dataSources), ShouldEqual, 1)
 
 		Reset(func() {
 			So(f.Store.Close(), ShouldBeNil)

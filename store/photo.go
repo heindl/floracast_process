@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/fatih/structs"
 	"fmt"
+	"strings"
 )
 
 const EntityKindPhoto = "Photo"
@@ -107,7 +108,7 @@ func (Ω *store) NewPhotoDocumentRef(taxonID TaxonID, dataSourceID DataSourceID,
 	}
 
 	return Ω.FirestoreClient.Collection(CollectionTypePhotos).
-		Doc(fmt.Sprintf("%s|%s|%s", taxonID, dataSourceID, photoID)), nil
+		Doc(fmt.Sprintf("%s|%s|%s", string(taxonID), dataSourceID, photoID)), nil
 
 }
 
@@ -119,6 +120,13 @@ func (Ω *store) UpsertPhoto(cxt context.Context, p Photo) error {
 	}
 
 	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
+		if _, err := tx.Get(ref); err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				return tx.Set(ref, p)
+			} else {
+				return err
+			}
+		}
 		return tx.UpdateMap(ref, structs.Map(p))
 	}); err != nil {
 		return errors.Wrap(err, "could not update photo")

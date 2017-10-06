@@ -32,7 +32,7 @@ func main() {
 		Clock: clockwork.NewRealClock(),
 	}
 
-	if err := f.FetchProcessTaxa(58583); err != nil {
+	if err := f.FetchProcessTaxa(context.Background(), store.TaxonID("58583")); err != nil {
 		panic(err)
 	}
 }
@@ -40,7 +40,7 @@ func main() {
 type fetcher struct {
 	// Reference to google data store.
 	Store       store.TaxaStore
-	//Taxa store.Taxa
+	ProcessedTaxa []string
 	//DataSources store.DataSources
 	//Photos store.Photos
 	sync.Mutex
@@ -48,9 +48,9 @@ type fetcher struct {
 	Tomb *tomb.Tomb
 }
 
-func (Ω *fetcher) FetchProcessTaxa(parent_taxa int) error {
+func (Ω *fetcher) FetchProcessTaxa(cxt context.Context, parent_taxa store.TaxonID) error {
 
-	if parent_taxa == 0 {
+	if !parent_taxa.Valid() {
 		return errors.New("invalid taxa")
 	}
 
@@ -69,7 +69,8 @@ func (Ω *fetcher) FetchProcessTaxa(parent_taxa int) error {
 
 		// Right now pagination - ?page=2 - appears to not work, so having to jack up it up to 10,000. Be sure to check below that the
 		// total returned is less than the s.
-		url := fmt.Sprintf("http://api.inaturalist.org/v1/observations/species_counts?taxon_id=%d&per_page=10000", parent_taxa)
+		url := fmt.Sprintf("http://api.inaturalist.org/v1/observations/species_counts?taxon_id=%s&per_page=10000", string(parent_taxa))
+
 		if err := request(url, &response); err != nil {
 			return err
 		}
@@ -95,7 +96,7 @@ func (Ω *fetcher) FetchProcessTaxa(parent_taxa int) error {
 				defer func() {
 					limiter <- struct{}{}
 				}()
-				if err := Ω.fetchProcessTaxon(store.TaxonID(taxon.Taxon.ID)); err != nil {
+				if err := Ω.fetchProcessTaxon(cxt, store.TaxonID(strconv.Itoa(int(taxon.Taxon.ID)))); err != nil {
 					return err
 				}
 				return nil
@@ -136,8 +137,8 @@ type Taxon struct {
 	AncestorIds []int `json:"ancestor_ids"`
 	IconicTaxonName string `json:"iconic_taxon_name"`
 	PreferredCommonName string `json:"preferred_common_name"`
-	Ancestors []*Taxon `json:"ancestors"`
-	Children []*Taxon `json:"children"`
+	Ancestors []Taxon `json:"ancestors"`
+	Children []Taxon `json:"children"`
 	ListedTaxa []struct {
 		ID int `json:"id"`
 		TaxonID int `json:"taxon_id"`
@@ -193,7 +194,7 @@ func (Ω Photo) Format(taxonID store.TaxonID, sourceID store.DataSourceID) store
 	}
 }
 
-func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
+func (Ω *fetcher) fetchProcessTaxon(cxt context.Context, taxonID store.TaxonID) error {
 
 	if !taxonID.Valid() {
 		return errors.New("invalid taxon id")
@@ -206,10 +207,10 @@ func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
 
 	var response struct {
 		Counter
-		Results []*Taxon `json:"results"`
+		Results []Taxon `json:"results"`
 	}
 
-	url := fmt.Sprintf("http://api.inaturalist.org/v1/taxa/%d", taxonID)
+	url := fmt.Sprintf("http://api.inaturalist.org/v1/taxa/%s", string(taxonID))
 
 	if err := request(url, &response); err != nil {
 		return err
@@ -226,18 +227,20 @@ func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
 	// Should only be one result.
 	taxa := response.Results[0]
 
-	var lastAncestor store.TaxonID
-	for i, _a := range taxa.Ancestors {
-		a := _a
-		taxonID, err := Ω.processTaxon(a, lastAncestor, (i != 0))
-		if err != nil {
+	Ω.Tomb.Go(func() (err error) {
+		var lastAncestor store.TaxonID
+		for i, _a := range taxa.Ancestors {
+			a := _a
+			la, err := Ω.processTaxon(cxt, a, lastAncestor, (i != 0))
+			if err != nil {
+				return err
+			}
+			lastAncestor = la
+		}
+		if _, err := Ω.processTaxon(cxt, taxa, lastAncestor, true); err != nil {
 			return err
 		}
-		lastAncestor = taxonID
-	}
-	Ω.Tomb.Go(func() error {
-		_, err := Ω.processTaxon(taxa, lastAncestor, true)
-		return err
+		return nil
 	})
 
 	Ω.Tomb.Go(func() error {
@@ -246,7 +249,7 @@ func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
 			rank := store.RankLevel(a.RankLevel)
 			if rank == store.RankLevelSpecies || rank == store.RankLevelSubSpecies {
 				Ω.Tomb.Go(func() error {
-					if err := Ω.fetchProcessTaxon(store.TaxonID(a.ID)); err != nil {
+					if err := Ω.fetchProcessTaxon(cxt, store.TaxonID(strconv.Itoa(int(a.ID)))); err != nil {
 						return err
 					}
 					return nil
@@ -259,7 +262,7 @@ func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
 	return nil
 }
 
-func (Ω *fetcher) processTaxon(cxt context.Context, txn *Taxon, parent store.TaxonID, shouldHaveParent bool) (*store.TaxonID, error) {
+func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.TaxonID, shouldHaveParent bool) (store.TaxonID, error) {
 
 	// No need to reprocess a parent key we've already processed it before. Noopt and return the key.
 	//taxonKey := Ω.Fetched.Find(txn.ID, store.EntityKindTaxon)
@@ -267,20 +270,30 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn *Taxon, parent store.Ta
 	//	return taxonKey, nil
 	//}
 
+	taxonID := store.TaxonID(strconv.Itoa(int(txn.ID)))
+
+	if utils.Contains(Ω.ProcessedTaxa,  string(taxonID)) {
+		return taxonID, nil
+	}
+
+	Ω.Lock()
+	Ω.ProcessedTaxa = append(Ω.ProcessedTaxa, string(taxonID))
+	Ω.Unlock()
+
 	rank, ok := store.TaxonRankMap[txn.Rank]
 	if !ok {
-		return nil, errors.Newf("unsupported rank: %s", txn.Rank)
+		return store.TaxonID(""), errors.Newf("unsupported rank: %s", txn.Rank)
 	}
 
 	if !parent.Valid() && shouldHaveParent{
-		return nil, errors.New("parent taxon id expected but invalid")
+		return store.TaxonID(""), errors.New("parent taxon id expected but invalid")
 	}
 
 	t := store.Taxon{
 		ParentID: parent,
 		CanonicalName: store.CanonicalName(txn.Name),
 		Rank: rank,
-		ID: store.TaxonID(txn.ID),
+		ID: taxonID,
 		RankLevel: store.RankLevel(txn.RankLevel),
 		CommonName: txn.PreferredCommonName,
 		CreatedAt: Ω.Clock.Now(),
@@ -298,13 +311,13 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn *Taxon, parent store.Ta
 	}
 
 	if err := Ω.Store.UpsertTaxon(cxt, t); err != nil {
-		return nil, err
+		return store.TaxonID(""), err
 	}
 
 	taxonPhoto := ""
 	if txn.DefaultPhoto.ID != 0 {
 		if err := Ω.Store.UpsertPhoto(cxt, txn.DefaultPhoto.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
-			return nil, err
+			return store.TaxonID(""), err
 		}
 		taxonPhoto = txn.DefaultPhoto.MediumURL
 	}
@@ -313,7 +326,7 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn *Taxon, parent store.Ta
 	for _, p := range txn.TaxonPhotos {
 		if strconv.Itoa(int(p.Taxon.ID)) == string(t.ID) {
 			if err := Ω.Store.UpsertPhoto(cxt, p.Photo.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
-				return nil, err
+				return store.TaxonID(""), err
 			}
 			if taxonPhoto == "" {
 				taxonPhoto = p.Photo.MediumURL
@@ -322,33 +335,37 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn *Taxon, parent store.Ta
 	}
 
 	if err := Ω.Store.SetTaxonPhoto(cxt, t.ID, taxonPhoto); err != nil {
-		return nil, err
+		return store.TaxonID(""), err
 	}
 
-	schemes, err := Ω.fetchSchemes(t, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies));
+	dataSources, err := Ω.fetchDataSources(t.ID, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies));
 	if err != nil {
-		return nil, err
+		return store.TaxonID(""), err
 	}
-	if len(schemes) > 0 {
-		for _, s := range schemes {
+	if len(dataSources) > 0 {
+		for _, s := range dataSources {
 			if err := Ω.Store.UpsertDataSource(cxt, s); err != nil {
-				return nil, err
+				return store.TaxonID(""), err
 			}
 		}
 	}
 
-	return &t.ID, nil
+	return t.ID, nil
 }
 
 var schemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
 var schemeFetchRateLimiter = time.Tick(time.Second / 2)
 
-func (Ω *fetcher) fetchSchemes(txn store.Taxon, isSpecies bool) ([]store.DataSource, error) {
+func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, isSpecies bool) ([]store.DataSource, error) {
+
+	if !taxonID.Valid() {
+		return nil, errors.New("invalid taxon id")
+	}
 
 	<-schemeFetchRateLimiter
 
-	url := fmt.Sprintf("http://www.inaturalist.org/taxa/%d/schemes", txn.ID)
+	url := fmt.Sprintf("http://www.inaturalist.org/taxa/%s/schemes", string(taxonID))
 
 	r := bytes.NewReader([]byte{})
 	if err := request(url, r); err != nil {
@@ -388,15 +405,21 @@ func (Ω *fetcher) fetchSchemes(txn store.Taxon, isSpecies bool) ([]store.DataSo
 				Kind: store.DataSourceKindOccurrence,
 				SourceID: store.DataSourceIDGBIF,
 				TargetID: pair.TargetID,
-				TaxonID: txn.ID,
+				TaxonID: taxonID,
+			})
+			res = append(res, store.DataSource{
+				Kind: store.DataSourceKindDescription,
+				SourceID: store.DataSourceIDGBIF,
+				TargetID: pair.TargetID,
+				TaxonID: taxonID,
+			})
+			res = append(res, store.DataSource{
+				Kind: store.DataSourceKindPhoto,
+				SourceID: store.DataSourceIDGBIF,
+				TargetID: pair.TargetID,
+				TaxonID: taxonID,
 			})
 		}
-		res = append(res, store.DataSource{
-			Kind: store.DataSourceKindDescription,
-			SourceID: store.DataSourceIDGBIF,
-			TargetID: pair.TargetID,
-			TaxonID: txn.ID,
-		})
 	}
 
 	return res, nil

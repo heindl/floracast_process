@@ -4,11 +4,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
-	speciesstore "bitbucket.org/heindl/taxa/store"
 	//"bitbucket.org/taxa/utils"
 	"github.com/jonboulle/clockwork"
 	"fmt"
-	"bitbucket.org/taxa/utils"
+	"bitbucket.org/heindl/taxa/utils"
+	"golang.org/x/net/context"
+	"bitbucket.org/heindl/taxa/store"
 )
 
 func TestOccurrenceFetcher(t *testing.T) {
@@ -17,9 +18,9 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 	SkipConvey("show occurrences", t, func() {
 
-		taxastore := speciesstore.NewTestTaxaStore()
+		taxastore := store.NewTestTaxaStore()
 
-		ocs, err := taxastore.GetOccurrences(nil)
+		ocs, err := taxastore.GetOccurrences(context.Background(), store.TaxonID(""))
 		So(err, ShouldBeNil)
 
 		for _, o := range ocs {
@@ -33,22 +34,22 @@ func TestOccurrenceFetcher(t *testing.T) {
 		})
 	})
 
-	Convey("should fetch occurrences and add to queue", t, func() {
+	SkipConvey("should fetch occurrences and add to queue", t, func() {
 
-		taxastore := speciesstore.NewTestTaxaStore()
+		taxastore := store.NewTestTaxaStore()
 
 		//taxa, err := taxastore.ReadTaxa()
 		//So(err, ShouldBeNil)
 
 		//for _, t := range taxa {
-			list, err := taxastore.GetOccurrences(nil)
+			list, err := taxastore.GetOccurrences(context.Background(), store.TaxonID(""))
 			So(err, ShouldBeNil)
-			m := map[int64]int{}
+			m := map[store.TaxonID]int{}
 			for _, l := range list {
-				if _, ok := m[l.Key.Parent.Parent.ID]; !ok {
-					m[l.Key.Parent.Parent.ID] = 1
+				if _, ok := m[l.TaxonID]; !ok {
+					m[l.TaxonID] = 1
 				} else {
-					m[l.Key.Parent.Parent.ID] += 1
+					m[l.TaxonID] += 1
 				}
 			}
 
@@ -60,18 +61,18 @@ func TestOccurrenceFetcher(t *testing.T) {
 		})
 	})
 
-	SkipConvey("should fetch occurrences and add to queue", t, func() {
+	Convey("should fetch occurrences and add to queue", t, func() {
 
-		taxastore := speciesstore.NewTestTaxaStore()
+		taxastore := store.NewTestTaxaStore()
 
 		fetcher := NewOccurrenceFetcher(taxastore, clockwork.NewFakeClockAt(time.Date(2017, time.May, 18, 0, 0, 0, 0, time.UTC)))
 
 		So(fetcher.FetchOccurrences(), ShouldBeNil)
 
-		ocs, err := taxastore.GetOccurrences(nil)
+		ocs, err := taxastore.GetOccurrences(context.Background(), store.TaxonID("58583"))
 		So(err, ShouldBeNil)
 
-		fmt.Println(len(ocs))
+		fmt.Println("occurrence_length", len(ocs))
 
 		fmt.Println(utils.JsonOrSpew(ocs[0:20]))
 
