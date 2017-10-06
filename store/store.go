@@ -21,6 +21,7 @@ type TaxaStore interface {
 	UpsertOccurrence(context.Context, Occurrence) error
 	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
 	UpsertWildernessArea(context.Context, WildernessArea) error
+	SetPrediction(cxt context.Context, p Prediction) error
 	Close() error
 }
 

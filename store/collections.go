@@ -6,4 +6,5 @@ const (
 	CollectionTypeTaxa            = "Taxa"
 	CollectionTypePhotos          = "Photos"
 	CollectionTypeWildernessAreas = "WildernessAreas"
+	CollectionTypePredictions = "Predictions"
 )
