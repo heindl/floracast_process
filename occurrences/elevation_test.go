@@ -3,8 +3,9 @@ package main
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	speciesstore "bitbucket.org/heindl/species/store"
+	speciesstore "bitbucket.org/heindl/taxa/store"
 	"cloud.google.com/go/datastore"
+	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
 func TestElevationFetch(t *testing.T) {
@@ -13,9 +14,9 @@ func TestElevationFetch(t *testing.T) {
 
 	Convey("should fetch occurrences and add to queue", t, func() {
 		list := speciesstore.Occurrences{
-			{Location: &datastore.GeoPoint{25.75027, -80.766463}},
-			{Location: &datastore.GeoPoint{36.2340512,-116.8863299}},
-			{Location: &datastore.GeoPoint{33.7676338,-84.5606914}},
+			{Location: latlng.LatLng{25.75027, -80.766463}},
+			{Location: latlng.LatLng{36.2340512,-116.8863299}},
+			{Location: latlng.LatLng{33.7676338,-84.5606914}},
 		}
 		So(setElevations(list), ShouldBeNil)
 

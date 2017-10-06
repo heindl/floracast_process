@@ -3,33 +3,33 @@ package store
 import (
 	"time"
 	"github.com/jonboulle/clockwork"
-	"cloud.google.com/go/datastore"
-	"bitbucket.org/heindl/provision/dseco"
+	"cloud.google.com/go/firestore"
+	"bitbucket.org/heindl/provision/fseco"
+	"context"
 )
 
 type TaxaStore interface {
-	ReadTaxa() (Taxa, error)
-	ReadSpecies() (Taxa, error)
-	NewOccurrenceSchemeIterator(*datastore.Key) *datastore.Iterator
-	ReadTaxaFromCanonicalNames(TaxonRank, ...CanonicalName) (Taxa, error)
-	GetTaxon(*datastore.Key) (*Taxon, error)
-	SetTaxa(Taxa) error
-	SetPhotos(Photos) error
-	SetSchema(Schema) error
-	UpdateSchemaLastFetched(Schema) error
-	GetOccurrenceSchema(*datastore.Key) (Schema, error)
-	SetOccurrences(Occurrences) error
-	GetOccurrenceIterator(taxonKey *datastore.Key) *datastore.Iterator
-	GetOccurrences(taxonKey *datastore.Key) (Occurrences, error)
+	ReadTaxa(context.Context) (Taxa, error)
+	ReadSpecies(context.Context) (Taxa, error)
+	ReadTaxaFromCanonicalNames(context.Context, TaxonRank, ...CanonicalName) (Taxa, error)
+	GetTaxon(context.Context, TaxonID) (*Taxon, error)
+	UpsertTaxon(context.Context, Taxon) error
+	SetTaxonPhoto(context.Context, TaxonID, string) error
+	UpsertPhoto(context.Context, Photo) error
+	UpsertDataSource(context.Context, DataSource) error
+	UpdateDataSourceLastFetched(context.Context, DataSource) error
+	GetOccurrenceDataSources(context.Context, TaxonID) (DataSources, error)
+	UpsertOccurrence(context.Context, Occurrence) error
+	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
+	UpsertWildernessArea(context.Context, WildernessArea) error
 	Close() error
 }
-
 
 var _ TaxaStore = &store{}
 
 func NewTestTaxaStore() TaxaStore {
 
-	client, err := dseco.NewMockDatastore()
+	client, err := fseco.NewMockDatastore()
 	if err != nil {
 		return nil
 	}
@@ -39,7 +39,7 @@ func NewTestTaxaStore() TaxaStore {
 
 func NewTaxaStore() (TaxaStore, error) {
 
-	client, err := dseco.NewLiveDatastore()
+	client, err := fseco.NewLiveDatastore()
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +48,11 @@ func NewTaxaStore() (TaxaStore, error) {
 }
 
 type store struct {
-	Clock clockwork.Clock
-	DatastoreClient *datastore.Client
+	Clock          clockwork.Clock
+	FirestoreClient *firestore.Client
 }
 
 func (Ω *store) Close() error {
-	return Ω.DatastoreClient.Close()
+	return Ω.FirestoreClient.Close()
 }
 

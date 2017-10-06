@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	"bitbucket.org/heindl/species/store"
+	"bitbucket.org/heindl/taxa/store"
 	"googlemaps.github.io/maps"
 	"github.com/saleswise/errors/errors"
 	"gopkg.in/tomb.v2"
@@ -43,7 +43,7 @@ func setElevations(occurrences store.Occurrences) error {
 				locations := make([]maps.LatLng, len(list))
 				// Gather lat/lng pairs for elevation fetch.
 				for i, o := range list {
-					locations[i] = maps.LatLng{o.Location.Lat, o.Location.Lng}
+					locations[i] = maps.LatLng{o.Location.GetLatitude(), o.Location.GetLongitude()}
 				}
 				res, err := mc.Elevation(context.Background(), &maps.ElevationRequest{Locations: locations})
 				if err != nil {
@@ -52,10 +52,10 @@ func setElevations(occurrences store.Occurrences) error {
 			Occurrences:
 				for i := range list {
 					for _, r := range res {
-						if !coordinateEquals(list[i].Location.Lat, r.Location.Lat) {
+						if !coordinateEquals(list[i].Location.GetLatitude(), r.Location.Lat) {
 							continue
 						}
-						if !coordinateEquals(list[i].Location.Lng, r.Location.Lng) {
+						if !coordinateEquals(list[i].Location.GetLongitude(), r.Location.Lng) {
 							continue
 						}
 						list[i].Elevation = r.Elevation

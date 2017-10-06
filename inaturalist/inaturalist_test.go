@@ -3,10 +3,10 @@ package main
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/species/store"
+	"bitbucket.org/heindl/taxa/store"
 	"github.com/jonboulle/clockwork"
 	"fmt"
-	"bitbucket.org/heindl/utils"
+	"bitbucket.org/taxa/utils"
 	"strconv"
 )
 
@@ -19,11 +19,11 @@ func TestTaxonFetcher(t *testing.T) {
 		schemes, err := f.fetchSchemes(store.NewTaxonKey(58585, store.RankSubSpecies), true)
 		So(err, ShouldBeNil)
 		So(len(schemes), ShouldEqual, 3)
-		So(schemes[0].Key.Name, ShouldEqual, store.SchemeSourceID("11|||ELEMENT_GLOBAL.2.108251"))
+		So(schemes[0].Key.Name, ShouldEqual, store.DataSourceID("11|||ELEMENT_GLOBAL.2.108251"))
 		So(schemes[0].Key.Kind, ShouldEqual, store.EntityKindMetaScheme)
-		So(schemes[1].Key.Name, ShouldEqual, store.SchemeSourceID("27|||5714327"))
+		So(schemes[1].Key.Name, ShouldEqual, store.DataSourceID("27|||5714327"))
 		So(schemes[1].Key.Kind, ShouldEqual, store.EntityKindOccurrenceScheme)
-		So(schemes[2].Key.Name, ShouldEqual, store.SchemeSourceID("27|||5714327"))
+		So(schemes[2].Key.Name, ShouldEqual, store.DataSourceID("27|||5714327"))
 		So(schemes[2].Key.Kind,ShouldEqual, store.EntityKindMetaScheme)
 	})
 

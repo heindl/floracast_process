@@ -2,164 +2,161 @@ package store
 
 import (
 	"time"
-	"cloud.google.com/go/datastore"
+	"cloud.google.com/go/firestore"
 	"github.com/saleswise/errors/errors"
+	"google.golang.org/genproto/googleapis/type/latlng"
 	"context"
+	"fmt"
+	"github.com/fatih/structs"
 )
 
-type Occurrences []*Occurrence
+type Occurrences []Occurrence
 
-func (Ω Occurrences) RemoveDuplicates() (response Occurrences) {
-	for _, o := range Ω {
-		if response.Find(o.Key) == nil {
-			response = append(response, o)
-		}
-	}
-	return
-}
+//func (Ω Occurrences) RemoveDuplicates() (response Occurrences) {
+//	for _, o := range Ω {
+//		if response.Find(o.Key) == nil {
+//			response = append(response, o)
+//		}
+//	}
+//	return
+//}
 
-func (Ω Occurrences) Find(k *datastore.Key) *Occurrence {
-	for _, o := range Ω {
-		if o.Key.Kind != k.Kind {
-			continue
-		}
-		if o.Key.ID != k.ID {
-			continue
-		}
-		// The occurrence parent should be a scheme.
-		if o.Key.Parent.Name != k.Parent.Name {
-			continue
-		}
+//func (Ω Occurrences) Find(k *datastore.Key) *Occurrence {
+//	for _, o := range Ω {
+//		if o.Key.Kind != k.Kind {
+//			continue
+//		}
+//		if o.Key.ID != k.ID {
+//			continue
+//		}
+//		// The occurrence parent should be a scheme.
+//		if o.Key.Parent.Name != k.Parent.Name {
+//			continue
+//		}
+//
+//		// The occurrence grandparent should be a taxon.
+//		if o.Key.Parent.Parent.ID != o.Key.Parent.Parent.ID {
+//			continue
+//		}
+//		return o
+//	}
+//	return nil
+//}
 
-		// The occurrence grandparent should be a taxon.
-		if o.Key.Parent.Parent.ID != o.Key.Parent.Parent.ID {
-			continue
-		}
-		return o
-	}
-	return nil
-}
-
-func (Ω Occurrence) Combine(o *Occurrence) *Occurrence {
-
-	if !o.Key.Incomplete() {
-		Ω.Key = o.Key
-	}
-	if o.Location != nil && o.Location.Valid() {
-		Ω.Location = o.Location
-	}
-	if !o.Date.IsZero() {
-		Ω.Date = o.Date
-	}
-	if o.References != "" {
-		Ω.References = o.References
-	}
-	if o.RecordedBy != "" {
-		Ω.RecordedBy = o.RecordedBy
-	}
-	if !o.CreatedAt.IsZero() && o.CreatedAt.Before(Ω.CreatedAt) {
-		Ω.CreatedAt = o.CreatedAt
-	}
-	if !o.ModifiedAt.IsZero() && o.ModifiedAt.After(Ω.ModifiedAt) {
-		Ω.ModifiedAt = o.ModifiedAt
-	}
-	if o.Elevation != 0 {
-		Ω.Elevation = o.Elevation
-	}
-	return &Ω
-}
+//func (Ω Occurrence) Combine(o *Occurrence) *Occurrence {
+//
+//	if !o.Key.Incomplete() {
+//		Ω.Key = o.Key
+//	}
+//	if o.Location != nil && o.Location.Valid() {
+//		Ω.Location = o.Location
+//	}
+//	if !o.Date.IsZero() {
+//		Ω.Date = o.Date
+//	}
+//	if o.References != "" {
+//		Ω.References = o.References
+//	}
+//	if o.RecordedBy != "" {
+//		Ω.RecordedBy = o.RecordedBy
+//	}
+//	if !o.CreatedAt.IsZero() && o.CreatedAt.Before(Ω.CreatedAt) {
+//		Ω.CreatedAt = o.CreatedAt
+//	}
+//	if !o.ModifiedAt.IsZero() && o.ModifiedAt.After(Ω.ModifiedAt) {
+//		Ω.ModifiedAt = o.ModifiedAt
+//	}
+//	if o.Elevation != 0 {
+//		Ω.Elevation = o.Elevation
+//	}
+//	return &Ω
+//}
 
 const EntityKindOccurrence = "Occurrence"
 
 type Occurrence struct {
-	Key *datastore.Key `datastore:"__key__,omitempty" json:",omitempty" bson:",omitempty"`
-	Location *datastore.GeoPoint `datastore:",omitempty" json:"location,omitempty" bson:"location,omitempty"`
-	Date      time.Time `datastore:",omitempty,noindex" bson:"date,omitempty" json:"date,omitempty"`
-	References string `datastore:",omitempty,noindex" bson:"references,omitempty" json:"references,omitempty"`
-	RecordedBy string `datastore:",omitempty,noindex" bson:"recordedBy,omitempty" json:"recordedBy,omitempty"`
-	CreatedAt time.Time `datastore:",omitempty,noindex" bson:"createdAt,omitempty" json:"createdAt,omitempty"`
-	ModifiedAt time.Time `datastore:",omitempty,noindex" bson:"modifiedAt,omitempty" json:"modifiedAt,omitempty"`
+	GBIFID string `firestore:",omitempty"`
+	TaxonID	TaxonID `firestore:",omitempty"`
+	DataSourceID DataSourceID        `firestore:",omitempty" json:",omitempty"`
+	OccurrenceID     string        `firestore:",omitempty" json:",omitempty"`
+	Location         latlng.LatLng `firestore:",omitempty" json:",omitempty"`
+	Date             *time.Time    `firestore:",omitempty" json:",omitempty"`
+	References       string        `firestore:",omitempty" json:",omitempty"`
+	RecordedBy       string        `firestore:",omitempty" json:",omitempty"`
+	CreatedAt        *time.Time    `firestore:",omitempty" json:",omitempty"`
+	ModifiedAt       *time.Time    `firestore:",omitempty" json:",omitempty"`
 	// A globally unique identifier. Although missing in some cases, will be helpful in identifying source of data.
-	OccurrenceID string `datastore:",omitempty,noindex" bson:",omitempty" json:",omitempty"`
-	Elevation float64 `datastore:",omitempty,noindex" bson:"elevation,omitempty" json:"elevation,omitempty"`
+	Elevation float64 `firestore:",omitempty" json:",omitempty"`
 }
 
 func (Ω *Occurrence) Validate() error {
 	if Ω == nil {
 		return errors.New("nil occurrence")
 	}
-	if !Ω.Location.Valid() {
+	if Ω.Location.GetLatitude() != 0 && Ω.Location.GetLongitude() != 0 {
 		return errors.New("invalid occurrence location")
 	}
-	if Ω.Key.Name == "" || Ω.Key.Kind != EntityKindOccurrence {
-		return errors.New("invalid key")
+	if Ω.Date != nil && !Ω.Date.IsZero() {
+		return errors.New("invalid date")
 	}
 	return nil
 }
 
-func (Ω *store) SetOccurrences(occurrences Occurrences) error {
+func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSourceID, gbifID string) (*firestore.DocumentRef, error) {
 
-	occurrences = occurrences.RemoveDuplicates()
-
-	keys := make([]*datastore.Key, len(occurrences))
-	for i := range occurrences {
-		keys[i] = occurrences[i].Key
+	if !taxonID.Valid() {
+		return nil, errors.New("invalid data source document reference id")
+	}
+	if !dataSourceID.Valid() {
+		return nil, errors.New("invalid data source id")
+	}
+	if gbifID == "" {
+		return nil, errors.New("invalid occurrence id")
 	}
 
-	if _, err := Ω.DatastoreClient.RunInTransaction(context.Background(), func(tx *datastore.Transaction) error {
-		found := make(Occurrences, len(keys))
-		if err := tx.GetMulti(keys, found); err != nil {
-			if multierror, ok := err.(datastore.MultiError); ok {
-				for _, me := range multierror {
-					if me == datastore.ErrNoSuchEntity {
-						continue
-					} else if me != nil {
-						return errors.Wrap(me, "could not get occurrences")
-					}
-				}
-			} else {
-				return errors.Wrap(err, "could not get occurrences")
-			}
-		}
+	return Ω.FirestoreClient.Collection(CollectionTypeOccurrences).
+		Doc(fmt.Sprintf("%s|%s|%s", taxonID, dataSourceID, gbifID)), nil
 
-		for i := range found {
-			if found[i] == nil {
-				found[i] = occurrences.Find(keys[i])
-				found[i].CreatedAt = Ω.Clock.Now()
-			} else {
-				found[i] = found[i].Combine(occurrences.Find(keys[i]))
-			}
-			found[i].ModifiedAt = Ω.Clock.Now()
-		}
+}
 
-		if _, err := tx.PutMulti(keys, found); err != nil {
-			return errors.Wrap(err, "could not update species data source")
-		}
-		return nil
-	}); err != nil {
+func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) error {
+
+	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceID, o.GBIFID)
+	if err != nil {
 		return err
 	}
+
+	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
+			return tx.UpdateMap(ref, structs.Map(o))
+	}); err != nil {
+		return errors.Wrap(err, "could not update occurrence")
+	}
 	return nil
 
 }
 
-func (Ω *store) GetOccurrenceIterator(taxonKey *datastore.Key) *datastore.Iterator {
-	q := datastore.NewQuery(EntityKindOccurrence)
-	if taxonKey != nil {
-		q = q.Ancestor(taxonKey)
-	}
-	q = q.Order("__key__")
-	return Ω.DatastoreClient.Run(context.Background(), q)
-}
+func (Ω *store) GetOccurrences(cxt context.Context, taxonID TaxonID) (res Occurrences, err error) {
 
-func (Ω *store) GetOccurrences(taxonKey *datastore.Key) (res Occurrences, err error) {
-	q := datastore.NewQuery(EntityKindOccurrence)
-	if taxonKey != nil {
-		q = q.Ancestor(taxonKey)
+	if !taxonID.Valid() {
+		return nil, errors.Newf("invalid taxon id [%s]", taxonID)
 	}
-	q = q.Order("__key__")
-	if _, err := Ω.DatastoreClient.GetAll(context.Background(), q, &res); err != nil {
-		return nil, errors.Wrap(err, "could not get occurrences")
+
+	docs, err := Ω.FirestoreClient.Collection(CollectionTypeOccurrences).
+		Where("TaxonID", "==", taxonID).
+		Documents(cxt).
+		GetAll()
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "could not get occurrences with taxon id [%s]", taxonID)
 	}
-	return res, nil
+
+	for _, doc := range docs {
+		o := Occurrence{}
+		if err := doc.DataTo(&o); err != nil {
+			return nil, errors.Wrap(err, "could not type cast occurrence")
+		}
+		res = append(res, o)
+	}
+
+	return
 }

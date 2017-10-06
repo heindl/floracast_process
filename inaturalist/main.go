@@ -8,17 +8,17 @@ import (
 	"encoding/json"
 	"gopkg.in/tomb.v2"
 	"time"
-	"bitbucket.org/heindl/utils"
+	"bitbucket.org/heindl/taxa/utils"
 	. "github.com/saleswise/malias"
-	"bitbucket.org/heindl/species/store"
+	"bitbucket.org/heindl/taxa/store"
 	"github.com/PuerkitoBio/goquery"
 	"regexp"
 	"strconv"
 	"sync"
-	"cloud.google.com/go/datastore"
 	"github.com/jonboulle/clockwork"
 	"github.com/sethgrid/pester"
 	"bytes"
+	"context"
 )
 
 
@@ -40,9 +40,9 @@ func main() {
 type fetcher struct {
 	// Reference to google data store.
 	Store       store.TaxaStore
-	Taxa store.Taxa
-	Schema store.Schema
-	Photos store.Photos
+	//Taxa store.Taxa
+	//DataSources store.DataSources
+	//Photos store.Photos
 	sync.Mutex
 	Clock       clockwork.Clock
 	Tomb *tomb.Tomb
@@ -104,19 +104,7 @@ func (Ω *fetcher) FetchProcessTaxa(parent_taxa int) error {
 
 		return nil
 	})
-	if err := Ω.Tomb.Wait(); err != nil {
-		return err
-	}
-
-	if err := Ω.Store.SetTaxa(Ω.Taxa); err != nil {
-		return err
-	}
-
-	if err := Ω.Store.SetSchema(Ω.Schema); err != nil {
-		return err
-	}
-
-	return Ω.Store.SetPhotos(Ω.Photos)
+	return Ω.Tomb.Wait()
 
 }
 
@@ -187,10 +175,12 @@ type Photo struct {
 	LargeURL string `json:"large_url"`
 }
 
-func (Ω Photo) Format(parentKey *datastore.Key) *store.Photo {
-	return &store.Photo{
-		Key: datastore.NameKey(store.EntityKindPhoto, strconv.Itoa(Ω.ID), parentKey),
-		Type: store.PhotoType(Ω.Type),
+func (Ω Photo) Format(taxonID store.TaxonID, sourceID store.DataSourceID) store.Photo {
+	return store.Photo{
+		ID: strconv.Itoa(Ω.ID),
+		DataSourceID: sourceID,
+		TaxonID: taxonID,
+		PhotoType: store.PhotoType(Ω.Type),
 		URL: Ω.URL,
 		SquareURL: Ω.SquareURL,
 		SmallURL: Ω.SmallURL,
@@ -210,9 +200,9 @@ func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
 	}
 
 	// Check to see if we've already processed it. Having states likely means we've grabbed the full page already.
-	if i := Ω.Taxa.Index(taxonID); i != -1 && len(Ω.Taxa[i].States) > 0 {
-		return nil
-	}
+	//if i := Ω.Taxa.Index(taxonID); i != -1 && len(Ω.Taxa[i].States) > 0 {
+	//	return nil
+	//}
 
 	var response struct {
 		Counter
@@ -236,14 +226,14 @@ func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
 	// Should only be one result.
 	taxa := response.Results[0]
 
-	var lastAncestor *datastore.Key
+	var lastAncestor store.TaxonID
 	for i, _a := range taxa.Ancestors {
 		a := _a
-		key, err := Ω.processTaxon(a, lastAncestor, (i != 0))
+		taxonID, err := Ω.processTaxon(a, lastAncestor, (i != 0))
 		if err != nil {
 			return err
 		}
-		lastAncestor = key
+		lastAncestor = taxonID
 	}
 	Ω.Tomb.Go(func() error {
 		_, err := Ω.processTaxon(taxa, lastAncestor, true)
@@ -269,7 +259,7 @@ func (Ω *fetcher) fetchProcessTaxon(taxonID store.TaxonID) error {
 	return nil
 }
 
-func (Ω *fetcher) processTaxon(txn *Taxon, parent *datastore.Key, shouldHaveParent bool) (*datastore.Key, error) {
+func (Ω *fetcher) processTaxon(cxt context.Context, txn *Taxon, parent store.TaxonID, shouldHaveParent bool) (*store.TaxonID, error) {
 
 	// No need to reprocess a parent key we've already processed it before. Noopt and return the key.
 	//taxonKey := Ω.Fetched.Find(txn.ID, store.EntityKindTaxon)
@@ -282,17 +272,15 @@ func (Ω *fetcher) processTaxon(txn *Taxon, parent *datastore.Key, shouldHavePar
 		return nil, errors.Newf("unsupported rank: %s", txn.Rank)
 	}
 
-	taxonKey := store.NewTaxonKey(txn.ID, rank)
-	// Add parent as last ancestory. Again, these should be in order.
-	if parent != nil {
-		taxonKey.Parent = parent
+	if !parent.Valid() && shouldHaveParent{
+		return nil, errors.New("parent taxon id expected but invalid")
 	}
 
-	t := &store.Taxon{
-		Key: taxonKey,
+	t := store.Taxon{
+		ParentID: parent,
 		CanonicalName: store.CanonicalName(txn.Name),
 		Rank: rank,
-		TaxonID: store.TaxonID(txn.ID),
+		ID: store.TaxonID(txn.ID),
 		RankLevel: store.RankLevel(txn.RankLevel),
 		CommonName: txn.PreferredCommonName,
 		CreatedAt: Ω.Clock.Now(),
@@ -309,86 +297,54 @@ func (Ω *fetcher) processTaxon(txn *Taxon, parent *datastore.Key, shouldHavePar
 		}
 	}
 
-	// Create this taxon
-	//var err error
-	//taxonKey, err = Ω.Store.CreateTaxon(t, shouldHaveParent)
-	//if err != nil {
-	//	return nil, errors.Wrap(err, "could not save photo")
-	//}
+	if err := Ω.Store.UpsertTaxon(cxt, t); err != nil {
+		return nil, err
+	}
 
-	// Lock and attach to list.
-	Ω.Tomb.Go(func() error {
-		Ω.Lock()
-		defer Ω.Unlock()
-		var err error
-		Ω.Taxa, err = Ω.Taxa.AddToSet(t)
-		if err != nil {
-			return err
+	taxonPhoto := ""
+	if txn.DefaultPhoto.ID != 0 {
+		if err := Ω.Store.UpsertPhoto(cxt, txn.DefaultPhoto.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
+			return nil, err
 		}
-		return nil
-	})
+		taxonPhoto = txn.DefaultPhoto.MediumURL
+	}
 
-	Ω.Tomb.Go(func() error {
-		Ω.Lock()
-		defer Ω.Unlock()
-		var err error
-		// Create a inaturalist scheme, a subobject of the taxon.
-		iNatScheme := store.NewMetaScheme(
-			store.SchemeSourceIDINaturalist,
-			store.SchemeTargetID(strconv.FormatInt(taxonKey.ID, 10)),
-			taxonKey,
-		)
-		Ω.Schema, err = Ω.Schema.AddToSet(iNatScheme)
-		if err != nil {
-			return err
-		}
-
-		// Note that the photos store sub-species, and so far the only place i can find them.
-		for _, p := range txn.TaxonPhotos {
-			if p.Taxon.ID == t.Key.ID {
-				Ω.Photos, err = Ω.Photos.AddToSet(p.Photo.Format(iNatScheme.Key))
-				if err != nil {
-					return err
-				}
+	// Note that the photos store sub-species, and so far the only place i can find them.
+	for _, p := range txn.TaxonPhotos {
+		if strconv.Itoa(int(p.Taxon.ID)) == string(t.ID) {
+			if err := Ω.Store.UpsertPhoto(cxt, p.Photo.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
+				return nil, err
+			}
+			if taxonPhoto == "" {
+				taxonPhoto = p.Photo.MediumURL
 			}
 		}
-		// Add default photo, if present
-		Ω.Photos, err = Ω.Photos.AddToSet(txn.DefaultPhoto.Format(iNatScheme.Key))
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	}
 
-	Ω.Tomb.Go(func() error {
-		// Fetch additional schemes from the iNaturalist, like the GBIF
-		if schemes, err := Ω.fetchSchemes(taxonKey, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies)); err != nil {
-			return err
-		} else if len(schemes) > 0 {
-			Ω.Lock()
-			defer Ω.Unlock()
-			for _, s := range schemes {
-				Ω.Schema, err = Ω.Schema.AddToSet(s)
-				if err != nil {
-					return err
-				}
+	if err := Ω.Store.SetTaxonPhoto(cxt, t.ID, taxonPhoto); err != nil {
+		return nil, err
+	}
+
+	schemes, err := Ω.fetchSchemes(t, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies));
+	if err != nil {
+		return nil, err
+	}
+	if len(schemes) > 0 {
+		for _, s := range schemes {
+			if err := Ω.Store.UpsertDataSource(cxt, s); err != nil {
+				return nil, err
 			}
 		}
-		return nil
-	})
+	}
 
-	return taxonKey, nil
+	return &t.ID, nil
 }
 
 var schemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
 var schemeFetchRateLimiter = time.Tick(time.Second / 2)
 
-func (Ω *fetcher) fetchSchemes(txn *datastore.Key, isSpecies bool) ([]*store.Scheme, error) {
-
-	if !store.ValidTaxonKey(txn) {
-		return nil, errors.New("invalid taxonID").SetState(M{utils.LogkeyTaxon: txn})
-	}
+func (Ω *fetcher) fetchSchemes(txn store.Taxon, isSpecies bool) ([]store.DataSource, error) {
 
 	<-schemeFetchRateLimiter
 
@@ -404,15 +360,15 @@ func (Ω *fetcher) fetchSchemes(txn *datastore.Key, isSpecies bool) ([]*store.Sc
 		return nil, errors.Wrap(err, "could parse site for goquery").SetState(M{utils.LogkeyURL: url})
 	}
 
-	res := []*store.Scheme{}
+	res := []store.DataSource{}
 	// Find the review items
 	pairs := []struct{
-		OriginID store.SchemeSourceID
-		TargetID store.SchemeTargetID
+		OriginID store.DataSourceID
+		TargetID store.DataSourceTargetID
 	}{}
 	doc.Find(`a[href*="/taxon_schemes/"]`).Each(func(i int, s *goquery.Selection) {
 		v, _ := s.Attr("href")
-		originID := store.SchemeSourceID(strings.TrimLeft(v, "/taxon_schemes/"))
+		originID := store.DataSourceID(strings.TrimLeft(v, "/taxon_schemes/"))
 		if string(originID) == "" {
 			return
 		}
@@ -420,17 +376,27 @@ func (Ω *fetcher) fetchSchemes(txn *datastore.Key, isSpecies bool) ([]*store.Sc
 		if dataID == "" {
 			return
 		}
-		targetID := store.SchemeTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
+		targetID := store.DataSourceTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
 		pairs = append(pairs, struct{
-			OriginID store.SchemeSourceID
-			TargetID store.SchemeTargetID
+			OriginID store.DataSourceID
+			TargetID store.DataSourceTargetID
 		}{originID, targetID})
 	})
 	for _, pair := range pairs {
-		if pair.OriginID == store.SchemeSourceIDGBIF && isSpecies {
-			res = append(res, store.NewOccurrenceScheme(store.SchemeSourceIDGBIF, pair.TargetID, txn))
+		if pair.OriginID == store.DataSourceIDGBIF && isSpecies {
+			res = append(res, store.DataSource{
+				Kind: store.DataSourceKindOccurrence,
+				SourceID: store.DataSourceIDGBIF,
+				TargetID: pair.TargetID,
+				TaxonID: txn.ID,
+			})
 		}
-		res = append(res, store.NewMetaScheme(pair.OriginID, pair.TargetID, txn))
+		res = append(res, store.DataSource{
+			Kind: store.DataSourceKindDescription,
+			SourceID: store.DataSourceIDGBIF,
+			TargetID: pair.TargetID,
+			TaxonID: txn.ID,
+		})
 	}
 
 	return res, nil

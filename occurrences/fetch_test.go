@@ -4,11 +4,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"time"
-	speciesstore "bitbucket.org/heindl/species/store"
-	//"bitbucket.org/heindl/utils"
+	speciesstore "bitbucket.org/heindl/taxa/store"
+	//"bitbucket.org/taxa/utils"
 	"github.com/jonboulle/clockwork"
 	"fmt"
-	"bitbucket.org/heindl/utils"
+	"bitbucket.org/taxa/utils"
 )
 
 func TestOccurrenceFetcher(t *testing.T) {
