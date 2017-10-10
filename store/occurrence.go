@@ -14,12 +14,14 @@ import (
 type Occurrences []Occurrence
 
 type Occurrence struct {
-	GBIFID string `firestore:",omitempty"`
-	TaxonID	TaxonID `firestore:",omitempty"`
-	DataSourceID DataSourceID        `firestore:",omitempty" json:",omitempty"`
-	OccurrenceID     string        `firestore:",omitempty" json:",omitempty"`
-	Location         latlng.LatLng `firestore:",omitempty" json:",omitempty"`
-	Date             *time.Time    `firestore:",omitempty" json:",omitempty"`
+	TargetID      string        `firestore:",omitempty"`
+	TaxonID       TaxonID       `firestore:",omitempty"`
+	DataSourceID  DataSourceID  `firestore:",omitempty" json:",omitempty"`
+	OccurrenceID  string        `firestore:",omitempty" json:",omitempty"`
+	Location      latlng.LatLng `firestore:",omitempty" json:",omitempty"`
+	Date          *time.Time    `firestore:",omitempty" json:",omitempty"`
+	FormattedDate string        `firestore:",omitempty" json:",omitempty"`
+	Month         time.Month    `firestore:",omitempty" json:",omitempty"`
 	References       string        `firestore:",omitempty" json:",omitempty"`
 	RecordedBy       string        `firestore:",omitempty" json:",omitempty"`
 	CreatedAt        *time.Time    `firestore:",omitempty" json:",omitempty"`
@@ -41,7 +43,7 @@ func (Ω *Occurrence) Validate() error {
 	return nil
 }
 
-func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSourceID, gbifID string) (*firestore.DocumentRef, error) {
+func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSourceID, targetID string) (*firestore.DocumentRef, error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.New("invalid data source document reference id")
@@ -49,18 +51,18 @@ func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSour
 	if !dataSourceID.Valid() {
 		return nil, errors.New("invalid data source id")
 	}
-	if gbifID == "" {
+	if targetID == "" {
 		return nil, errors.New("invalid occurrence id")
 	}
 
 	return Ω.FirestoreClient.Collection(CollectionTypeOccurrences).
-		Doc(fmt.Sprintf("%s|%s|%s", string(taxonID), dataSourceID, gbifID)), nil
+		Doc(fmt.Sprintf("%s|%s|%s", string(taxonID), dataSourceID, targetID)), nil
 
 }
 
 func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) error {
 
-	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceID, o.GBIFID)
+	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceID, o.TargetID)
 	if err != nil {
 		return err
 	}

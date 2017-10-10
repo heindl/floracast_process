@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"flag"
 	"google.golang.org/genproto/googleapis/type/latlng"
+	"time"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 type PredictionLine struct {
@@ -108,7 +110,11 @@ func (Ω *PredictionUploader) FetchUploadPredictions(cxt context.Context, predic
 						if err != nil {
 							return errors.Wrap(err, "could not parse longitude")
 						}
-						date := parts[2]
+
+						date, err := time.ParseInLocation("20060102", parts[2], time.UTC)
+						if err != nil {
+							return errors.Wrap(err, "could not parse date")
+						}
 						threshold := line.Probabilities[0]
 						probabilities := line.Probabilities[1:]
 						classes := line.Classes[1:]
@@ -116,10 +122,13 @@ func (Ω *PredictionUploader) FetchUploadPredictions(cxt context.Context, predic
 							if probabilities[i] > threshold {
 								<- Ω.Limiter
 								p := store.Prediction{
+									CreatedAt: utils.TimePtr(time.Now()),
 									Location: latlng.LatLng{latitude, longitude},
 									PredictionValue: probabilities[i],
 									TaxonID: store.TaxonID(classes[i]),
-									Date: date,
+									Date: utils.TimePtr(date),
+									FormattedDate: date.Format("20060102"),
+									Month: date.Month(),
 								}
 								tmb.Go(func() error {
 									defer func() {

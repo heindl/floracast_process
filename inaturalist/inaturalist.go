@@ -19,10 +19,24 @@ import (
 	"github.com/sethgrid/pester"
 	"bytes"
 	"context"
+	"flag"
 )
 
 
 func main() {
+
+	taxa := flag.String("taxa", "", "parent taxa for query, string separated")
+	flag.Parse()
+
+	if *taxa == "" {
+		return
+	}
+
+	toProcess := []store.TaxonID{}
+	for _, s := range strings.Split(*taxa, ",") {
+		toProcess = append(toProcess, store.TaxonID(s))
+	}
+
 	ts, err := store.NewTaxaStore()
 	if err != nil {
 		panic(err)
@@ -32,7 +46,7 @@ func main() {
 		Clock: clockwork.NewRealClock(),
 	}
 
-	if err := f.FetchProcessTaxa(context.Background(), store.TaxonID("58583")); err != nil {
+	if err := f.FetchProcessTaxa(context.Background(), toProcess); err != nil {
 		panic(err)
 	}
 }
@@ -48,9 +62,18 @@ type fetcher struct {
 	Tomb *tomb.Tomb
 }
 
-func (Ω *fetcher) FetchProcessTaxa(cxt context.Context, parent_taxa store.TaxonID) error {
+func (Ω *fetcher) FetchProcessTaxa(cxt context.Context, parent_taxa []store.TaxonID) error {
+	for _, t := range parent_taxa {
+		if err := Ω._fetchProcessTaxa(cxt, t); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-	if !parent_taxa.Valid() {
+func (Ω *fetcher) _fetchProcessTaxa(cxt context.Context, parent_taxon store.TaxonID) error {
+
+	if !parent_taxon.Valid() {
 		return errors.New("invalid taxa")
 	}
 
@@ -69,7 +92,7 @@ func (Ω *fetcher) FetchProcessTaxa(cxt context.Context, parent_taxa store.Taxon
 
 		// Right now pagination - ?page=2 - appears to not work, so having to jack up it up to 10,000. Be sure to check below that the
 		// total returned is less than the s.
-		url := fmt.Sprintf("http://api.inaturalist.org/v1/observations/species_counts?taxon_id=%s&per_page=10000", string(parent_taxa))
+		url := fmt.Sprintf("http://api.inaturalist.org/v1/observations/species_counts?taxon_id=%s&per_page=10000", string(parent_taxon))
 
 		if err := request(url, &response); err != nil {
 			return err
