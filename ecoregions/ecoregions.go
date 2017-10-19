@@ -11,16 +11,18 @@ import (
 	"sync"
 )
 
-type EcoRegions interface{
+type EcoRegionCache interface{
 	PointWithin(lat, lng float64) (string, string, error)
 }
 
-func NewEcoRegions(wwf_geojson string) (EcoRegions, error) {
+// File can be downloaded here: https://worldmap.harvard.edu/data/geonode:wwf_terr_ecos_oRn
+// http://worldmap.harvard.edu/download/wfs/697/json?outputFormat=json&service=WFS&request=GetFeature&format_options=charset%3AUTF-8&typename=geonode%3Awwf_terr_ecos_oRn&version=1.0.0
+func NewEcoRegionCache(wwf_geojson string) (EcoRegionCache, error) {
 	r := &regions{}
 	if err := r.Load(wwf_geojson); err != nil {
 		return nil, err
 	}
-	return EcoRegions(r), nil
+	return EcoRegionCache(r), nil
 }
 
 type regions struct {

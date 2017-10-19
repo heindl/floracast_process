@@ -14,11 +14,12 @@ type TaxaStore interface {
 	GetTaxon(context.Context, TaxonID) (*Taxon, error)
 	UpsertTaxon(context.Context, Taxon) error
 	SetTaxonPhoto(context.Context, TaxonID, string) error
+	IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, ecoRegionKey string) error
 	UpsertPhoto(context.Context, Photo) error
 	UpsertDataSource(context.Context, DataSource) error
 	UpdateDataSourceLastFetched(context.Context, DataSource) error
 	GetOccurrenceDataSources(context.Context, TaxonID) (DataSources, error)
-	UpsertOccurrence(context.Context, Occurrence) error
+	UpsertOccurrence(context.Context, Occurrence) (isNewOccurrence bool, err error)
 	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
 	UpsertWildernessArea(context.Context, WildernessArea) error
 	SetPrediction(cxt context.Context, p Prediction) error

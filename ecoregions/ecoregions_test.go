@@ -11,7 +11,7 @@ func TestElevationFetch(t *testing.T) {
 
 	Convey("should fetch occurrences and add to queue", t, func() {
 
-		r, err := NewEcoRegions("/Users/m/Downloads/wwf_terr_ecos_oRn.json")
+		r, err := NewEcoRegionCache("/Users/m/Downloads/wwf_terr_ecos_oRn.json")
 		So(err, ShouldBeNil)
 
 		name, key, err := r.PointWithin(38.6270025, -90.1994042)

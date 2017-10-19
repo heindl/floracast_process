@@ -14,6 +14,7 @@ import (
 	"google.golang.org/genproto/googleapis/type/latlng"
 	"os"
 	"googlemaps.github.io/maps"
+	"bitbucket.org/heindl/taxa/ecoregions"
 )
 
 func main() {
@@ -23,7 +24,10 @@ func main() {
 		panic(err)
 	}
 
-	fetcher := NewOccurrenceFetcher(ts, clockwork.NewRealClock())
+	fetcher, err := NewOccurrenceFetcher(ts, "/Users/m/Downloads/wwf_terr_ecos_oRn.json", clockwork.NewRealClock())
+	if (err != nil) {
+		panic(err)
+	}
 
 	if err := fetcher.FetchOccurrences(); err != nil {
 		panic(err)
@@ -37,8 +41,8 @@ const (
 	occurrenceFetchLimit = 1000
 )
 
-func NewOccurrenceFetcher(store store.TaxaStore, clock clockwork.Clock) OccurrenceFetcher {
-	f := fetcher{
+func NewOccurrenceFetcher(store store.TaxaStore, eco_region_file string, clock clockwork.Clock) (OccurrenceFetcher, error) {
+	f := occurrenceFetcher{
 		//Log:                           logrus.New(),
 		TaxaStore:                     store,
 		Limiter:                       make(chan struct{}, occurrenceFetchLimit),
@@ -48,14 +52,20 @@ func NewOccurrenceFetcher(store store.TaxaStore, clock clockwork.Clock) Occurren
 		f.Limiter <- struct{}{}
 	}
 
-	return &f
+	var err error
+	f.EcoRegionCache, err = ecoregions.NewEcoRegionCache(eco_region_file)
+	if err != nil {
+		return nil, err
+	}
+
+	return OccurrenceFetcher(&f), nil
 }
 
 type OccurrenceFetcher interface{
 	FetchOccurrences() error
 }
 
-type fetcher struct {
+type occurrenceFetcher struct {
 	TaxaStore       store.TaxaStore
 	Clock           clockwork.Clock
 	//NSQProducer     nsqeco.Producer
@@ -64,9 +74,10 @@ type fetcher struct {
 	//geography.BoundaryFetcher
 	Occurrences *store.Occurrences
 	Schema *store.DataSources
+	EcoRegionCache ecoregions.EcoRegionCache
 }
 
-func (Ω *fetcher) FetchOccurrences() error {
+func (Ω *occurrenceFetcher) FetchOccurrences() error {
 
 	//modelReprocess := struct{
 	//	sync.Mutex
@@ -82,7 +93,7 @@ func (Ω *fetcher) FetchOccurrences() error {
 			return err
 		}
 
-		fmt.Println("taxa length", len(taxa))
+		fmt.Printf("Gathering occurrences for %d taxa.\n", len(taxa))
 
 		for _, _taxon := range taxa {
 			taxon := _taxon
@@ -105,13 +116,26 @@ func (Ω *fetcher) FetchOccurrences() error {
 
 						for _, _o := range occurrences {
 							o := _o
-							<-Ω.Limiter
-							tmb.Go(func() error {
-								defer func() {
-									Ω.Limiter <- struct{}{}
-								}()
-								return Ω.TaxaStore.UpsertOccurrence(cxt, o)
-							})
+							// TODO: Note that there appears to be a problem
+							// with concurrent transactions on the same TaxonID field.
+							// Therefore ignore concurrency for that taxon for now on the eco region update,
+							// which appears to repair it.
+							//<-Ω.Limiter
+							//tmb.Go(func() error {
+							//	defer func() {
+							//		Ω.Limiter <- struct{}{}
+							//	}()
+								isNewOccurrence, err := Ω.TaxaStore.UpsertOccurrence(cxt, o)
+								if err != nil {
+									return err
+								}
+								if isNewOccurrence {
+									if err := Ω.TaxaStore.IncrementTaxonEcoRegion(cxt, o.TaxonID, o.EcoRegion); err != nil {
+										return err
+									}
+								}
+								//return nil
+							//})
 						}
 
 						if err := Ω.TaxaStore.UpdateDataSourceLastFetched(cxt, dataSource); err != nil {
@@ -138,24 +162,24 @@ func (Ω *fetcher) FetchOccurrences() error {
 
 }
 
-func (Ω *fetcher) fetchSourceData(src store.DataSource) (store.Occurrences, error) {
+func (Ω *occurrenceFetcher) fetchSourceData(src store.DataSource) (store.Occurrences, error) {
 
 	hasBeenFetchedInLastDay := src.LastFetchedAt != nil && !src.LastFetchedAt.IsZero() && src.LastFetchedAt.After(Ω.Clock.Now().Add(time.Hour * -24))
 	if hasBeenFetchedInLastDay {
 		return nil, nil
 	}
 
-	fetcher, err := newfetcher(src.SourceID, src.TargetID)
+	f, err := newfetcher(src.SourceID, src.TargetID)
 	if err != nil {
 		return nil, err
 	}
 
-	if fetcher == nil {
+	if f == nil {
 		//Ω.Log.WithFields(M{logkeys.Source: query.Source}.Fields()).Error("could not find fetcher for data source")
 		return nil, nil
 	}
 
-	occurrences, err := fetcher.Fetch(src.LastFetchedAt, Ω.Clock.Now().In(time.UTC))
+	occurrences, err := f.Fetch(src.LastFetchedAt, Ω.Clock.Now().In(time.UTC))
 	if err != nil {
 		//Ω.Log.WithFields(M{logkeys.Error: err}.Fields()).Warn("no occurrences found")
 		return nil, err
@@ -167,11 +191,16 @@ func (Ω *fetcher) fetchSourceData(src store.DataSource) (store.Occurrences, err
 		if o.OccurrenceID == "" {
 			continue
 		}
-		// Ensure the location is North/South America.
-		if o.Location.GetLongitude() > -52.2330 {
+
+		_, ecoRegionKey, err := Ω.EcoRegionCache.PointWithin(o.Location.GetLatitude(), o.Location.GetLongitude())
+		if err != nil {
+			return nil, err
+		}
+		// If no key is found, the point is likely not within the continental United States, or something is broken.
+		if ecoRegionKey == "" {
 			continue
 		}
-
+		o.EcoRegion = ecoRegionKey
 		o.DataSourceID = src.SourceID
 		o.TaxonID = src.TaxonID
 		res = append(res, o)

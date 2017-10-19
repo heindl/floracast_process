@@ -28,6 +28,7 @@ type Occurrence struct {
 	ModifiedAt       *time.Time    `firestore:",omitempty" json:",omitempty"`
 	// A globally unique identifier. Although missing in some cases, will be helpful in identifying source of data.
 	Elevation float64 `firestore:",omitempty" json:",omitempty"`
+	EcoRegion string `firestore:",omitempty" json:",omitempty"`
 }
 
 func (Ω *Occurrence) Validate() error {
@@ -60,16 +61,19 @@ func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSour
 
 }
 
-func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) error {
+func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) (isNewOccurrence bool, err error) {
 
 	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceID, o.TargetID)
 	if err != nil {
-		return err
+		return false, err
 	}
+
+	isNewOccurrence = false
 
 	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
 		if _, err := tx.Get(ref); err != nil {
 			if strings.Contains(err.Error(), "not found") {
+				isNewOccurrence = true
 				return tx.Set(ref, o)
 			} else {
 				return err
@@ -77,9 +81,9 @@ func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) error {
 		}
 		return tx.UpdateMap(ref, structs.Map(o))
 	}); err != nil {
-		return errors.Wrap(err, "could not update occurrence")
+		return false, errors.Wrap(err, "could not update occurrence")
 	}
-	return nil
+	return isNewOccurrence, nil
 
 }
 

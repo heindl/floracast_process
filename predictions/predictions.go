@@ -58,7 +58,7 @@ func main() {
 		// TODO: Handle error.
 	}
 
-	f.Bucket = client.Bucket("floracast-models")
+	f.Bucket = client.Bucket("floracast-datamining")
 
 	if err := f.FetchUploadPredictions(cxt, *predictionDirectory); err != nil {
 		panic(err)
@@ -80,8 +80,9 @@ func (Ω *PredictionUploader) FetchUploadPredictions(cxt context.Context, predic
 			if err != nil {
 				panic(err)
 			}
+			name := o.Name
 			tmb.Go(func() error {
-				name := o.Name
+				fmt.Println("name", name)
 				r, err := Ω.Bucket.Object(name).NewReader(cxt)
 				if err != nil {
 					panic(err)

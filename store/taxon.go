@@ -100,6 +100,7 @@ type Taxon struct {
 	CreatedAt        time.Time     `firestore:",omitempty"`
 	States           []State       `firestore:",omitempty"`
 	WikipediaSummary string        `firestore:",omitempty"`
+	EcoRegions map[string]int `firestore:",omitempty"`
 }
 
 func (Ω Taxon) Combine(s *Taxon) *Taxon {
@@ -209,7 +210,10 @@ func (Ω *store) UpsertTaxon(cxt context.Context, txn Taxon) error {
 		return errors.New("invalid taxa")
 	}
 
-	fmt.Println("upserting taxon", txn.ID)
+	if txn.EcoRegions == nil {
+		txn.EcoRegions = map[string]int{}
+	}
+
 	ref := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(txn.ID))
 
 	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
@@ -281,6 +285,45 @@ func (Ω *store) GetTaxon(cxt context.Context, id TaxonID) (*Taxon, error) {
 		return nil, errors.Wrap(err, "could not type cast taxon")
 	}
 	return &t, nil
+}
+
+
+// IncrementTaxonEcoRegion updates a map of world wildlife fund eco-regions with the count of occurrences in each.
+// This is to be used to sort the taxa to include in each model for the eco region.
+// Formula: (OccurrenceCountForTaxonWithinEcoRegion / TotalOccurrenceCountForTaxon) / TotalEcoRegions
+// This should prioritize occurrences that only occur within that ecoregion.
+func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, ecoRegionKey string) error {
+
+	ref := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(taxonID))
+
+	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
+
+		doc, err := tx.Get(ref)
+		if err != nil {
+			return err
+		}
+
+		fieldPath := firestore.FieldPath{"EcoRegions", ecoRegionKey}
+
+		ecoRegionCount, err := doc.DataAtPath(fieldPath)
+		if err != nil && !strings.Contains(err.Error(), "no field") {
+			return err
+		}
+		fmt.Println(taxonID, ecoRegionKey, ecoRegionCount)
+
+		newCount := int64(1)
+		if ecoRegionCount != nil {
+			newCount = ecoRegionCount.(int64) + 1
+		}
+
+		return tx.UpdatePaths(ref, []firestore.FieldPathUpdate{
+			{fieldPath, newCount},
+		})
+	}); err != nil {
+		return errors.Wrap(err, "could not update occurrence")
+	}
+
+	return nil
 }
 
 func (Ω *store) ReadTaxa(cxt context.Context) (res Taxa, err error) {
