@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"flag"
+	"github.com/heindl/gbif"
 )
 
 
@@ -270,7 +271,7 @@ func (Ω *fetcher) fetchProcessTaxon(cxt context.Context, taxonID store.TaxonID)
 		for _, _a := range taxa.Children {
 			a := _a
 			rank := store.RankLevel(a.RankLevel)
-			if rank == store.RankLevelSpecies || rank == store.RankLevelSubSpecies {
+			if rank == store.RankLevelSpecies || rank == store.RankLevelSubSpecies || rank == store.RankLevelVariety {
 				Ω.Tomb.Go(func() error {
 					if err := Ω.fetchProcessTaxon(cxt, store.TaxonID(strconv.Itoa(int(a.ID)))); err != nil {
 						return err
@@ -302,6 +303,8 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 	Ω.Lock()
 	Ω.ProcessedTaxa = append(Ω.ProcessedTaxa, string(taxonID))
 	Ω.Unlock()
+
+	fmt.Println(utils.JsonOrSpew(txn))
 
 	rank, ok := store.TaxonRankMap[txn.Rank]
 	if !ok {
@@ -361,7 +364,7 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 		return store.TaxonID(""), err
 	}
 
-	dataSources, err := Ω.fetchDataSources(t.ID, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies));
+	dataSources, err := Ω.fetchDataSources(t.ID, t.CanonicalName, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies || t.RankLevel == store.RankLevelVariety));
 	if err != nil {
 		return store.TaxonID(""), err
 	}
@@ -380,7 +383,7 @@ var schemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
 var schemeFetchRateLimiter = time.Tick(time.Second / 2)
 
-func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, isSpecies bool) ([]store.DataSource, error) {
+func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, canonicalName store.CanonicalName, isSpecies bool) ([]store.DataSource, error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.New("invalid taxon id")
@@ -442,11 +445,62 @@ func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, isSpecies bool) ([]st
 				TargetID: pair.TargetID,
 				TaxonID: taxonID,
 			})
+
+			additionalIDs, err := Ω.fetchAdditionalGBIFTaxonIDs(string(canonicalName), pair.TargetID)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, a := range additionalIDs {
+				res = append(res, store.DataSource{
+					Kind: store.DataSourceKindOccurrence,
+					SourceID: store.DataSourceIDGBIF,
+					TargetID: a,
+					TaxonID: taxonID,
+				})
+				res = append(res, store.DataSource{
+					Kind: store.DataSourceKindDescription,
+					SourceID: store.DataSourceIDGBIF,
+					TargetID: a,
+					TaxonID: taxonID,
+				})
+				res = append(res, store.DataSource{
+					Kind: store.DataSourceKindPhoto,
+					SourceID: store.DataSourceIDGBIF,
+					TargetID: a,
+					TaxonID: taxonID,
+				})
+			}
 		}
 	}
 
 	return res, nil
 
+}
+
+func (Ω *fetcher) fetchAdditionalGBIFTaxonIDs(iNaturalistCanonicalName string, gbifTaxonID store.DataSourceTargetID) ([]store.DataSourceTargetID, error) {
+	names, err := gbif.Search(gbif.SearchQuery{Q: iNaturalistCanonicalName})
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get name usage")
+	}
+	nubs := []int{}
+	for _, n := range names {
+		if n.CanonicalName == iNaturalistCanonicalName &&
+			n.NubKey != 0 &&
+			(n.TaxonomicStatus == gbif.TaxonomicStatusACCEPTED || n.TaxonomicStatus == gbif.TaxonomicStatusSYNONYM) {
+			nubs = utils.AddIntToSet(nubs, n.NubKey)
+		}
+	}
+
+	res := []store.DataSourceTargetID{}
+	for _, n := range nubs {
+		t := store.DataSourceTargetID(strconv.Itoa(n))
+		if t == gbifTaxonID {
+			continue
+		}
+		res = append(res, t)
+	}
+	return res, nil
 }
 
 func request(url string, response interface{}) error {

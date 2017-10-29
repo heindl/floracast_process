@@ -42,6 +42,7 @@ const (
 	RankSpecies = TaxonRank("Species")
 	RankSubSpecies = TaxonRank("SubSpecies")
 	RankForm = TaxonRank("Form")
+	RankVariety = TaxonRank("Variety")
 )
 
 var TaxonRankMap = map[string]TaxonRank{
@@ -60,6 +61,7 @@ var TaxonRankMap = map[string]TaxonRank{
 	"species": RankSpecies,
 	"subspecies": RankSubSpecies,
 	"form": RankForm,
+	"variety": RankVariety,
 }
 
 func (Ω TaxonRank) Valid() bool {
@@ -86,6 +88,7 @@ const (
 	RankLevelGenus = RankLevel(20)
 	RankLevelSpecies = RankLevel(10)
 	RankLevelSubSpecies = RankLevel(5)
+	RankLevelVariety = RankLevel(5)
 )
 
 type Taxon struct {
@@ -210,9 +213,9 @@ func (Ω *store) UpsertTaxon(cxt context.Context, txn Taxon) error {
 		return errors.New("invalid taxa")
 	}
 
-	if txn.EcoRegions == nil {
-		txn.EcoRegions = map[string]int{}
-	}
+	//if txn.EcoRegions == nil {
+	//	txn.EcoRegions = map[string]int{}
+	//}
 
 	ref := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(txn.ID))
 
@@ -303,13 +306,14 @@ func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, e
 			return err
 		}
 
-		fieldPath := firestore.FieldPath{"EcoRegions", ecoRegionKey}
+		fieldPath := firestore.FieldPath{"EcoRegions", "_"+ecoRegionKey}
+
+		fmt.Println("field_path", fieldPath)
 
 		ecoRegionCount, err := doc.DataAtPath(fieldPath)
 		if err != nil && !strings.Contains(err.Error(), "no field") {
 			return err
 		}
-		fmt.Println(taxonID, ecoRegionKey, ecoRegionCount)
 
 		newCount := int64(1)
 		if ecoRegionCount != nil {

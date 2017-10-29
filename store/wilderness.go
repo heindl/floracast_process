@@ -35,6 +35,39 @@ func (a WildernessAreas) Len() int           { return len(a) }
 func (a WildernessAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a WildernessAreas) Less(i, j int) bool { return a[i].Acres > a[j].Acres }
 
+func (Ω *store) ReadWildernessArea(cxt context.Context, lat, lng float64) (*WildernessArea, error) {
+
+	// Validate
+	if lat == 0 || lng == 0 {
+		return nil, errors.New("invalid wilderness area id")
+	}
+
+	docs, err := Ω.FirestoreClient.Collection(CollectionTypeWildernessAreas).
+		Where("Centre.Latitude", "==", lat).
+		Where("Centre.Longitude", "==", lng).
+		Documents(cxt).
+		GetAll()
+
+	if err != nil {
+		return nil, err
+	}
+	if len(docs) > 0 {
+		return nil, errors.New("more than one wilderness area found")
+	}
+
+	if len(docs) == 0 {
+		return nil, errors.New("no wilderness area found")
+	}
+
+	w := WildernessArea{}
+	if err := docs[0].DataTo(&w); err != nil {
+		return nil, errors.Wrap(err, "could not type cast WildernessArea")
+	}
+
+	return &w, nil
+}
+
+
 func (Ω *store) UpsertWildernessArea(cxt context.Context, wa WildernessArea) error {
 
 	// Validate

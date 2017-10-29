@@ -114,8 +114,11 @@ func (Ω *occurrenceFetcher) FetchOccurrences() error {
 							return err
 						}
 
+						fmt.Println("found occurrences", occurrences)
+
 						for _, _o := range occurrences {
 							o := _o
+
 							// TODO: Note that there appears to be a problem
 							// with concurrent transactions on the same TaxonID field.
 							// Therefore ignore concurrency for that taxon for now on the eco region update,

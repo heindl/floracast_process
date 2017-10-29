@@ -24,6 +24,12 @@ func TestElevationFetch(t *testing.T) {
 		So(key, ShouldEqual, "70")
 		So(name, ShouldEqual, "Southeastern mixed forests")
 
+		// St. Louis
+		name, key, err = r.PointWithin(38.6530169,-90.3835463)
+		So(err, ShouldBeNil)
+		So(key, ShouldEqual, "245")
+		So(name, ShouldEqual, "Central forest-grasslands transition")
+
 
 	})
 }

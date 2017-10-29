@@ -9,13 +9,14 @@ import (
 	"fmt"
 	"github.com/fatih/structs"
 	"strings"
+	//"github.com/golang/geo/s2"
 )
 
 type Occurrences []Occurrence
 
 type Occurrence struct {
-	TargetID      string        `firestore:",omitempty"`
-	TaxonID       TaxonID       `firestore:",omitempty"`
+	TargetID      string        `firestore:",omitempty" json:",omitempty"`
+	TaxonID       TaxonID       `firestore:",omitempty" json:",omitempty"`
 	DataSourceID  DataSourceID  `firestore:",omitempty" json:",omitempty"`
 	OccurrenceID  string        `firestore:",omitempty" json:",omitempty"`
 	Location      latlng.LatLng `firestore:",omitempty" json:",omitempty"`
@@ -29,6 +30,7 @@ type Occurrence struct {
 	// A globally unique identifier. Although missing in some cases, will be helpful in identifying source of data.
 	Elevation float64 `firestore:",omitempty" json:",omitempty"`
 	EcoRegion string `firestore:",omitempty" json:",omitempty"`
+	//S2CellIDs map[string]bool `firestore:",omitempty" json:",omitempty"`
 }
 
 func (Ω *Occurrence) Validate() error {
@@ -56,8 +58,9 @@ func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSour
 		return nil, errors.New("invalid occurrence id")
 	}
 
-	return Ω.FirestoreClient.Collection(CollectionTypeOccurrences).
-		Doc(fmt.Sprintf("%s|%s|%s", string(taxonID), dataSourceID, targetID)), nil
+	id := fmt.Sprintf("%s|%s|%s", string(taxonID), dataSourceID, targetID)
+
+	return Ω.FirestoreClient.Collection(CollectionTypeOccurrences).Doc(id), nil
 
 }
 
@@ -69,6 +72,11 @@ func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) (isNewOccur
 	}
 
 	isNewOccurrence = false
+
+	//o.S2CellIDs, err = s2Cells(o.Location.Latitude, o.Location.Longitude)
+	//if err != nil {
+	//	return false, err
+	//}
 
 	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
 		if _, err := tx.Get(ref); err != nil {
@@ -84,8 +92,21 @@ func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) (isNewOccur
 		return false, errors.Wrap(err, "could not update occurrence")
 	}
 	return isNewOccurrence, nil
-
 }
+
+//func s2Cells(lat, lng float64) (map[string]bool, error) {
+//
+//	if lat == 0 || lng == 0 {
+//		return nil, errors.New("invalid lat/lng")
+//	}
+//
+//	cell := s2.CellIDFromLatLng(s2.LatLngFromDegrees(lat, lng))
+//	cells := map[string]bool{strings.Replace(cell.String(), "/", "_", -1): true}
+//	for i:=1; i<14; i++ {
+//		cells[strings.Replace(cell.Parent(i).String(), "/", "_", -1)] = true
+//	}
+//	return cells, nil
+//}
 
 func (Ω *store) GetOccurrences(cxt context.Context, taxonID TaxonID) (res Occurrences, err error) {
 

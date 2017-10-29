@@ -16,7 +16,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 	SkipConvey("should fetch inaturalist schemes", t, func() {
 		f := fetcher{}
-		srcs, err := f.fetchDataSources(store.TaxonID("58583"), true)
+		srcs, err := f.fetchDataSources(store.TaxonID("58583"), store.CanonicalName("Limenitis arthemis ssp. arthemis"), true)
 		So(err, ShouldBeNil)
 		So(len(srcs), ShouldEqual, 3)
 		So(srcs[0].SourceID, ShouldEqual, store.DataSourceID("11"))
@@ -25,6 +25,17 @@ func TestTaxonFetcher(t *testing.T) {
 		So(srcs[1].Kind, ShouldEqual, store.DataSourceKindOccurrence)
 		So(srcs[2].SourceID, ShouldEqual, store.DataSourceID("27"))
 		So(srcs[2].Kind,ShouldEqual, store.DataSourceKindPhoto)
+	})
+
+	Convey("should fetch additional taxon ids from the gbif based on the canonical name", t, func() {
+		f := fetcher{}
+		ids, err := f.fetchAdditionalGBIFTaxonIDs("Morchella esculenta", store.DataSourceTargetID("2594602"))
+		So(err, ShouldBeNil)
+		So(ids[0], ShouldEqual, store.TaxonID("8574619"))
+
+		ids, err = f.fetchAdditionalGBIFTaxonIDs("Cantharellus cibarius", store.DataSourceTargetID("5249504"))
+		So(err, ShouldBeNil)
+		Println(ids)
 	})
 
 	Convey("should fetch all species in subfamily Limenitidinae", t, func() {
@@ -40,7 +51,7 @@ func TestTaxonFetcher(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(len(taxa), ShouldEqual, 0)
 
-		So(f.FetchProcessTaxa(cxt,store.TaxonID("58583")), ShouldBeNil)
+		So(f.FetchProcessTaxa(cxt, []store.TaxonID{store.TaxonID("58583")}), ShouldBeNil)
 
 		taxa, err = f.Store.ReadTaxa(cxt)
 		So(err, ShouldBeNil)
