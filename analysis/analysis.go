@@ -13,6 +13,7 @@ import (
 	"flag"
 	"sync"
 	"bitbucket.org/heindl/taxa/utils"
+	"sort"
 )
 
 type PredictionLine struct {
@@ -97,23 +98,40 @@ func main() {
 
 }
 
+type OccurrenceAggregation struct {
+	CommonName, CanonicalName string
+	ID string
+	Count int
+}
+type OccurrenceAggregationList []OccurrenceAggregation
+
+func (p OccurrenceAggregationList) Len() int           { return len(p) }
+func (p OccurrenceAggregationList) Less(i, j int) bool { return p[i].Count < p[j].Count }
+func (p OccurrenceAggregationList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 func (Ω *Analyzer) CountOccurrences(cxt context.Context) error {
 	taxa, err := Ω.Store.ReadTaxa(cxt)
 	if err != nil {
 		return err
 	}
-	res := map[store.TaxonID]int{}
 
+	aggregation := OccurrenceAggregationList{}
 	for _, t := range taxa {
 
 		occurrences, err := Ω.Store.GetOccurrences(cxt, t.ID)
 		if err != nil {
 			return err
 		}
-		res[t.ID] = len(occurrences)
+		aggregation = append(aggregation, OccurrenceAggregation{
+			CommonName: t.CommonName,
+			CanonicalName: string(t.CanonicalName),
+			ID: string(t.ID),
+			Count: len(occurrences)})
 	}
 
-	fmt.Println(utils.JsonOrSpew(res))
+	sort.Sort(aggregation)
+
+	fmt.Println(utils.JsonOrSpew(aggregation))
 
 	return nil
 }

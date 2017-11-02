@@ -7,6 +7,8 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"strings"
+	"math"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 type WildernessArea struct {
@@ -43,28 +45,27 @@ func (Ω *store) ReadWildernessArea(cxt context.Context, lat, lng float64) (*Wil
 	}
 
 	docs, err := Ω.FirestoreClient.Collection(CollectionTypeWildernessAreas).
-		Where("Centre.Latitude", "==", lat).
-		Where("Centre.Longitude", "==", lng).
+		// TODO: Would be great to use a geo query here or at least an approximation.
+		Where("Centre.Longitude", ">", math.Floor(lng)).
+		Where("Centre.Longitude", "<=", math.Ceil(lng)).
 		Documents(cxt).
 		GetAll()
 
 	if err != nil {
-		return nil, err
-	}
-	if len(docs) > 0 {
-		return nil, errors.New("more than one wilderness area found")
+		return nil, errors.Wrap(err, "could not find wilderness area")
 	}
 
-	if len(docs) == 0 {
-		return nil, errors.New("no wilderness area found")
+	for _, d := range docs {
+		w := WildernessArea{}
+		if err := d.DataTo(&w); err != nil {
+			return nil, errors.Wrap(err, "could not type cast WildernessArea")
+		}
+		if utils.CoordinatesEqual(lat, w.Centre.Latitude) && utils.CoordinatesEqual(lat, w.Centre.Latitude) {
+			return &w, nil
+		}
 	}
 
-	w := WildernessArea{}
-	if err := docs[0].DataTo(&w); err != nil {
-		return nil, errors.Wrap(err, "could not type cast WildernessArea")
-	}
-
-	return &w, nil
+	return nil, errors.New("no wilderness area found")
 }
 
 

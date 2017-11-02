@@ -304,8 +304,6 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 	Ω.ProcessedTaxa = append(Ω.ProcessedTaxa, string(taxonID))
 	Ω.Unlock()
 
-	fmt.Println(utils.JsonOrSpew(txn))
-
 	rank, ok := store.TaxonRankMap[txn.Rank]
 	if !ok {
 		return store.TaxonID(""), errors.Newf("unsupported rank: %s", txn.Rank)

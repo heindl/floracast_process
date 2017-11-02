@@ -7,7 +7,6 @@ import (
 	"github.com/saleswise/errors/errors"
 	"strings"
 	"github.com/fatih/structs"
-	"fmt"
 )
 
 //const EntityKindTaxon = "Taxon"
@@ -303,16 +302,14 @@ func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, e
 
 		doc, err := tx.Get(ref)
 		if err != nil {
-			return err
+			return errors.Wrapf(err, "could not get taxon: %s", string(taxonID))
 		}
 
 		fieldPath := firestore.FieldPath{"EcoRegions", "_"+ecoRegionKey}
 
-		fmt.Println("field_path", fieldPath)
-
 		ecoRegionCount, err := doc.DataAtPath(fieldPath)
 		if err != nil && !strings.Contains(err.Error(), "no field") {
-			return err
+			return errors.Wrap(err, "could not find region count at field path")
 		}
 
 		newCount := int64(1)

@@ -1,0 +1,17 @@
+{
+  "name": "predictions",
+  "version": "1.0.0",
+  "description": "Uploads go generated predictions to geofire because there isn't a golang interface",
+  "main": "uploader.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^4.6.0",
+    "firebase-admin": "^5.4.3",
+    "geofire": "^4.1.2",
+    "glob": "^7.1.2"
+  }
+}

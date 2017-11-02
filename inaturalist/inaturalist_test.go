@@ -66,9 +66,6 @@ func TestTaxonFetcher(t *testing.T) {
 		So(len(dataSources), ShouldEqual, 6)
 		have := []string{}
 		for i := range dataSources {
-			if utils.Contains(have, string(dataSources[i].TaxonID)) {
-				fmt.Println(dataSources[i].TaxonID)
-			}
 			have = append(have, string(dataSources[i].TaxonID))
 		}
 

@@ -15,6 +15,7 @@ import (
 	"os"
 	"googlemaps.github.io/maps"
 	"bitbucket.org/heindl/taxa/ecoregions"
+	"strings"
 )
 
 func main() {
@@ -38,7 +39,7 @@ func main() {
 }
 
 const (
-	occurrenceFetchLimit = 1000
+	occurrenceFetchLimit = 100
 )
 
 func NewOccurrenceFetcher(store store.TaxaStore, eco_region_file string, clock clockwork.Clock) (OccurrenceFetcher, error) {
@@ -105,16 +106,19 @@ func (Ω *occurrenceFetcher) FetchOccurrences() error {
 				for _, _dataSource := range dataSources {
 					dataSource := _dataSource
 					tmb.Go(func() error {
+						<-Ω.Limiter
+						defer func() {
+							Ω.Limiter <- struct{}{}
+						}()
 
 						occurrences, err := Ω.fetchSourceData(dataSource)
 						if err != nil {
 							return err
 						}
-						if err := setElevations(occurrences); err != nil {
-							return err
-						}
 
-						fmt.Println("found occurrences", occurrences)
+						//if err := setElevations(occurrences); err != nil {
+						//	return err
+						//}
 
 						for _, _o := range occurrences {
 							o := _o
@@ -137,7 +141,7 @@ func (Ω *occurrenceFetcher) FetchOccurrences() error {
 										return err
 									}
 								}
-								//return nil
+								return nil
 							//})
 						}
 
@@ -296,15 +300,6 @@ func (this GBIF) parse(o gbif.Occurrence) *store.Occurrence {
 	}
 }
 
-var EPSILON float64 = 0.00001
-
-func coordinateEquals(a, b float64) bool {
-	if ((a - b) < EPSILON && (b - a) < EPSILON) {
-		return true
-	}
-	return false
-}
-
 func setElevations(occurrences store.Occurrences) error {
 
 	if len(occurrences) == 0 {
@@ -333,16 +328,19 @@ func setElevations(occurrences store.Occurrences) error {
 					locations[i] = maps.LatLng{o.Location.GetLatitude(), o.Location.GetLongitude()}
 				}
 				res, err := mc.Elevation(context.Background(), &maps.ElevationRequest{Locations: locations})
-				if err != nil {
+				// TODO: Not sure where this error is coming from but since elevations are handled in dataflow, ignore for now.
+				if err != nil && strings.Contains(err.Error(),"DATA_NOT_AVAILABLE") {
+					return nil
+				} else if err != nil {
 					return errors.Wrap(err, "could not fetch elevations")
 				}
 			Occurrences:
 				for i := range list {
 					for _, r := range res {
-						if !coordinateEquals(list[i].Location.GetLatitude(), r.Location.Lat) {
+						if !utils.CoordinatesEqual(list[i].Location.GetLatitude(), r.Location.Lat) {
 							continue
 						}
-						if !coordinateEquals(list[i].Location.GetLongitude(), r.Location.Lng) {
+						if !utils.CoordinatesEqual(list[i].Location.GetLongitude(), r.Location.Lng) {
 							continue
 						}
 						list[i].Elevation = r.Elevation

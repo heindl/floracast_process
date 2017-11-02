@@ -14,6 +14,15 @@ import (
 
 var NorthAmericaBBOX = [2][2]float64{{-169.433594, 13.267549}, {-49.902344, 57.906568}}
 
+var EPSILON float64 = 0.00001
+
+func CoordinatesEqual(a, b float64) bool {
+	if ((a - b) < EPSILON && (b - a) < EPSILON) {
+		return true
+	}
+	return false
+}
+
 func JsonOrSpew(o interface{}) string {
 	j, err := json.Marshal(o)
 	if err != nil {
