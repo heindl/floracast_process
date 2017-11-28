@@ -52,6 +52,9 @@ func main() {
 	tmb.Go(func() error{
 		for _, _taxon := range taxa {
 			taxon := _taxon
+			if taxon.ID != store.TaxonID("58682") {
+				continue
+			}
 			tmb.Go(func() error {
 				occurrences, err := ts.GetOccurrences(cxt, taxon.ID)
 				if err != nil {
@@ -61,6 +64,9 @@ func main() {
 					if _, err := ts.UpsertOccurrence(cxt, o); err != nil {
 						return err
 					}
+					//if err := ts.IncrementTaxonEcoRegion(cxt, o.TaxonID, o.EcoRegion); err != nil {
+					//	return err
+					//}
 				}
 				return nil
 			})

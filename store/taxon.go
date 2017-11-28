@@ -308,7 +308,7 @@ func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, e
 		fieldPath := firestore.FieldPath{"EcoRegions", "_"+ecoRegionKey}
 
 		ecoRegionCount, err := doc.DataAtPath(fieldPath)
-		if err != nil && !strings.Contains(err.Error(), "no field") {
+		if err != nil && !strings.Contains(err.Error(), "no field") && !strings.Contains(err.Error(), `value for field "EcoRegions" is not a map`) {
 			return errors.Wrap(err, "could not find region count at field path")
 		}
 
