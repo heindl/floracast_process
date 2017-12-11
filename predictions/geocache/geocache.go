@@ -83,7 +83,7 @@ func (Ω *CacheWriter) ReadTaxa(lat, lng, radius float64) ([]string, error) {
 		return tx.Intersects("taxa", bbox(lat, lng, radius), func(key, val string) bool {
 			k := strings.Split(strings.Split(key,":")[1], ",")
 			v := strings.Split(strings.Trim(val, "[]"), " ")
-			res = append(res, fmt.Sprintf("%s,%s,%s,%s", k[0], k[1], v[1], v[0]))
+			res = append(res, fmt.Sprintf("%s,%s,%s,%s,%s,%s", k[0], k[1], k[2], k[3], v[1], v[0]))
 			return true
 		})
 	})
@@ -95,7 +95,7 @@ func (Ω *CacheWriter) WritePredictionLine(p store.Prediction) error {
 	//taxon_id:date,id,prediction:
 	if err := Ω.DB.Update(func(tx *buntdb.Tx) error {
 		k1 := fmt.Sprintf("%s:%s,%s,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.PredictionValue)
-		k2 := fmt.Sprintf("taxa:%s,%s:pos", p.TaxonID, p.FormattedDate)
+		k2 := fmt.Sprintf("taxa:%s,%s,%s,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.PredictionValue)
 		pos := fmt.Sprintf("[%.6f %.6f]", p.Location.Longitude, p.Location.Latitude)
 		if _, _, err := tx.Set(k1, pos, nil); err != nil {
 			return err

@@ -4,9 +4,7 @@ import (
 	"github.com/saleswise/errors/errors"
 	"cloud.google.com/go/firestore"
 	"context"
-	"github.com/fatih/structs"
 	"fmt"
-	"strings"
 )
 
 const EntityKindPhoto = "Photo"
@@ -112,24 +110,15 @@ func (Ω *store) NewPhotoDocumentRef(taxonID TaxonID, dataSourceID DataSourceID,
 
 }
 
-func (Ω *store) UpsertPhoto(cxt context.Context, p Photo) error {
+func (Ω *store) SetPhoto(cxt context.Context, p Photo) error {
 
 	ref, err := Ω.NewPhotoDocumentRef(p.TaxonID, p.DataSourceID, p.ID)
 	if err != nil {
 		return err
 	}
 
-	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
-		if _, err := tx.Get(ref); err != nil {
-			if strings.Contains(err.Error(), "not found") {
-				return tx.Set(ref, p)
-			} else {
-				return err
-			}
-		}
-		return tx.UpdateMap(ref, structs.Map(p))
-	}); err != nil {
-		return errors.Wrap(err, "could not update photo")
+	if _, err := ref.Set(cxt, p); err != nil {
+		return errors.Wrap(err, "could not set photo")
 	}
 
 	return nil

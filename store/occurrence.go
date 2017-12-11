@@ -7,9 +7,7 @@ import (
 	"google.golang.org/genproto/googleapis/type/latlng"
 	"context"
 	"fmt"
-	"github.com/fatih/structs"
 	"strings"
-	//"github.com/golang/geo/s2"
 )
 
 type Occurrences []Occurrence
@@ -31,6 +29,21 @@ type Occurrence struct {
 	Elevation float64 `firestore:",omitempty" json:",omitempty"`
 	EcoRegion string `firestore:",omitempty" json:",omitempty"`
 	//S2CellIDs map[string]bool `firestore:",omitempty" json:",omitempty"`
+}
+
+var OccurrenceFieldsToMerge = []firestore.FieldPath{
+	firestore.FieldPath{"TargetID"},
+	firestore.FieldPath{"TaxonID"},
+	firestore.FieldPath{"DataSourceID"},
+	firestore.FieldPath{"OccurrenceID"},
+	firestore.FieldPath{"Location"},
+	firestore.FieldPath{"Date"},
+	firestore.FieldPath{"FormattedDate"},
+	firestore.FieldPath{"Month"},
+	firestore.FieldPath{"References"},
+	firestore.FieldPath{"RecordedBy"},
+	firestore.FieldPath{"ModifiedAt"},
+	firestore.FieldPath{"Elevation"},
 }
 
 func (Ω *Occurrence) Validate() error {
@@ -87,7 +100,7 @@ func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) (isNewOccur
 				return err
 			}
 		}
-		return tx.UpdateMap(ref, structs.Map(o))
+		return tx.Set(ref, o, firestore.Merge(OccurrenceFieldsToMerge...))
 	}); err != nil {
 		return false, errors.Wrap(err, "could not update occurrence")
 	}

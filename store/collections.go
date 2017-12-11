@@ -1,10 +1,10 @@
 package store
 
 const (
-	CollectionTypeDataSources     = "DataSources"
-	CollectionTypeOccurrences     = "Occurrences"
-	CollectionTypeTaxa            = "Taxa"
-	CollectionTypePhotos          = "Photos"
-	CollectionTypeWildernessAreas = "WildernessAreas"
-	CollectionTypePredictions = "Predictions"
+	CollectionTypeDataSources    = "DataSources"
+	CollectionTypeOccurrences    = "Occurrences"
+	CollectionTypeTaxa           = "Taxa"
+	CollectionTypePhotos         = "Photos"
+	CollectionTypeProtectedAreas = "ProtectedAreas"
+	CollectionTypePredictions    = "Predictions"
 )

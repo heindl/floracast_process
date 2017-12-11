@@ -35,7 +35,10 @@ func main() {
 	}
 
 	cxt := context.Background()
-	parser, err := parser.NewPredictionParser(cxt, *bucket, geocacheWriter)
+	predictionParser, err := parser.NewPredictionParser(cxt, *bucket, geocacheWriter)
+	if err != nil {
+		panic(err)
+	}
 
 	date_list := strings.Split(*dates, ",")
 	if len(date_list) == 0 {
@@ -49,7 +52,8 @@ func main() {
 			for _, _date := range date_list {
 				date := _date
 				tmb.Go(func() error {
-					return parser.FetchWritePredictions(cxt, store.TaxonID(taxon), date)
+					fmt.Println("fetching", taxon, date)
+					return predictionParser.FetchWritePredictions(cxt, store.TaxonID(taxon), date)
 				})
 			}
 		}
@@ -59,11 +63,16 @@ func main() {
 		panic(err)
 	}
 
-	r := mux.NewRouter()
+	router := mux.NewRouter()
 
-	r.HandleFunc("/{taxon}/{location}/", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("/{taxon}/{location}", func(w http.ResponseWriter, r *http.Request) {
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 
 		vars := mux.Vars(r)
+
+		fmt.Println("recieving request", vars["taxon"], vars["location"])
 
 		txn := vars["taxon"]
 		loc := strings.Split(vars["location"], ",")
@@ -90,6 +99,7 @@ func main() {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			fmt.Println("taxa", l)
 			fmt.Fprint(w, strings.Join(l, "\n"))
 			return
 		} else {
@@ -98,13 +108,16 @@ func main() {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			fmt.Println("taxon", l)
 			fmt.Fprint(w, strings.Join(l, "\n"))
 			return
 		}
 
 	})
 
-	if err := http.ListenAndServe(":8081", nil); err != nil {
+	fmt.Println("Server Ready at http://localhost:8081")
+
+	if err := http.ListenAndServe(":8081", router); err != nil {
 		panic(err)
 	}
 

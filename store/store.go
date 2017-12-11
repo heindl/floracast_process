@@ -12,19 +12,18 @@ type TaxaStore interface {
 	ReadSpecies(context.Context) (Taxa, error)
 	ReadTaxaFromCanonicalNames(context.Context, TaxonRank, ...CanonicalName) (Taxa, error)
 	GetTaxon(context.Context, TaxonID) (*Taxon, error)
-	UpsertTaxon(context.Context, Taxon) error
+	CreateTaxonIfNotExists(context.Context, Taxon) error
 	SetTaxonPhoto(context.Context, TaxonID, string) error
 	IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, ecoRegionKey string) error
-	UpsertPhoto(context.Context, Photo) error
+	SetPhoto(context.Context, Photo) error
 	UpsertDataSource(context.Context, DataSource) error
 	UpdateDataSourceLastFetched(context.Context, DataSource) error
 	GetOccurrenceDataSources(context.Context, TaxonID) (DataSources, error)
 	UpsertOccurrence(context.Context, Occurrence) (isNewOccurrence bool, err error)
 	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
-	ReadWildernessArea(cxt context.Context, lat, lng float64) (*WildernessArea, error)
-	UpsertWildernessArea(context.Context, WildernessArea) error
+	ReadProtectedArea(cxt context.Context, lat, lng float64) (*ProtectedArea, error)
+	SetProtectedArea(context.Context, ProtectedArea) error
 	SetPrediction(cxt context.Context, p Prediction) error
-
 	Close() error
 }
 

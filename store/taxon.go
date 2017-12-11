@@ -6,7 +6,6 @@ import (
 	"golang.org/x/net/context"
 	"github.com/saleswise/errors/errors"
 	"strings"
-	"github.com/fatih/structs"
 )
 
 //const EntityKindTaxon = "Taxon"
@@ -205,7 +204,7 @@ func (Ω CanonicalName) Valid() bool {
 	return Ω != ""
 }
 
-func (Ω *store) UpsertTaxon(cxt context.Context, txn Taxon) error {
+func (Ω *store) CreateTaxonIfNotExists(cxt context.Context, txn Taxon) error {
 
 	// Validate
 	if !txn.ID.Valid() {
@@ -226,7 +225,7 @@ func (Ω *store) UpsertTaxon(cxt context.Context, txn Taxon) error {
 				return err
 			}
 		}
-		return tx.UpdateMap(ref, structs.Map(txn))
+		return nil
 	}); err != nil {
 		return errors.Wrap(err, "could not update occurrence")
 	}
@@ -235,13 +234,9 @@ func (Ω *store) UpsertTaxon(cxt context.Context, txn Taxon) error {
 }
 
 func (Ω *store) SetTaxonPhoto(cxt context.Context, taxonID TaxonID, photoURL string) error {
-	ref := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(taxonID))
-
-	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
-		return tx.UpdateMap(ref, map[string]interface{}{
-			"PhotoURL": photoURL,
-		})
-	}); err != nil {
+	if _, err := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(taxonID)).Set(cxt, map[string]interface{}{
+		"PhotoURL": photoURL,
+	}, firestore.Merge(firestore.FieldPath{"PhotoURL"})); err != nil {
 		return errors.Wrap(err, "could not update taxon photo")
 	}
 	return nil
@@ -316,10 +311,7 @@ func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, e
 		if ecoRegionCount != nil {
 			newCount = ecoRegionCount.(int64) + 1
 		}
-
-		return tx.UpdatePaths(ref, []firestore.FieldPathUpdate{
-			{fieldPath, newCount},
-		})
+		return tx.Update(ref, []firestore.Update{firestore.Update{FieldPath: fieldPath, Value: newCount}})
 	}); err != nil {
 		return errors.Wrap(err, "could not update occurrence")
 	}

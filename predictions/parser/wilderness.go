@@ -8,23 +8,23 @@ import (
 )
 
 type WildernessAreaFetcher interface{
-	GetWildernessArea(cxt context.Context, latitude, longitude float64) (*store.WildernessArea, error)
+	GetWildernessArea(cxt context.Context, latitude, longitude float64) (*store.ProtectedArea, error)
 }
 
 func NewWildernessAreaFetcher(taxastore store.TaxaStore) WildernessAreaFetcher {
 	return &wildernessAreaFetcher{
 		Store: taxastore,
-		WildernessAreas: store.WildernessAreas{},
+		WildernessAreas: store.ProtectedAreas{},
 	}
 }
 
 type wildernessAreaFetcher struct{
 	Store store.TaxaStore
 	sync.Mutex
-	WildernessAreas store.WildernessAreas
+	WildernessAreas store.ProtectedAreas
 }
 
-func (Ω *wildernessAreaFetcher) GetWildernessArea(cxt context.Context, latitude, longitude float64) (*store.WildernessArea, error) {
+func (Ω *wildernessAreaFetcher) GetWildernessArea(cxt context.Context, latitude, longitude float64) (*store.ProtectedArea, error) {
 
 	for _, w := range Ω.WildernessAreas {
 		if utils.CoordinatesEqual(w.Centre.Latitude, latitude) && utils.CoordinatesEqual(w.Centre.Longitude, longitude) {
@@ -32,7 +32,7 @@ func (Ω *wildernessAreaFetcher) GetWildernessArea(cxt context.Context, latitude
 		}
 	}
 
-	w, err := Ω.Store.ReadWildernessArea(cxt, latitude, longitude)
+	w, err := Ω.Store.ReadProtectedArea(cxt, latitude, longitude)
 	if err != nil {
 		return nil, err
 	}

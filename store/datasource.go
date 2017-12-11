@@ -6,11 +6,8 @@ import (
 	"cloud.google.com/go/firestore"
 	"time"
 	"fmt"
-	"github.com/fatih/structs"
 	"strings"
 )
-
-
 
 type DataSourceID string
 const (
@@ -79,6 +76,14 @@ type DataSource struct{
 	CreatedAt     *time.Time          `firestore:",omitempty"`
 	ModifiedAt    *time.Time          `firestore:",omitempty"`
 	LastFetchedAt *time.Time          `firestore:",omitempty"`
+}
+
+var DataSourceFieldsToMerge = []firestore.FieldPath{
+	firestore.FieldPath{"Kind"},
+	firestore.FieldPath{"SourceID"},
+	firestore.FieldPath{"TargetID"},
+	firestore.FieldPath{"TaxonID"},
+	firestore.FieldPath{"ModifiedAt"},
 }
 
 func (Ω *DataSource) Validate() error {
@@ -158,7 +163,7 @@ func (Ω *store) UpsertDataSource(cxt context.Context, src DataSource) error {
 				return err
 			}
 		}
-		return tx.UpdateMap(ref, structs.Map(src))
+		return tx.Set(ref, src, firestore.Merge(DataSourceFieldsToMerge...))
 	}); err != nil {
 		return errors.Wrap(err, "could not update data source")
 	}
@@ -172,12 +177,10 @@ func (Ω *store) UpdateDataSourceLastFetched(cxt context.Context, src DataSource
 		return err
 	}
 
-	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
-		return tx.UpdateMap(ref, map[string]interface{}{
-			"LastFetchedAt": time.Now(),
-		})
-	}); err != nil {
-		return errors.Wrap(err, "could not update data source last fetched")
+	if _, err := ref.Set(cxt, map[string]interface{}{
+		"LastFetchedAt": time.Now(),
+	}, firestore.Merge(firestore.FieldPath{"LastFetchedAt"})); err != nil {
+		return errors.Wrap(err, "could not set data source last fetched")
 	}
 
 	return nil

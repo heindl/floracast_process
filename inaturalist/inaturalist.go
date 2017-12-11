@@ -334,13 +334,13 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 		}
 	}
 
-	if err := Ω.Store.UpsertTaxon(cxt, t); err != nil {
+	if err := Ω.Store.CreateTaxonIfNotExists(cxt, t); err != nil {
 		return store.TaxonID(""), err
 	}
 
 	taxonPhoto := ""
 	if txn.DefaultPhoto.ID != 0 {
-		if err := Ω.Store.UpsertPhoto(cxt, txn.DefaultPhoto.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
+		if err := Ω.Store.SetPhoto(cxt, txn.DefaultPhoto.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
 			return store.TaxonID(""), err
 		}
 		taxonPhoto = txn.DefaultPhoto.MediumURL
@@ -349,7 +349,7 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 	// Note that the photos store sub-species, and so far the only place i can find them.
 	for _, p := range txn.TaxonPhotos {
 		if strconv.Itoa(int(p.Taxon.ID)) == string(t.ID) {
-			if err := Ω.Store.UpsertPhoto(cxt, p.Photo.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
+			if err := Ω.Store.SetPhoto(cxt, p.Photo.Format(t.ID, store.DataSourceIDINaturalist)); err != nil {
 				return store.TaxonID(""), err
 			}
 			if taxonPhoto == "" {

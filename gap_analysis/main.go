@@ -12,6 +12,7 @@ import (
 	"bitbucket.org/heindl/taxa/store"
 	"context"
 	"google.golang.org/genproto/googleapis/type/latlng"
+	"unicode/utf8"
 )
 
 // https://gapanalysis.usgs.gov/padus/data/metadata/
@@ -45,7 +46,7 @@ func main() {
 	fmt.Println("len", len(areas))
 
 	for _, a := range areas {
-		if err := store.UpsertWildernessArea(context.Background(), a); err != nil {
+		if err := store.SetProtectedArea(context.Background(), a); err != nil {
 			panic(err)
 		}
 	}
@@ -60,7 +61,7 @@ type Parser struct {
 
 type State string
 
-func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, error) {
+func (p *Parser) Parse(filename string, perstate int) (store.ProtectedAreas, error) {
 	reader, err := shp.Open(filename)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not open shape file")
@@ -73,9 +74,9 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 	//
 	//return nil, nil
 
-	mapStateAreas := map[store.WildernessAreaState]store.WildernessAreas{}
+	mapStateAreas := map[store.ProtectedAreaState]store.ProtectedAreas{}
 	for _, v := range stateMap {
-		mapStateAreas[store.WildernessAreaState(v)] = store.WildernessAreas{}
+		mapStateAreas[store.ProtectedAreaState(v)] = store.ProtectedAreas{}
 	}
 
 	// FieldIDs are a map from known field names to their shapefile keys
@@ -133,7 +134,7 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 			continue
 		}
 
-		area := store.WildernessArea{
+		area := store.ProtectedArea{
 			PublicAccess: reader.ReadAttribute(i, attrs["d_Access"]),
 		}
 		if area.PublicAccess == "Closed" {
@@ -145,7 +146,7 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 		if err != nil {
 			return nil, errors.Wrap(err, "could not parse GIS_Acres")
 		}
-		if area.Acres < 200 {
+		if area.Acres < 50 {
 			filterCounter["GIS_Acres"]++
 			continue
 		}
@@ -193,7 +194,7 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 			continue
 		}
 
-		area.State = store.WildernessAreaState(reader.ReadAttribute(i, attrs["d_State_Nm"]))
+		area.State = store.ProtectedAreaState(reader.ReadAttribute(i, attrs["d_State_Nm"]))
 
 		if _, ok := mapStateAreas[area.State]; !ok {
 			continue
@@ -212,6 +213,24 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 		area.ID = id
 
 		area.Name = reader.ReadAttribute(i, attrs["Loc_Nm"])
+
+		// There are a few invalid UTF8 characters in a few of the names, which will not save to firestore.
+		// This is is the easiest way to correct them.
+		if !utf8.ValidString(area.Name) {
+			switch area.ID {
+			case "373061":
+				area.Name = "Peña Blanca"
+			case "11115456":
+				area.Name = "Año Nuevo SR"
+			case "11115421":
+				area.Name = "Año Nuevo SP"
+			case "11116355", "555607510", "11116283", "11116280":
+				area.Name = "Montaña de Oro SP"
+			default:
+				return nil, errors.Newf("invalid utf8 character which will not save to firestore: %s, %s", area.ID,  area.Name)
+			}
+		}
+
 		area.Category = reader.ReadAttribute(i, attrs["d_Category"])
 		area.OwnerType = reader.ReadAttribute(i, attrs["d_Own_Type"])
 		area.OwnerName = reader.ReadAttribute(i, attrs["d_Own_Name"])
@@ -231,14 +250,14 @@ func (p *Parser) Parse(filename string, perstate int) (store.WildernessAreas, er
 		mapStateAreas[area.State] = append(mapStateAreas[area.State], area)
 	}
 
-	res := store.WildernessAreas{}
+	res := store.ProtectedAreas{}
 
 	for k := range mapStateAreas {
 		sort.Sort(mapStateAreas[k])
 		lastIndex := len(mapStateAreas[k])
-		if lastIndex > 20 {
-			lastIndex = 20
-		}
+		//if lastIndex > 50 {
+		//	lastIndex = 50
+		//}
 		res = append(res, mapStateAreas[k][:lastIndex]...)
 	}
 

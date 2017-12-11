@@ -8,7 +8,6 @@ import (
 	"context"
 	"gopkg.in/tomb.v2"
 	"github.com/saleswise/errors/errors"
-	"fmt"
 )
 
 type Writer interface{
@@ -51,8 +50,6 @@ func (Ω *predictionParser) FetchWritePredictions(cxt context.Context, taxon sto
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("gcsFilePaths", len(gcsFilePaths))
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
