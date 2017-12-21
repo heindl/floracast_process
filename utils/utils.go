@@ -120,3 +120,20 @@ func GeoJsonPoint(longitude float64, latitude float64) geojson.Point {
 	})
 	return *p
 }
+
+type Limiter chan struct{}
+
+func NewLimiter(amount int) Limiter {
+	limiter := make(chan struct{}, amount)
+	for i := 0; i < amount; i++ {
+		limiter <- struct{}{}
+	}
+	return limiter
+}
+
+func (Ω Limiter) Go() func() {
+	<-Ω
+	return func() {
+		Ω <- struct{}{}
+	}
+}

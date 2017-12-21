@@ -16,9 +16,13 @@ import (
 	"googlemaps.github.io/maps"
 	"bitbucket.org/heindl/taxa/ecoregions"
 	"strings"
+	"flag"
 )
 
 func main() {
+
+	taxa := flag.String("taxa", "", "view taxon information")
+	flag.Parse()
 
 	ts, err := store.NewTaxaStore()
 	if err != nil {
@@ -30,7 +34,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := fetcher.FetchOccurrences(); err != nil {
+	if err := fetcher.FetchOccurrences(strings.Split(*taxa, ",")); err != nil {
 		panic(err)
 	}
 
@@ -63,7 +67,7 @@ func NewOccurrenceFetcher(store store.TaxaStore, eco_region_file string, clock c
 }
 
 type OccurrenceFetcher interface{
-	FetchOccurrences() error
+	FetchOccurrences(taxa []string) error
 }
 
 type occurrenceFetcher struct {
@@ -78,7 +82,7 @@ type occurrenceFetcher struct {
 	EcoRegionCache ecoregions.EcoRegionCache
 }
 
-func (Ω *occurrenceFetcher) FetchOccurrences() error {
+func (Ω *occurrenceFetcher) FetchOccurrences(taxa_ids []string) error {
 
 	//modelReprocess := struct{
 	//	sync.Mutex
@@ -89,9 +93,24 @@ func (Ω *occurrenceFetcher) FetchOccurrences() error {
 	cxt := context.Background()
 	tmb.Go(func() error {
 
-		taxa, err := Ω.TaxaStore.ReadSpecies(cxt)
-		if err != nil {
-			return err
+		taxa := store.Taxa{}
+		var err error
+		if len(taxa_ids) > 0 {
+			for _, taxon_id := range taxa_ids {
+				if !store.TaxonID(taxon_id).Valid() {
+					return errors.Newf("invalid taxon id[%s]", taxon_id)
+				}
+				taxon, err := Ω.TaxaStore.ReadTaxon(cxt, store.TaxonID(taxon_id))
+				if err != nil {
+					return err
+				}
+				taxa = append(taxa, *taxon)
+			}
+		} else {
+			taxa, err = Ω.TaxaStore.ReadSpecies(cxt)
+			if err != nil {
+				return err
+			}
 		}
 
 		fmt.Printf("Gathering occurrences for %d taxa.\n", len(taxa))
@@ -115,6 +134,7 @@ func (Ω *occurrenceFetcher) FetchOccurrences() error {
 						if err != nil {
 							return err
 						}
+
 
 						//if err := setElevations(occurrences); err != nil {
 						//	return err
@@ -169,6 +189,7 @@ func (Ω *occurrenceFetcher) FetchOccurrences() error {
 
 }
 
+
 func (Ω *occurrenceFetcher) fetchSourceData(src store.DataSource) (store.Occurrences, error) {
 
 	hasBeenFetchedInLastDay := src.LastFetchedAt != nil && !src.LastFetchedAt.IsZero() && src.LastFetchedAt.After(Ω.Clock.Now().Add(time.Hour * -24))
@@ -204,9 +225,12 @@ func (Ω *occurrenceFetcher) fetchSourceData(src store.DataSource) (store.Occurr
 			return nil, err
 		}
 		// If no key is found, the point is likely not within the continental United States, or something is broken.
+		// TODO: About three percent of a test batch fell outside of all eco-regions. They appeared to be on costal areas for which the defined regions may not extend.
 		if ecoRegionKey == "" {
+			//fmt.Println("no ecoregion key", o.Location.GetLatitude(), o.Location.GetLongitude())
 			continue
 		}
+
 		o.EcoRegion = ecoRegionKey
 		o.DataSourceID = src.SourceID
 		o.TaxonID = src.TaxonID
@@ -297,6 +321,7 @@ func (this GBIF) parse(o gbif.Occurrence) *store.Occurrence {
 		RecordedBy:    o.RecordedBy,
 		References:    o.References,
 		CreatedAt:     utils.TimePtr(time.Now()),
+		CountryCode: o.CountryCode,
 	}
 }
 

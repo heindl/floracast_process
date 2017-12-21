@@ -14,6 +14,7 @@ import (
 	"sync"
 	"bitbucket.org/heindl/taxa/utils"
 	"sort"
+	"strings"
 )
 
 type PredictionLine struct {
@@ -59,6 +60,8 @@ func main() {
 
 	var err error
 	occurrences := flag.Bool("occurrences", false, "count predictions for each taxon?")
+	sources := flag.Bool("sources", false, "count occurrences sources for each taxon?")
+	taxa := flag.String("taxa", "", "view taxon information")
 	predictionDirectory := flag.String("dir", "", "prediction file directory under gs:floracast-models/predictions/")
 	flag.Parse()
 
@@ -88,7 +91,15 @@ func main() {
 		if err := f.CountOccurrences(cxt); err != nil {
 			panic(err)
 		}
-	} else {
+	} else if *sources {
+		if err := f.CountTaxaOccurrencesSources(cxt); err != nil {
+			panic(err)
+		}
+	} else if *taxa != "" {
+		if err := f.PrintTaxa(cxt, *taxa); err != nil {
+			panic(err)
+		}
+	} else if *predictionDirectory != "" {
 		if err := f.FetchPredictionAnalysis(cxt, *predictionDirectory); err != nil {
 			panic(err)
 		}
@@ -127,6 +138,55 @@ func (Ω *Analyzer) CountOccurrences(cxt context.Context) error {
 			CanonicalName: string(t.CanonicalName),
 			ID: string(t.ID),
 			Count: len(occurrences)})
+	}
+
+	sort.Sort(aggregation)
+
+	fmt.Println(utils.JsonOrSpew(aggregation))
+
+	return nil
+}
+
+func (Ω *Analyzer) PrintTaxa(cxt context.Context, taxa_ids string) error {
+
+	for _, _taxon_id := range strings.Split(taxa_ids, ",") {
+		taxon_id := store.TaxonID(_taxon_id)
+		if !taxon_id.Valid() {
+			return errors.Newf("invalid taxon id[%s]", taxon_id)
+		}
+		taxon, err := Ω.Store.ReadTaxon(cxt, taxon_id)
+		if err != nil {
+			return err
+		}
+		fmt.Println(utils.JsonOrSpew(taxon))
+		srcs, err := Ω.Store.GetOccurrenceDataSources(cxt, taxon.ID)
+		if err != nil {
+			return err
+		}
+		fmt.Println(utils.JsonOrSpew(srcs))
+	}
+
+	return nil
+}
+
+func (Ω *Analyzer) CountTaxaOccurrencesSources(cxt context.Context) error {
+	taxa, err := Ω.Store.ReadTaxa(cxt)
+	if err != nil {
+		return err
+	}
+
+	aggregation := OccurrenceAggregationList{}
+	for _, t := range taxa {
+
+		srcs, err := Ω.Store.GetOccurrenceDataSources(cxt, t.ID)
+		if err != nil {
+			return err
+		}
+		aggregation = append(aggregation, OccurrenceAggregation{
+			CommonName: t.CommonName,
+			CanonicalName: string(t.CanonicalName),
+			ID: string(t.ID),
+			Count: len(srcs)})
 	}
 
 	sort.Sort(aggregation)

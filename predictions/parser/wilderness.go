@@ -32,7 +32,7 @@ func (Ω *wildernessAreaFetcher) GetWildernessArea(cxt context.Context, latitude
 		}
 	}
 
-	w, err := Ω.Store.ReadProtectedArea(cxt, latitude, longitude)
+	w, err := Ω.Store.ReadProtectedAreaByLatLng(cxt, latitude, longitude)
 	if err != nil {
 		return nil, err
 	}

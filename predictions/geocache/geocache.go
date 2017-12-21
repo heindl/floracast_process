@@ -37,10 +37,10 @@ func NewCacheWriter(taxa []string) (*CacheWriter, error) {
 	fmt.Println("TEMP GEOCACHE", path.Join(tmp, "data.db"))
 
 	if err := db.Update(func(tx *buntdb.Tx) error {
+		if err := tx.CreateSpatialIndex("taxa","taxa:*:pos", buntdb.IndexRect); err != nil {
+			return errors.Wrap(err, "could not create spatial index")
+		}
 		for _, taxon := range taxa {
-			if err := tx.CreateSpatialIndex("taxa","taxa:*:pos", buntdb.IndexRect); err != nil {
-				return errors.Wrap(err, "could not create spatial index")
-			}
 			k := fmt.Sprintf("%s:*:pos", taxon)
 			if err := tx.CreateSpatialIndex(string(taxon),k, buntdb.IndexRect); err != nil {
 				return errors.Wrap(err, "could not create spatial index")
@@ -95,6 +95,7 @@ func (Ω *CacheWriter) WritePredictionLine(p store.Prediction) error {
 	//taxon_id:date,id,prediction:
 	if err := Ω.DB.Update(func(tx *buntdb.Tx) error {
 		k1 := fmt.Sprintf("%s:%s,%s,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.PredictionValue)
+		print(k1)
 		k2 := fmt.Sprintf("taxa:%s,%s,%s,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.PredictionValue)
 		pos := fmt.Sprintf("[%.6f %.6f]", p.Location.Longitude, p.Location.Latitude)
 		if _, _, err := tx.Set(k1, pos, nil); err != nil {

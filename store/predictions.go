@@ -16,8 +16,8 @@ type Prediction struct{
 	FormattedDate string `datastore:",omitempty"`
 	Month time.Month `datastore:",omitempty"`
 	PredictionValue float64 `datastore:",omitempty"`
-	PercentileOverAllTaxonPredictions float64 `datastore:",omitempty"`
-	PercentileOverAllTaxaPredictionsForDay float64 `datastore:",omitempty"`
+	ScaledPredictionValue float64 `datastore:",omitempty"`
+	ScarcityValue float64 `datastore:",omitempty"`
 	TaxonID TaxonID `datastore:",omitempty"`
 	WildernessAreaName string `datastore:",omitempty"`
 	WildernessAreaID string `datastore:",omitempty"`

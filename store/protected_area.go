@@ -10,6 +10,7 @@ import (
 	"github.com/cenkalti/backoff"
 	"strings"
 	"fmt"
+	"github.com/paulmach/go.geojson"
 )
 
 type ProtectedArea struct {
@@ -27,6 +28,7 @@ type ProtectedArea struct {
 	Category              string             `datastore:",omitempty"`
 	YearEstablished       int                `datastore:",omitempty"`
 	PublicAccess          string             `datastore:",omitempty"`
+	MultiPolygon		  []byte			`datastore:",omitempty"`
 
 }
 
@@ -38,7 +40,19 @@ func (a ProtectedAreas) Len() int           { return len(a) }
 func (a ProtectedAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ProtectedAreas) Less(i, j int) bool { return a[i].Acres > a[j].Acres }
 
-func (Ω *store) ReadProtectedArea(cxt context.Context, lat, lng float64) (*ProtectedArea, error) {
+func (Ω *store) ReadProtectedAreaByID(cxt context.Context, id string) (*ProtectedArea, error) {
+	doc, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(id).Get(cxt)
+	if err != nil {
+		errors.Wrap(err, "could not get ProtectedArea")
+	}
+	w := ProtectedArea{}
+	if err := doc.DataTo(&w); err != nil {
+		return nil, errors.Wrap(err, "could not type cast ProtectedArea")
+	}
+	return &w, nil
+}
+
+func (Ω *store) ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error) {
 
 	// Validate
 	if lat == 0 || lng == 0 {
@@ -66,7 +80,7 @@ func (Ω *store) ReadProtectedArea(cxt context.Context, lat, lng float64) (*Prot
 		}
 	}
 
-	return nil, errors.New("no wilderness area found")
+	return nil, errors.Newf("no wilderness area found: [%f, %f]", lat, lng)
 }
 
 var counter = 0;
@@ -74,8 +88,6 @@ var counter = 0;
 func (Ω *store) SetProtectedArea(cxt context.Context, wa ProtectedArea) error {
 
 	counter = counter + 1;
-
-	fmt.Println(counter, utils.JsonOrSpew(wa))
 
 	// Validate
 	if wa.ID == "" {
@@ -93,11 +105,31 @@ func (Ω *store) SetProtectedArea(cxt context.Context, wa ProtectedArea) error {
 		}
 		if err != nil {
 			ticker.Stop()
-			return errors.Wrap(err, "could nto set protected area")
+			return errors.Wrap(err, "could not set protected area")
 		}
 		ticker.Stop()
 		break
 	}
 
+	return nil
+}
+
+func (Ω *store) SetProtectedAreaGeometry(cxt context.Context, areaID string, geoJSONGeometry geojson.Geometry) error {
+
+	////if !geoJSONGeometry.IsMultiPolygon() {
+	////	return errors.New("Unsupported geojson geometry type.")
+	////}
+	//
+	//b, err := json.Marshal(geoJSONGeometry)
+	//if err != nil {
+	//	return errors.Wrap(err, "Could not marshal geojson multipolygon.")
+	//}
+	//
+	////"Geometry": base64.StdEncoding.EncodeToString([]byte(geometry)),
+	//if _, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(areaID).Update(cxt, []firestore.Update{
+	//	{Path:"MultiPolygon", Value: b},
+	//}); err != nil {
+	//	return errors.Wrapf(err, "could not update protected area [%s] geometry", areaID)
+	//}
 	return nil
 }

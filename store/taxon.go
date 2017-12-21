@@ -266,7 +266,7 @@ func (Ω *store) ReadTaxaFromCanonicalNames(cxt context.Context, rank TaxonRank,
 
 }
 
-func (Ω *store) GetTaxon(cxt context.Context, id TaxonID) (*Taxon, error) {
+func (Ω *store) ReadTaxon(cxt context.Context, id TaxonID) (*Taxon, error) {
 
 	if !id.Valid() {
 		return nil, errors.New("invalid taxon id")

@@ -5,13 +5,14 @@ import (
 	"github.com/jonboulle/clockwork"
 	"cloud.google.com/go/firestore"
 	"context"
+	"github.com/paulmach/go.geojson"
 )
 
 type TaxaStore interface {
 	ReadTaxa(context.Context) (Taxa, error)
 	ReadSpecies(context.Context) (Taxa, error)
 	ReadTaxaFromCanonicalNames(context.Context, TaxonRank, ...CanonicalName) (Taxa, error)
-	GetTaxon(context.Context, TaxonID) (*Taxon, error)
+	ReadTaxon(context.Context, TaxonID) (*Taxon, error)
 	CreateTaxonIfNotExists(context.Context, Taxon) error
 	SetTaxonPhoto(context.Context, TaxonID, string) error
 	IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, ecoRegionKey string) error
@@ -21,8 +22,10 @@ type TaxaStore interface {
 	GetOccurrenceDataSources(context.Context, TaxonID) (DataSources, error)
 	UpsertOccurrence(context.Context, Occurrence) (isNewOccurrence bool, err error)
 	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
-	ReadProtectedArea(cxt context.Context, lat, lng float64) (*ProtectedArea, error)
+	ReadProtectedAreaByID(cxt context.Context, id string) (*ProtectedArea, error)
+	ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error)
 	SetProtectedArea(context.Context, ProtectedArea) error
+	SetProtectedAreaGeometry(ctx context.Context, areaID string, geoJSONGeometry geojson.Geometry) error
 	SetPrediction(cxt context.Context, p Prediction) error
 	Close() error
 }

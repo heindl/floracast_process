@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"github.com/cenkalti/backoff"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 type Occurrences []Occurrence
@@ -28,23 +30,41 @@ type Occurrence struct {
 	// A globally unique identifier. Although missing in some cases, will be helpful in identifying source of data.
 	Elevation float64 `firestore:",omitempty" json:",omitempty"`
 	EcoRegion string `firestore:",omitempty" json:",omitempty"`
+	CountryCode string
 	//S2CellIDs map[string]bool `firestore:",omitempty" json:",omitempty"`
 }
 
-var OccurrenceFieldsToMerge = []firestore.FieldPath{
-	firestore.FieldPath{"TargetID"},
-	firestore.FieldPath{"TaxonID"},
-	firestore.FieldPath{"DataSourceID"},
-	firestore.FieldPath{"OccurrenceID"},
-	firestore.FieldPath{"Location"},
-	firestore.FieldPath{"Date"},
-	firestore.FieldPath{"FormattedDate"},
-	firestore.FieldPath{"Month"},
-	firestore.FieldPath{"References"},
-	firestore.FieldPath{"RecordedBy"},
-	firestore.FieldPath{"ModifiedAt"},
-	firestore.FieldPath{"Elevation"},
+func (Ω *Occurrence) mergeFields() []firestore.FieldPath{
+
+	// Required fields
+	fields := []firestore.FieldPath{
+		{"TargetID"},
+		{"TaxonID"},
+		{"DataSourceID"},
+		{"OccurrenceID"},
+		{"Location"},
+		{"Date"},
+		{"FormattedDate"},
+		{"Month"},
+	}
+
+	if Ω.References != "" {
+		fields = append(fields, firestore.FieldPath{"References"})
+	}
+
+	if Ω.RecordedBy != "" {
+		fields = append(fields, firestore.FieldPath{"RecordedBy"})
+	}
+
+	if Ω.Elevation != 0 {
+		fields = append(fields, firestore.FieldPath{"Elevation"})
+	}
+
+	return fields
+
 }
+
+
 
 func (Ω *Occurrence) Validate() error {
 	if Ω == nil {
@@ -79,30 +99,48 @@ func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSour
 
 func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) (isNewOccurrence bool, err error) {
 
+	isNewOccurrence = false
+
 	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceID, o.TargetID)
 	if err != nil {
 		return false, err
 	}
 
-	isNewOccurrence = false
+	bkf := backoff.NewExponentialBackOff()
+	bkf.InitialInterval = time.Second * 1
+	ticker := backoff.NewTicker(bkf)
+	for _ = range ticker.C {
 
-	//o.S2CellIDs, err = s2Cells(o.Location.Latitude, o.Location.Longitude)
-	//if err != nil {
-	//	return false, err
-	//}
+		//o.S2CellIDs, err = s2Cells(o.Location.Latitude, o.Location.Longitude)
+		//if err != nil {
+		//	return false, err
+		//}
 
-	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
-		if _, err := tx.Get(ref); err != nil {
-			if strings.Contains(err.Error(), "not found") {
-				isNewOccurrence = true
-				return tx.Set(ref, o)
-			} else {
-				return err
+		err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
+			if _, err := tx.Get(ref); err != nil {
+				if strings.Contains(err.Error(), "not found") {
+					isNewOccurrence = true
+					return tx.Set(ref, o)
+				} else {
+					return err
+				}
 			}
+			fields := o.mergeFields()
+			return tx.Set(ref, o, firestore.Merge(fields...))
+		})
+
+		if err != nil && strings.Contains(err.Error(), "rpc error") {
+			fmt.Println("RPC ERROR", err, utils.JsonOrSpew(o))
+			continue
 		}
-		return tx.Set(ref, o, firestore.Merge(OccurrenceFieldsToMerge...))
-	}); err != nil {
-		return false, errors.Wrap(err, "could not update occurrence")
+
+		if err != nil {
+			ticker.Stop()
+			return false, errors.Wrap(err, "could not update occurrence")
+		}
+
+		ticker.Stop()
+		break
 	}
 	return isNewOccurrence, nil
 }

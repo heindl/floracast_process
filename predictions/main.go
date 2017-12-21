@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/heindl/taxa/predictions/parser"
 	"bitbucket.org/heindl/taxa/predictions/geocache"
 	"strings"
-	"gopkg.in/tomb.v2"
 	"fmt"
 	"net/http"
 	"github.com/gorilla/mux"
@@ -35,7 +34,7 @@ func main() {
 	}
 
 	cxt := context.Background()
-	predictionParser, err := parser.NewPredictionParser(cxt, *bucket, geocacheWriter)
+	predictionParser, err := parser.NewPredictionParser(cxt, *bucket, geocacheWriter, "/tmp")
 	if err != nil {
 		panic(err)
 	}
@@ -45,23 +44,31 @@ func main() {
 		date_list = append(date_list, "") // Add an empty value to make iteration simpler.
 	}
 
-	tmb := tomb.Tomb{}
-	tmb.Go(func() error {
-		for _, _taxon := range strings.Split(*taxa, ",") {
-			taxon := _taxon
-			for _, _date := range date_list {
-				date := _date
-				tmb.Go(func() error {
-					fmt.Println("fetching", taxon, date)
-					return predictionParser.FetchWritePredictions(cxt, store.TaxonID(taxon), date)
-				})
-			}
-		}
-		return nil
-	})
-	if err := tmb.Wait(); err != nil {
+	predictions, err := predictionParser.FetchPredictions(cxt, strings.Split(*taxa, ","), nil)
+	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println(len(predictions))
+
+	return
+
+	//tmb := tomb.Tomb{}
+	//tmb.Go(func() error {
+	//	for _, _taxon := range strings.Split(*taxa, ",") {
+	//		taxon := _taxon
+	//		for _, _date := range date_list {
+	//			date := _date
+	//			tmb.Go(func() error {
+	//				return predictionParser.WritePredictions(cxt, store.TaxonID(taxon), date)
+	//			})
+	//		}
+	//	}
+	//	return nil
+	//})
+	//if err := tmb.Wait(); err != nil {
+	//	panic(err)
+	//}
 
 	router := mux.NewRouter()
 
