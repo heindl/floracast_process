@@ -28,13 +28,8 @@ func main() {
 		panic("taxa required")
 	}
 
-	geocacheWriter, err := geocache.NewCacheWriter(strings.Split(*taxa, ","))
-	if err != nil {
-		panic(err)
-	}
-
 	cxt := context.Background()
-	predictionParser, err := parser.NewPredictionParser(cxt, *bucket, geocacheWriter, "/tmp")
+	predictionParser, err := parser.NewPredictionParser(cxt, *bucket, "/tmp")
 	if err != nil {
 		panic(err)
 	}
@@ -49,9 +44,16 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(len(predictions))
+	geocacheWriter, err := geocache.NewCacheWriter(strings.Split(*taxa, ","))
+	if err != nil {
+		panic(err)
+	}
 
-	return
+	for _, p := range predictions {
+		if err := geocacheWriter.WritePredictionLine(p); err != nil {
+			panic(err)
+		}
+	}
 
 	//tmb := tomb.Tomb{}
 	//tmb.Go(func() error {
@@ -79,9 +81,12 @@ func main() {
 
 		vars := mux.Vars(r)
 
-		fmt.Println("recieving request", vars["taxon"], vars["location"])
-
 		txn := vars["taxon"]
+
+		date := r.URL.Query().Get("date")
+
+		fmt.Println("recieving request", vars["taxon"], vars["location"], date)
+
 		loc := strings.Split(vars["location"], ",")
 
 		lat, err := strconv.ParseFloat(loc[0], 64)
@@ -101,21 +106,19 @@ func main() {
 		}
 
 		if txn == "taxa" {
-			l, err := geocacheWriter.ReadTaxa(lat, lng, rad)
+			l, err := geocacheWriter.ReadTaxa(lat, lng, rad, date)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			fmt.Println("taxa", l)
 			fmt.Fprint(w, strings.Join(l, "\n"))
 			return
 		} else {
-			l, err := geocacheWriter.ReadTaxon(store.TaxonID(txn), lat, lng, rad)
+			l, err := geocacheWriter.ReadTaxon(store.TaxonID(txn), lat, lng, rad, date)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			fmt.Println("taxon", l)
 			fmt.Fprint(w, strings.Join(l, "\n"))
 			return
 		}

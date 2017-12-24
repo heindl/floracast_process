@@ -5,6 +5,9 @@ import (
 	"sync"
 	"bitbucket.org/heindl/taxa/utils"
 	"context"
+	"fmt"
+	"google.golang.org/genproto/googleapis/type/latlng"
+	"strings"
 )
 
 type WildernessAreaFetcher interface{
@@ -33,7 +36,12 @@ func (Ω *wildernessAreaFetcher) GetWildernessArea(cxt context.Context, latitude
 	}
 
 	w, err := Ω.Store.ReadProtectedAreaByLatLng(cxt, latitude, longitude)
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), "no wilderness area found") {
+		fmt.Println("could not find wilderness area", latitude, longitude)
+		w = &store.ProtectedArea{
+			Centre: latlng.LatLng{latitude, longitude},
+		}
+	} else if err != nil {
 		return nil, err
 	}
 

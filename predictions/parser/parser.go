@@ -8,11 +8,9 @@ import (
 	"context"
 	"gopkg.in/tomb.v2"
 	"github.com/saleswise/errors/errors"
-	"fmt"
 	"sync"
 	"strings"
 	"github.com/montanaflynn/stats"
-	"github.com/influxdb/influxdb/pkg/limiter"
 )
 
 type Writer interface{
@@ -21,10 +19,10 @@ type Writer interface{
 }
 
 type PredictionParser interface {
-	FetchPredictions(cxt context.Context, taxa []string, date []string) ([]store.Prediction, error)
+	FetchPredictions(cxt context.Context, taxa []string, date []string) ([]*store.Prediction, error)
 }
 
-func NewPredictionParser(cxt context.Context, gcsBucketName string, writer Writer, localPath string) (PredictionParser, error) {
+func NewPredictionParser(cxt context.Context, gcsBucketName string, localPath string) (PredictionParser, error) {
 
 	taxastore, err := store.NewTaxaStore()
 	if err != nil {
@@ -39,14 +37,12 @@ func NewPredictionParser(cxt context.Context, gcsBucketName string, writer Write
 	return &predictionParser{
 		WildernessAreaFetcher: NewWildernessAreaFetcher(taxastore),
 		GCSFetcher: gcsFetcher,
-		//Writer: writer,
 	}, nil
 }
 
 type predictionParser struct {
 	WildernessAreaFetcher WildernessAreaFetcher
 	GCSFetcher            GCSFetcher
-	//Writer                Writer
 }
 
 func taxonFromPredictionFilePath(p string) store.TaxonID {
@@ -60,7 +56,7 @@ func taxonFromPredictionFilePath(p string) store.TaxonID {
 }
 
 type PredictionAggregator struct {
-	PredictionObjects       []store.Prediction
+	PredictionObjects       []*store.Prediction
 	PredictionList          map[store.TaxonID][]float64
 	TotalProtectedAreaCount map[store.TaxonID]float64
 	sync.Mutex
@@ -81,6 +77,8 @@ func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.TaxonID]float64, e
 		return nil, errors.Wrap(err, "could not calculate mean")
 	}
 
+
+
 	var taxonRatioInvertedMin, taxonRatioInvertedMax float64
 	// In order to scale, must calculate the min and the max values once we invert the value by subtracting the mean.
 	// This is so rarer taxa have a higher intensity value.
@@ -96,18 +94,18 @@ func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.TaxonID]float64, e
 	}
 
 	for taxon, ratio := range taxaRatiosMap {
-		fmt.Println((ratio - taxonRatioInvertedMin))
-		fmt.Println((taxonRatioInvertedMax - taxonRatioInvertedMin))
-		taxaRatiosMap[taxon] = (ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)
+		// Scale between 1 and 0.5
+		//((b-a)(x - min) / max - min) + a
+		taxaRatiosMap[taxon] = ((1 - 0.5) *(ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)) + 0.5
 	}
 
 	return taxaRatiosMap, nil
 }
 
-func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string, dates []string) ([]store.Prediction, error) {
+func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string, dates []string) ([]*store.Prediction, error) {
 
 	aggr := PredictionAggregator{
-		PredictionObjects:       []store.Prediction{},
+		PredictionObjects:       []*store.Prediction{},
 		PredictionList:          make(map[store.TaxonID][]float64),
 		TotalProtectedAreaCount: make(map[store.TaxonID]float64),
 	}
@@ -123,8 +121,6 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 		}
 		gcsFilePaths = append(gcsFilePaths, gcsPaths...)
 	}
-
-	fmt.Println(len(gcsFilePaths), gcsFilePaths[0])
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
@@ -145,17 +141,11 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 							return nil
 						}
 						aggr.PredictionList[p.Taxon] = append(aggr.PredictionList[p.Taxon], p.Target)
-						//wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, p.Latitude, p.Longitude)
-						//if err != nil {
-						//	fmt.Println("could not find wilderness area", p.Latitude, p.Longitude)
-						//	continue
-						//	//return err
-						//
 						d, err := time.ParseInLocation("20060102", p.Date, time.UTC)
 						if err != nil {
 							return errors.Wrap(err, "could not parse date")
 						}
-						aggr.PredictionObjects = append(aggr.PredictionObjects, store.Prediction{
+						aggr.PredictionObjects = append(aggr.PredictionObjects, &store.Prediction{
 							CreatedAt: utils.TimePtr(time.Now()),
 							Location: latlng.LatLng{p.Latitude, p.Longitude},
 							PredictionValue: p.Target,
@@ -185,23 +175,23 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 		return nil, err
 	}
 
-
-	limiter := utils.NewLimiter(20)
+	lmtr := utils.NewLimiter(20)
 	tmb = tomb.Tomb{}
 	tmb.Go(func() error {
 		for _, _predictionObject := range aggr.PredictionObjects {
 			predictionObject := _predictionObject
 			tmb.Go(func() error {
-				done := limiter.Go()
+				done := lmtr.Go()
 				defer done()
 
 				wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, predictionObject.Location.Latitude, predictionObject.Location.Longitude)
 				if err != nil {
-					fmt.Println("could not find wilderness area", predictionObject.Location.Latitude, predictionObject.Location.Longitude)
-					return nil
+					return err
 				}
-				predictionObject.WildernessAreaID = wa.ID
-				predictionObject.WildernessAreaName = wa.Name
+				if wa.ID != "" {
+					predictionObject.WildernessAreaID = wa.ID
+					predictionObject.WildernessAreaName = wa.Name
+				}
 				predictionObject.ScaledPredictionValue = (predictionObject.PredictionValue - 0.5) / 0.5
 				predictionObject.ScarcityValue = taxaScarcityMap[predictionObject.TaxonID] * predictionObject.ScaledPredictionValue
 				return nil
@@ -215,58 +205,3 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 
 	return aggr.PredictionObjects, nil
 }
-
-
-
-//func (Ω *predictionParser) WritePredictions(cxt context.Context) error {
-//
-//	gcsFilePaths, err := Ω.GCSFetcher.FetchLatestPredictionFileNames(cxt)
-//	if err != nil {
-//		return err
-//	}
-//
-//	tmb := tomb.Tomb{}
-//	tmb.Go(func() error {
-//		for _, _fpath := range gcsFilePaths {
-//			fpath := _fpath
-//			tmb.Go(func() error {
-//				predictions, err := Ω.GCSFetcher.FetchPredictions(cxt, fpath)
-//				if err != nil {
-//					return err
-//				}
-//				for _, p := range predictions {
-//					if p.Target <= p.Random {
-//						continue
-//					}
-//					wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, p.Latitude, p.Longitude)
-//					if err != nil {
-//						fmt.Println("could not find wilderness area", p.Latitude, p.Longitude)
-//						continue
-//						//return err
-//					}
-//					d, err := time.ParseInLocation("20060102", p.Date, time.UTC)
-//					if err != nil {
-//						return errors.Wrap(err, "could not parse date")
-//					}
-//					//width, intensity
-//					if err := Ω.Writer.WritePredictionLine(store.Prediction{
-//						CreatedAt: utils.TimePtr(time.Now()),
-//						Location: latlng.LatLng{p.Latitude, p.Longitude},
-//						PredictionValue: p.Target,
-//						TaxonID: taxon,
-//						Date: utils.TimePtr(d),
-//						FormattedDate: p.Date,
-//						Month: d.Month(),
-//						WildernessAreaID: wa.ID,
-//						WildernessAreaName: wa.Name,
-//					}); err != nil {
-//						return err
-//					}
-//				}
-//				return nil
-//			})
-//		}
-//		return nil
-//	})
-//	return tmb.Wait()
-//}

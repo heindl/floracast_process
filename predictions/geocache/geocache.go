@@ -63,26 +63,29 @@ func bbox(lat, lng, radius float64) string {
 	return fmt.Sprintf("[%.6f %.6f],[%.6f %.6f]", sw.Lng(), sw.Lat(), ne.Lng(), ne.Lat())
 }
 
-func (Ω *CacheWriter) ReadTaxon(taxon store.TaxonID, lat, lng, radius float64) ([]string, error) {
+func datesMatch(qDate, tDate string) bool {
+	if qDate == "" {
+		return true
+	}
+	if len(qDate) == 2 && qDate == tDate[4:6] {
+		return true
+	}
+	if len(qDate) == 8 && qDate == tDate {
+		return true
+	}
+	return false
+}
+
+func (Ω *CacheWriter) ReadTaxon(taxon store.TaxonID, lat, lng, radius float64, qDate string) ([]string, error) {
 	res := []string{}
 	//LatLon bounding box: [-112.26 33.51],[-112.18 33.67]
 	Ω.DB.View(func(tx *buntdb.Tx) error {
 		return tx.Intersects(string(taxon), bbox(lat, lng, radius), func(key, val string) bool {
 			k := strings.Split(strings.Split(key,":")[1], ",")
 			v := strings.Split(strings.Trim(val, "[]"), " ")
-			res = append(res, fmt.Sprintf("%s,%s,%s,%s,%s", k[0], k[1], k[2], v[1], v[0]))
-			return true
-		})
-	})
-	return res, nil
-}
-
-func (Ω *CacheWriter) ReadTaxa(lat, lng, radius float64) ([]string, error) {
-	res := []string{}
-	Ω.DB.View(func(tx *buntdb.Tx) error {
-		return tx.Intersects("taxa", bbox(lat, lng, radius), func(key, val string) bool {
-			k := strings.Split(strings.Split(key,":")[1], ",")
-			v := strings.Split(strings.Trim(val, "[]"), " ")
+			if !datesMatch(qDate, k[0]) {
+				return true
+			}
 			res = append(res, fmt.Sprintf("%s,%s,%s,%s,%s,%s", k[0], k[1], k[2], k[3], v[1], v[0]))
 			return true
 		})
@@ -90,13 +93,33 @@ func (Ω *CacheWriter) ReadTaxa(lat, lng, radius float64) ([]string, error) {
 	return res, nil
 }
 
-func (Ω *CacheWriter) WritePredictionLine(p store.Prediction) error {
+func (Ω *CacheWriter) ReadTaxa(lat, lng, radius float64, qDate string) ([]string, error) {
+	res := []string{}
+	Ω.DB.View(func(tx *buntdb.Tx) error {
+		return tx.Intersects("taxa", bbox(lat, lng, radius), func(key, val string) bool {
+			k := strings.Split(strings.Split(key,":")[1], ",")
+			taxonID := k[0]
+			tDate := k[1]
+			if !datesMatch(qDate, tDate) {
+				return true
+			}
+			area := k[2]
+			prediction := k[3]
+			scarcity := k[4]
+			v := strings.Split(strings.Trim(val, "[]"), " ")
+			res = append(res, fmt.Sprintf("%s,%s,%s,%s,%s,%s,%s", taxonID, tDate, area, prediction, scarcity, v[1], v[0]))
+			return true
+		})
+	})
+	return res, nil
+}
+
+func (Ω *CacheWriter) WritePredictionLine(p *store.Prediction) error {
 	//Species:taxon_id,date:pos
 	//taxon_id:date,id,prediction:
 	if err := Ω.DB.Update(func(tx *buntdb.Tx) error {
-		k1 := fmt.Sprintf("%s:%s,%s,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.PredictionValue)
-		print(k1)
-		k2 := fmt.Sprintf("taxa:%s,%s,%s,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.PredictionValue)
+		k1 := fmt.Sprintf("%s:%s,%s,%.8f,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.ScaledPredictionValue, p.ScarcityValue)
+		k2 := fmt.Sprintf("taxa:%s,%s,%s,%.8f,%.8f:pos", p.TaxonID, p.FormattedDate, p.WildernessAreaID, p.ScaledPredictionValue, p.ScarcityValue)
 		pos := fmt.Sprintf("[%.6f %.6f]", p.Location.Longitude, p.Location.Latitude)
 		if _, _, err := tx.Set(k1, pos, nil); err != nil {
 			return err
