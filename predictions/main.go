@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"bitbucket.org/heindl/taxa/store"
 	"flag"
 	"bitbucket.org/heindl/taxa/predictions/parser"
 	"bitbucket.org/heindl/taxa/predictions/geocache"
@@ -11,9 +10,17 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"strconv"
+	"bitbucket.org/heindl/taxa/predictions/filecache"
+	"bitbucket.org/heindl/taxa/store"
 )
 
 const predictionUploadLimit = 2000
+
+type CacheWriter interface{
+	WritePredictionLine(p *store.Prediction) error
+	ReadTaxa(lat, lng, radius float64, qDate string, taxon string) ([]string, error)
+	Close() error
+}
 
 func main() {
 
@@ -22,6 +29,7 @@ func main() {
 	dates := flag.String("dates", "", "Dates for which to fetch latest predictions in format YYYYMMDD,YYYYMMDD. If blank will fetch all dates.")
 	taxa := flag.String("taxa", "", "Comma seperated list of taxa to fetch predictions for.")
 	bucket := flag.String("bucket", "", "gcs bucket to fetch predictions from")
+	mode := flag.String("mode", "serve", "mode to handle predictions: write to temp file for javascript geofire uploader or serve for testing in local web router.")
 	flag.Parse()
 
 	if *taxa == "" {
@@ -39,20 +47,37 @@ func main() {
 		date_list = append(date_list, "") // Add an empty value to make iteration simpler.
 	}
 
+	var cache CacheWriter
+
+	switch *mode {
+	case "write":
+		cache, err = filecache.NewFileCache()
+		if err != nil {
+			panic(err)
+		}
+	case "serve":
+		cache, err = geocache.NewCacheWriter(strings.Split(*taxa, ","))
+		if err != nil {
+			panic(err)
+		}
+	}
+	defer cache.Close()
+
 	predictions, err := predictionParser.FetchPredictions(cxt, strings.Split(*taxa, ","), nil)
 	if err != nil {
 		panic(err)
 	}
 
-	geocacheWriter, err := geocache.NewCacheWriter(strings.Split(*taxa, ","))
-	if err != nil {
-		panic(err)
-	}
+	fmt.Println("Have Predictions")
 
 	for _, p := range predictions {
-		if err := geocacheWriter.WritePredictionLine(p); err != nil {
+		if err := cache.WritePredictionLine(p); err != nil {
 			panic(err)
 		}
+	}
+
+	if *mode != "serve" {
+		return
 	}
 
 	//tmb := tomb.Tomb{}
@@ -106,22 +131,16 @@ func main() {
 		}
 
 		if txn == "taxa" {
-			l, err := geocacheWriter.ReadTaxa(lat, lng, rad, date)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			fmt.Fprint(w, strings.Join(l, "\n"))
-			return
-		} else {
-			l, err := geocacheWriter.ReadTaxon(store.TaxonID(txn), lat, lng, rad, date)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			fmt.Fprint(w, strings.Join(l, "\n"))
+			txn = ""
+		}
+
+		l, err := cache.ReadTaxa(lat, lng, rad, date, txn)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		fmt.Fprint(w, strings.Join(l, "\n"))
+		return
 
 	})
 

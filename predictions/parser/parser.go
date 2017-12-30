@@ -77,8 +77,6 @@ func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.TaxonID]float64, e
 		return nil, errors.Wrap(err, "could not calculate mean")
 	}
 
-
-
 	var taxonRatioInvertedMin, taxonRatioInvertedMax float64
 	// In order to scale, must calculate the min and the max values once we invert the value by subtracting the mean.
 	// This is so rarer taxa have a higher intensity value.
@@ -92,11 +90,12 @@ func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.TaxonID]float64, e
 		}
 		taxaRatiosMap[taxon] = invertedValue
 	}
-
 	for taxon, ratio := range taxaRatiosMap {
 		// Scale between 1 and 0.5
 		//((b-a)(x - min) / max - min) + a
-		taxaRatiosMap[taxon] = ((1 - 0.5) *(ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)) + 0.5
+		if ratio != 0 {
+			taxaRatiosMap[taxon] = ((1 - 0.5) *(ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)) + 0.5
+		}
 	}
 
 	return taxaRatiosMap, nil
@@ -184,14 +183,14 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 				done := lmtr.Go()
 				defer done()
 
-				wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, predictionObject.Location.Latitude, predictionObject.Location.Longitude)
-				if err != nil {
-					return err
-				}
-				if wa.ID != "" {
-					predictionObject.WildernessAreaID = wa.ID
-					predictionObject.WildernessAreaName = wa.Name
-				}
+				//wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, predictionObject.Location.Latitude, predictionObject.Location.Longitude)
+				//if err != nil {
+				//	return err
+				//}
+				//if wa.ID != "" {
+				//	predictionObject.WildernessAreaID = wa.ID
+				//	predictionObject.WildernessAreaName = wa.Name
+				//}
 				predictionObject.ScaledPredictionValue = (predictionObject.PredictionValue - 0.5) / 0.5
 				predictionObject.ScarcityValue = taxaScarcityMap[predictionObject.TaxonID] * predictionObject.ScaledPredictionValue
 				return nil
