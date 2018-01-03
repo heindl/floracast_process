@@ -59,6 +59,7 @@ const analyticsProcessLimit = 2000
 func main() {
 
 	var err error
+	areas := flag.Bool("areas", false, "view areas?")
 	occurrences := flag.Bool("occurrences", false, "count predictions for each taxon?")
 	sources := flag.Bool("sources", false, "count occurrences sources for each taxon?")
 	taxa := flag.String("taxa", "", "view taxon information")
@@ -105,6 +106,10 @@ func main() {
 		}
 
 		fmt.Println(utils.JsonOrSpew(f.Catcher.Predictions))
+	} else if *areas {
+		if err := f.ListAreas(cxt); err != nil {
+			panic(err)
+		}
 	}
 
 }
@@ -119,6 +124,21 @@ type OccurrenceAggregationList []OccurrenceAggregation
 func (p OccurrenceAggregationList) Len() int           { return len(p) }
 func (p OccurrenceAggregationList) Less(i, j int) bool { return p[i].Count < p[j].Count }
 func (p OccurrenceAggregationList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+func (Ω *Analyzer) ListAreas(cxt context.Context) error {
+	areas, err := Ω.Store.ReadProtectedAreas(cxt)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range areas {
+		if a.Centre.Latitude == 0 {
+			fmt.Println(utils.JsonOrSpew(a))
+		}
+	}
+
+	return nil
+}
 
 func (Ω *Analyzer) CountOccurrences(cxt context.Context) error {
 	taxa, err := Ω.Store.ReadTaxa(cxt)

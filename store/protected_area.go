@@ -52,6 +52,28 @@ func (Ω *store) ReadProtectedAreaByID(cxt context.Context, id string) (*Protect
 	return &w, nil
 }
 
+func (Ω *store) ReadProtectedAreas(cxt context.Context) ([]ProtectedArea, error) {
+
+	docs, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).
+		Documents(cxt).
+		GetAll()
+
+	if err != nil {
+		return nil, errors.Wrap(err, "could not find wilderness area")
+	}
+
+	res := []ProtectedArea{}
+	for _, d := range docs {
+		w := ProtectedArea{}
+		if err := d.DataTo(&w); err != nil {
+			return nil, errors.Wrap(err, "could not type cast ProtectedArea")
+		}
+		res = append(res, w)
+	}
+
+	return res, nil
+}
+
 func (Ω *store) ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error) {
 
 	// Validate

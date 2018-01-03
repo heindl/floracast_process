@@ -183,14 +183,14 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 				done := lmtr.Go()
 				defer done()
 
-				//wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, predictionObject.Location.Latitude, predictionObject.Location.Longitude)
-				//if err != nil {
-				//	return err
-				//}
-				//if wa.ID != "" {
-				//	predictionObject.WildernessAreaID = wa.ID
-				//	predictionObject.WildernessAreaName = wa.Name
-				//}
+				wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, predictionObject.Location.Latitude, predictionObject.Location.Longitude)
+				if err != nil {
+					return err
+				}
+				if wa.ID != "" {
+					predictionObject.WildernessAreaID = wa.ID
+					predictionObject.WildernessAreaName = wa.Name
+				}
 				predictionObject.ScaledPredictionValue = (predictionObject.PredictionValue - 0.5) / 0.5
 				predictionObject.ScarcityValue = taxaScarcityMap[predictionObject.TaxonID] * predictionObject.ScaledPredictionValue
 				return nil

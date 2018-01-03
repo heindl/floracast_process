@@ -22,6 +22,7 @@ type TaxaStore interface {
 	GetOccurrenceDataSources(context.Context, TaxonID) (DataSources, error)
 	UpsertOccurrence(context.Context, Occurrence) (isNewOccurrence bool, err error)
 	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
+	ReadProtectedAreas(cxt context.Context) ([]ProtectedArea, error)
 	ReadProtectedAreaByID(cxt context.Context, id string) (*ProtectedArea, error)
 	ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error)
 	SetProtectedArea(context.Context, ProtectedArea) error
