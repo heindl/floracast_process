@@ -14,25 +14,98 @@ import (
 )
 
 type ProtectedArea struct {
-	ID                    string             `datastore:",omitempty"`
-	State                 ProtectedAreaState `datastore:",omitempty"`
-	Acres                 float64            `datastore:",omitempty"`
-	Name                  string             `datastore:",omitempty"`
-	Centre                latlng.LatLng      `datastore:",omitempty"`
-	RadiusKilometers      float64            `datastore:",omitempty"`
-	ManagerType           string             `datastore:",omitempty"`
-	ManagerName           string             `datastore:",omitempty"`
-	ManagementDesignation string             `datastore:",omitempty"`
-	OwnerType             string             `datastore:",omitempty"`
-	OwnerName             string             `datastore:",omitempty"`
-	Category              string             `datastore:",omitempty"`
-	YearEstablished       int                `datastore:",omitempty"`
-	PublicAccess          string             `datastore:",omitempty"`
-	MultiPolygon		  []byte			`datastore:",omitempty"`
-
+	ID                    string             `json:",omitempty"`
+	State                 ProtectedAreaState `json:",omitempty"`
+	Acres                 float64            `json:",omitempty"`
+	Name                  string             `json:",omitempty"`
+	Centre                latlng.LatLng      `json:",omitempty"`
+	HeightMeters float64      `json:",omitempty"`
+	WidthMeters float64 `json:",omitempty"`
+	Bounds string `json:",omitempty"`
+	ManagerType           string             `json:",omitempty"`
+	ManagerName           string             `json:",omitempty"`
+	ManagementDesignation string             `json:",omitempty"`
+	OwnerType             string             `json:",omitempty"`
+	OwnerName             string             `json:",omitempty"`
+	Category              string             `json:",omitempty"`
+	YearEstablished       int                `json:",omitempty"`
+	PublicAccess          string             `json:",omitempty"`
+	GapAnalysisProjectStatus string `json:",omitempty"`
 }
 
-type ProtectedAreaState string
+func(Ω *ProtectedArea) Valid() (isValid bool, reason string) {
+
+	if Ω.ID == "" {
+		return false, "id"
+	}
+
+	if v, ok := ValidProtectedAreaStates[Ω.State.Abbr]; !ok || Ω.State.Name != v {
+		return false, "state"
+	}
+
+	if Ω.Centre.Latitude == 0 || Ω.Centre.Longitude == 0 {
+		return false, "centre"
+	}
+
+	if Ω.Acres < 50 {
+		return false, "acres"
+	}
+
+	if !strings.Contains(Ω.GapAnalysisProjectStatus, "managed for biodiversity") {
+		return false, "gap_analysis"
+	}
+
+	if strings.ToLower(Ω.PublicAccess) == "closed" {
+		return false, "public_access"
+	}
+
+	if !utils.Contains([]string{
+			"Area of Critical Environmental Concern",
+			"Conservation Area",
+			"Conservation Easement",
+			"Local Conservation Area",
+			"National Forest",
+			"National Grassland",
+			"National Lakeshore or Seashore",
+			"National Park",
+			"National Public Lands",
+			"National Recreation Area",
+			"National Scenic, Botanical or Volcanic Area",
+			"National Wildlife Refuge",
+			"State Conservation Area",
+			"Recreation Management Area",
+			"State Park",
+			"State Wilderness",
+			"State Recreation Area",
+			"State Resource Management Area",
+			"Watershed Protection Area",
+			"Wild and Scenic River",
+			"Wilderness Area",
+			"Wilderness Study Area"},
+		Ω.ManagementDesignation,
+	) {
+		return false, "management_designation"
+	}
+
+	if !utils.Contains([]string{
+		"Federal",
+		"Joint",
+		"Local Government",
+		"Non-Governmental Organization",
+		"State",
+		},
+		Ω.ManagerType,
+	) {
+		return false, "manager_type"
+	}
+
+	return true, ""
+}
+
+type ProtectedAreaState struct {
+	Name string `json:""`
+	Abbr string `json:""`
+}
 
 type ProtectedAreas []ProtectedArea
 
@@ -154,4 +227,71 @@ func (Ω *store) SetProtectedAreaGeometry(cxt context.Context, areaID string, ge
 	//	return errors.Wrapf(err, "could not update protected area [%s] geometry", areaID)
 	//}
 	return nil
+}
+
+var ValidProtectedAreaStates = map[string]string{
+	"AL": "Alabama",
+	//"AK": "Alaska",
+	"AZ": "Arizona",
+	"AR": "Arkansas",
+	"CA": "California",
+	"CO": "Colorado",
+	"CT": "Connecticut",
+	"DE": "Delaware",
+	"FL": "Florida",
+	"GA": "Georgia",
+	//"HI": "Hawaii",
+	"ID": "Idaho",
+	"IL": "Illinois",
+	"IN": "Indiana",
+	"IA": "Iowa",
+	"KS": "Kansas",
+	"KY": "Kentucky",
+	"LA": "Louisiana",
+	"ME": "Maine",
+	"MD": "Maryland",
+	"MA": "Massachusetts",
+	"MI": "Michigan",
+	"MN": "Minnesota",
+	"MS": "Mississippi",
+	"MO": "Missouri",
+	"MT": "Montana",
+	"NE": "Nebraska",
+	"NV": "Nevada",
+	"NH": "New Hampshire",
+	"NJ": "New Jersey",
+	"NM": "New Mexico",
+	"NY": "New York",
+	"NC": "North Carolina",
+	"ND": "North Dakota",
+	"OH": "Ohio",
+	"OK": "Oklahoma",
+	"OR": "Oregon",
+	"PA": "Pennsylvania",
+	"RI": "Rhode Island",
+	"SC": "South Carolina",
+	"SD": "South Dakota",
+	"TN": "Tennessee",
+	"TX": "Texas",
+	"UT": "Utah",
+	"VT": "Vermont",
+	"VA": "Virginia",
+	"WA": "Washington",
+	"WV": "West Virginia",
+	"WI": "Wisconsin",
+	"WY": "Wyoming",
+	// Territories
+	//"AS": "American Samoa",
+	"DC": "District of Columbia",
+	//"FM": "Federated States of Micronesia",
+	//"GU": "Guam",
+	//"MH": "Marshall Islands",
+	//"MP": "Northern Mariana Islands",
+	//"PW": "Palau",
+	//"PR": "Puerto Rico",
+	//"VI": "Virgin Islands",
+	// Armed Forces (AE includes Europe, Africa, Canada, and the Middle East)
+	//"AA": "Armed Forces Americas",
+	//"AE": "Armed Forces Europe",
+	//"AP": "Armed Forces Pacific",
 }

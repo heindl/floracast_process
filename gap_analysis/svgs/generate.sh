@@ -22,7 +22,7 @@ do
 #
 #    shp2json "$STATE_PATH/state.shp" -o "$STATE_PATH/state.json"
 #
-#    ./split_feature_collections/split_feature_collections --in "$STATE_PATH/state.json" --out "$AREAS_PATH/"
+#    go run split_feature_collections --in "$STATE_PATH/state.json" --out "$AREAS_PATH/"
 
     for f in "$AREAS_PATH"/*.json
     do

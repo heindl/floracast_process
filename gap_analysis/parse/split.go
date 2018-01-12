@@ -4,7 +4,6 @@ import (
 	"flag"
 	"io/ioutil"
 	"github.com/paulmach/go.geojson"
-	"fmt"
 	"strconv"
 	"encoding/json"
 	"path"
@@ -48,15 +47,12 @@ func main() {
 		}
 	}
 
-	fmt.Println("ZERO COUNT", zeros)
-	fmt.Println("TOTAL AREAS", len(outputFeatureCollections))
-
 	for k, ofc := range outputFeatureCollections {
 		b, err := json.Marshal(ofc)
 		if err != nil {
 			panic(err)
 		}
-		fname := k + ".json"
+		fname := k + ".feature_collection.geojson"
 		if err := ioutil.WriteFile(path.Join(*out, fname), b, 0700); err != nil {
 			panic(err)
 		}
