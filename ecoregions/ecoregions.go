@@ -2,22 +2,20 @@ package ecoregions
 
 import (
 	"bitbucket.org/heindl/taxa/ecoregions/generated_cache"
-	"github.com/tidwall/tile38/geojson"
 	"github.com/saleswise/errors/errors"
-	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
+	"github.com/tidwall/tile38/geojson"
+	"gopkg.in/tomb.v2"
 )
 
 type EcoRegions []EcoRegion
 
 type EcoRegion struct {
-	EcoName string // Ecoregion Name
-	EcoCode EcoCode // This is an alphanumeric code that is similar to eco_ID but a little easier to interpret. The first 2 characters (letters) are the realm the ecoregion is in. The 2nd 2 characters are the biome and the last 2 characters are the ecoregion number.
-	EcoNum int // A unique number for each ecoregion within each biome nested within each realm.
-	EcoID EcoID // This number is created by combining REALM, BIOME, and ECO_NUM, thus creating a unique numeric ID for each ecoregion.
-	Biome Biome
-	GeoHashes []string
-	GeoObject geojson.Object
+	EcoName    string  // Ecoregion Name
+	EcoCode    EcoCode // This is an alphanumeric code that is similar to eco_ID but a little easier to interpret. The first 2 characters (letters) are the realm the ecoregion is in. The 2nd 2 characters are the biome and the last 2 characters are the ecoregion number.
+	EcoNum     EcoNum  // A unique number for each ecoregion within each biome nested within each realm.
+	EcoID      EcoID   // This number is created by combining REALM, BIOME, and ECO_NUM, thus creating a unique numeric ID for each ecoregion.
+	Biome      Biome
+	GeoObjects []geojson.Object
 }
 
 func NewEcoRegionsCache() (EcoRegions, error) {
@@ -26,9 +24,9 @@ func NewEcoRegionsCache() (EcoRegions, error) {
 
 		nr := EcoRegion{
 			EcoCode: EcoCode(cr.EcoCode),
-			EcoNum: int(cr.EcoNum),
-			EcoID: EcoID(cr.EcoID),
-			Biome: Biome(cr.Biome),
+			EcoNum:  EcoNum(cr.EcoNum),
+			EcoID:   EcoID(cr.EcoID),
+			Biome:   Biome(cr.Biome),
 		}
 
 		var ok bool
@@ -39,10 +37,12 @@ func NewEcoRegionsCache() (EcoRegions, error) {
 			continue
 		}
 
-		var err error
-		nr.GeoObject, err = geojson.ObjectJSON(cr.GeoJsonString)
-		if err != nil {
-			return nil, errors.Wrapf(err, "could not parse geojson string for region[%s] in biome[%s]", cr.EcoCode, cr.Biome)
+		for _, geoStr := range cr.Geometries {
+			geoObj, err := geojson.ObjectJSON(geoStr)
+			if err != nil {
+				return nil, errors.Wrapf(err, "could not parse geojson string for region[%s] in biome[%s]", cr.EcoCode, cr.Biome)
+			}
+			nr.GeoObjects = append(nr.GeoObjects, geoObj)
 		}
 
 		res = append(res, nr)
@@ -50,13 +50,31 @@ func NewEcoRegionsCache() (EcoRegions, error) {
 	return res, nil
 }
 
-
-func (Ω EcoRegions) HasPoint(lat, lng float64) (*EcoRegion, error) {
+func (Ω EcoRegions) EcoID(lat, lng float64) EcoID {
 	p := geojson.New2DPoint(lng, lat)
-	for i := range Ω {
-		if p.Within(Ω[i].GeoObject) {
-			return &Ω[i], nil
+
+	var id EcoID
+
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _i := range Ω {
+			i := _i
+			_o := Ω[i]
+			tmb.Go(func() error {
+				o := _o
+				for _, geoObj := range o.GeoObjects {
+					if p.Within(geoObj) {
+						id = o.EcoID
+						tmb.Kill(nil)
+					}
+				}
+				return nil
+			})
 		}
-	}
-	return nil, nil
+		return nil
+	})
+
+	_ = tmb.Wait()
+
+	return id
 }

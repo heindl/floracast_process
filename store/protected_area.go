@@ -11,25 +11,25 @@ import (
 )
 
 type ProtectedArea struct {
-	ID              string           `json:",omitempty" csv:""`
-	NameStandard    string           `json:",omitempty" csv:""`
-	NameLocal       string           `json:",omitempty" csv:""`
-	StateAbbr       string           `json:",omitempty" csv:""`
-	Bounds          [2][2]float64    `json:",omitempty" csv:""` // [SouthWest, NorthEast]
-	Centroid        [2]float64       `json:",omitempty" csv:""` // Latitude, Longitude
-	GISAcres        float64          `json:",omitempty" csv:""`
-	Height          float64          `json:",omitempty" csv:""` // in Meters
-	Width           float64          `json:",omitempty" csv:""` // in Meters
-	Category        AreaCategory     `json:",omitempty" csv:""`
-	Designation     AreaDesignation  `json:",omitempty" csv:""`
+	ID                  string           `json:",omitempty" csv:""`
+	NameStandard        string           `json:",omitempty" csv:""`
+	NameLocal           string           `json:",omitempty" csv:""`
+	StateAbbr           string           `json:",omitempty" csv:""`
+	Bounds              [2][2]float64    `json:",omitempty" csv:""` // [SouthWest, NorthEast]
+	Centroid            [2]float64       `json:",omitempty" csv:""` // Latitude, Longitude
+	GISAcres            float64          `json:",omitempty" csv:""`
+	Height              float64          `json:",omitempty" csv:""` // in Meters
+	Width               float64          `json:",omitempty" csv:""` // in Meters
+	Category            AreaCategory     `json:",omitempty" csv:""`
+	Designation         AreaDesignation  `json:",omitempty" csv:""`
 	ManagerStandardName AreaManagerName  `json:",omitempty" csv:""`
 	ManagerLocalName    string           `json:",omitempty" csv:""`
-	ManagerType     AreaManagerType  `json:",omitempty" csv:""`
-	Owner           AreaOwnerName    `json:",omitempty" csv:""`
-	OwnerType       AreaOwnerType    `json:",omitempty" csv:""`
-	PublicAccess    AreaPublicAccess `json:",omitempty" csv:""`
-	IUCNCategory    AreaIUCNCategory `json:",omitempty" csv:""`
-	AreaGAPStatus   AreaGAPStatus    `json:",omitempty" csv:""` // Shows if a disturbance event
+	ManagerType         AreaManagerType  `json:",omitempty" csv:""`
+	Owner               AreaOwnerName    `json:",omitempty" csv:""`
+	OwnerType           AreaOwnerType    `json:",omitempty" csv:""`
+	PublicAccess        AreaPublicAccess `json:",omitempty" csv:""`
+	IUCNCategory        AreaIUCNCategory `json:",omitempty" csv:""`
+	AreaGAPStatus       AreaGAPStatus    `json:",omitempty" csv:""` // Shows if a disturbance event
 }
 
 func (Ω *ProtectedArea) Valid() (isValid bool, reason string, value interface{}) {
@@ -103,35 +103,35 @@ func (Ω *store) ReadProtectedAreas(cxt context.Context) ([]ProtectedArea, error
 }
 
 func (Ω *store) ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error) {
-//
-//	// Validate
-//	if lat == 0 || lng == 0 {
-//		return nil, errors.New("invalid protected area id")
-//	}
-//
-//	docs, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).
-//		// TODO: Would be great to use a geo query here or at least an approximation.
-//		Where("Centre.Longitude", ">", math.Floor(lng)).
-//		Where("Centre.Longitude", "<=", math.Ceil(lng)).
-//		Documents(cxt).
-//		GetAll()
-//
-//	if err != nil {
-//		return nil, errors.Wrap(err, "could not find wilderness area")
-//	}
-//
-//	for _, d := range docs {
-//		w := ProtectedArea{}
-//		if err := d.DataTo(&w); err != nil {
-//			return nil, errors.Wrap(err, "could not type cast ProtectedArea")
-//		}
-//		if utils.CoordinatesEqual(lat, w.Centre.Latitude) && utils.CoordinatesEqual(lat, w.Centre.Latitude) {
-//			return &w, nil
-//		}
-//	}
-//
-//	return nil, errors.Newf("no wilderness area found: [%f, %f]", lat, lng)
-return nil, nil
+	//
+	//	// Validate
+	//	if lat == 0 || lng == 0 {
+	//		return nil, errors.New("invalid protected area id")
+	//	}
+	//
+	//	docs, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).
+	//		// TODO: Would be great to use a geo query here or at least an approximation.
+	//		Where("Centre.Longitude", ">", math.Floor(lng)).
+	//		Where("Centre.Longitude", "<=", math.Ceil(lng)).
+	//		Documents(cxt).
+	//		GetAll()
+	//
+	//	if err != nil {
+	//		return nil, errors.Wrap(err, "could not find wilderness area")
+	//	}
+	//
+	//	for _, d := range docs {
+	//		w := ProtectedArea{}
+	//		if err := d.DataTo(&w); err != nil {
+	//			return nil, errors.Wrap(err, "could not type cast ProtectedArea")
+	//		}
+	//		if utils.CoordinatesEqual(lat, w.Centre.Latitude) && utils.CoordinatesEqual(lat, w.Centre.Latitude) {
+	//			return &w, nil
+	//		}
+	//	}
+	//
+	//	return nil, errors.Newf("no wilderness area found: [%f, %f]", lat, lng)
+	return nil, nil
 }
 
 var counter = 0

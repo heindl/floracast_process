@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bitbucket.org/heindl/taxa/ecoregions"
 	"bitbucket.org/heindl/taxa/store"
 	"bitbucket.org/heindl/taxa/utils"
 	"flag"
 	"fmt"
+	"github.com/gocarina/gocsv"
 	"github.com/paulmach/go.geo"
 	"github.com/paulmach/go.geojson"
 	"github.com/saleswise/errors/errors"
@@ -15,16 +17,11 @@ import (
 	"strconv"
 	"strings"
 	"unicode/utf8"
-	"github.com/gocarina/gocsv"
-	"bitbucket.org/heindl/taxa/ecoregions"
 )
-
-
 
 func main() {
 
 	geojsonPath := flag.String("geojson", "/tmp/gap_analysis", "Path to geojson files to search recursively.")
-
 
 	if *geojsonPath == "" {
 		panic("A geojson directory must be specified.")
@@ -56,8 +53,8 @@ func main() {
 }
 
 type Parser struct {
-	Store store.TaxaStore
-	Stats *StatsContainer
+	Store          store.TaxaStore
+	Stats          *StatsContainer
 	EcoRegionCache ecoregions.EcoRegionCache
 }
 
@@ -121,7 +118,6 @@ const (
 	CategoryUnknown     = "Unknown"
 )
 
-
 func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 
 	fc, err := geojson.UnmarshalFeatureCollection(gb)
@@ -132,21 +128,19 @@ func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 	f := fc.Features[0]
 
 	pa := store.ProtectedArea{
-		ID:              strconv.Itoa(f.PropertyMustInt("WDPA_Cd")),
+		ID:                  strconv.Itoa(f.PropertyMustInt("WDPA_Cd")),
 		StateAbbr:           f.PropertyMustString("State_Nm"),
-		Category:        store.AreaCategory(f.PropertyMustString("Category")),  // Category, d_Category
-		Designation:     store.AreaDesignation(f.PropertyMustString("Des_Tp")),    // d_Des_Tp, Des_Tp
+		Category:            store.AreaCategory(f.PropertyMustString("Category")),     // Category, d_Category
+		Designation:         store.AreaDesignation(f.PropertyMustString("Des_Tp")),    // d_Des_Tp, Des_Tp
 		ManagerStandardName: store.AreaManagerName(f.PropertyMustString("Mang_Nam")),  //  d_Mang_Nam, Mang_Name
-		ManagerLocalName:    f.PropertyMustString("Loc_Mang"),  // Loc_Mang
-		ManagerType:     store.AreaManagerType(f.PropertyMustString("Mang_Type")), // d_Mang_Typ, Mang_Type
-		Owner:           store.AreaOwnerName(f.PropertyMustString("Own_Name")),  // Own_Name, d_Own_Name, Loc_Own
-		OwnerType:       store.AreaOwnerType(f.PropertyMustString("Own_Type")),  // Own_Type, d_Own_Type
-		PublicAccess:   store.AreaPublicAccess(f.PropertyMustString("Access")),
-		IUCNCategory:    store.AreaIUCNCategory(f.PropertyMustString("IUCN_Cat")),
-		AreaGAPStatus:   store.AreaGAPStatus(f.PropertyMustString("GAP_Sts")),
-		}
-
-
+		ManagerLocalName:    f.PropertyMustString("Loc_Mang"),                         // Loc_Mang
+		ManagerType:         store.AreaManagerType(f.PropertyMustString("Mang_Type")), // d_Mang_Typ, Mang_Type
+		Owner:               store.AreaOwnerName(f.PropertyMustString("Own_Name")),    // Own_Name, d_Own_Name, Loc_Own
+		OwnerType:           store.AreaOwnerType(f.PropertyMustString("Own_Type")),    // Own_Type, d_Own_Type
+		PublicAccess:        store.AreaPublicAccess(f.PropertyMustString("Access")),
+		IUCNCategory:        store.AreaIUCNCategory(f.PropertyMustString("IUCN_Cat")),
+		AreaGAPStatus:       store.AreaGAPStatus(f.PropertyMustString("GAP_Sts")),
+	}
 
 	// d_GAP_Sts
 
@@ -257,7 +251,7 @@ func (p *Parser) AccumulateMaps(f *geojson.Feature) {
 	return
 }
 
-func (p *Parser) PrintAccumulatedMaps()  {
+func (p *Parser) PrintAccumulatedMaps() {
 	for a, b := range AccumulatedDefinitions {
 		keys := []string{}
 		for c, _ := range b {
