@@ -2,29 +2,29 @@ package parser
 
 import (
 	"bitbucket.org/heindl/taxa/store"
+	"bufio"
 	"cloud.google.com/go/storage"
-	"google.golang.org/api/iterator"
 	"context"
 	"github.com/saleswise/errors/errors"
-	"strings"
-	"sort"
-	"bufio"
-	"strconv"
-	"path"
-	"os"
+	"google.golang.org/api/iterator"
 	"io/ioutil"
+	"os"
+	"path"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 const GCSPredictionsPath = "predictions"
 
-type PredictionResult struct{
+type PredictionResult struct {
 	Latitude, Longitude float64
-	Date string
-	Target, Random float64
-	Taxon store.TaxonID
+	Date                string
+	Target, Random      float64
+	Taxon               store.TaxonID
 }
 
-type GCSFetcher interface{
+type GCSFetcher interface {
 	FetchLatestPredictionFileNames(cxt context.Context, id store.TaxonID, date string) ([]string, error)
 	FetchPredictions(cxt context.Context, gcsFilePath string) ([]PredictionResult, error)
 }
@@ -39,14 +39,14 @@ func NewGCSFetcher(cxt context.Context, bucketName string, localPath string) (GC
 	}
 	client, err := storage.NewClient(cxt)
 	if err != nil {
-		return nil ,errors.Wrap(err,"Could not create Google Cloud Storage client.")
+		return nil, errors.Wrap(err, "Could not create Google Cloud Storage client.")
 	}
 	return &gcsFetcher{Bucket: client.Bucket(bucketName)}, nil
 }
 
-type gcsFetcher struct{
+type gcsFetcher struct {
 	LocalPath string
-	Bucket *storage.BucketHandle
+	Bucket    *storage.BucketHandle
 }
 
 func (Ω *gcsFetcher) FetchLatestPredictionFileNames(cxt context.Context, id store.TaxonID, date string) ([]string, error) {
@@ -84,7 +84,6 @@ func (Ω *gcsFetcher) fetchLocalPredictionFileNames(cxt context.Context, id stor
 		dates = append(dates, date)
 	}
 
-
 	res := []string{}
 	for _, date := range dates {
 		p := path.Join(Ω.LocalPath, string(id), date)
@@ -100,6 +99,7 @@ func (Ω *gcsFetcher) fetchLocalPredictionFileNames(cxt context.Context, id stor
 }
 
 type FileNames []os.FileInfo
+
 func (s FileNames) Len() int {
 	return len(s)
 }
@@ -117,7 +117,7 @@ func (Ω *gcsFetcher) fetchRemoteFileNames(cxt context.Context, id store.TaxonID
 	}
 
 	q := &storage.Query{
-		Prefix:    prefix,
+		Prefix: prefix,
 	}
 
 	iter := Ω.Bucket.Objects(cxt, q)
@@ -147,7 +147,7 @@ func (Ω *gcsFetcher) fetchRemoteFileNames(cxt context.Context, id store.TaxonID
 	response := []string{}
 	for d, l := range dateFiles {
 		sort.Strings(l)
-		for _, n := range objectNames{
+		for _, n := range objectNames {
 			if strings.Contains(n, path.Join(d, l[len(l)-1])) {
 				response = append(response, n)
 				break
@@ -157,7 +157,6 @@ func (Ω *gcsFetcher) fetchRemoteFileNames(cxt context.Context, id store.TaxonID
 
 	return response, nil
 }
-
 
 func (Ω *gcsFetcher) FetchPredictions(cxt context.Context, gcsFilePath string) ([]PredictionResult, error) {
 	scanner := &bufio.Scanner{}
@@ -190,7 +189,7 @@ func (Ω *gcsFetcher) FetchPredictions(cxt context.Context, gcsFilePath string) 
 		var err error
 		s := strings.Split(scanner.Text(), ",")
 		r := PredictionResult{
-			Date: s[2],
+			Date:  s[2],
 			Taxon: taxon,
 		}
 		r.Latitude, err = strconv.ParseFloat(s[0], 64)

@@ -1,27 +1,27 @@
 package store
 
 import (
-	"github.com/saleswise/errors/errors"
 	"cloud.google.com/go/firestore"
 	"context"
 	"fmt"
+	"github.com/saleswise/errors/errors"
 )
 
 const EntityKindPhoto = "Photo"
 
 type Photo struct {
-	ID string `datastore:",omitempty"`
-	DataSourceID DataSourceID `datastore:",omitempty"`
-	TaxonID TaxonID `datastore:",omitempty"`
-	PhotoType          PhotoType `datastore:",omitempty,noindex" json:"type,omitempty" bson:"type,omitempty"`
-	URL           string `datastore:",omitempty,noindex" json:"url,omitempty" bson:"url,omitempty"`
-	NativePhotoID string `datastore:",omitempty,noindex" json:"nativePhotoId,omitempty" bson:"nativePhotoId,omitempty"`
-	SquareURL     string `datastore:",omitempty,noindex" json:"squareUrl,omitempty" bson:"squareUrl,omitempty"`
-	SmallURL      string `datastore:",omitempty,noindex" json:"smallUrl,omitempty" bson:"smallUrl,omitempty"`
-	MediumURL     string `datastore:",omitempty,noindex" json:"mediumUrl,omitempty" bson:"mediumUrl,omitempty"`
-	LargeURL      string `datastore:",omitempty,noindex" json:"largeUrl,omitempty" bson:"largeUrl,omitempty"`
-	Attribution   string `datastore:",omitempty,noindex" json:"attribution,omitempty" bson:"attribution,omitempty"`
-	LicenseCode   string `datastore:",omitempty,noindex" json:"licenseCode,omitempty" bson:"licenseCode,omitempty"`
+	ID            string        `datastore:",omitempty"`
+	DataSourceID  DataSourceID  `datastore:",omitempty"`
+	TaxonID       TaxonID       `datastore:",omitempty"`
+	PhotoType     PhotoType     `datastore:",omitempty,noindex" json:"type,omitempty" bson:"type,omitempty"`
+	URL           string        `datastore:",omitempty,noindex" json:"url,omitempty" bson:"url,omitempty"`
+	NativePhotoID string        `datastore:",omitempty,noindex" json:"nativePhotoId,omitempty" bson:"nativePhotoId,omitempty"`
+	SquareURL     string        `datastore:",omitempty,noindex" json:"squareUrl,omitempty" bson:"squareUrl,omitempty"`
+	SmallURL      string        `datastore:",omitempty,noindex" json:"smallUrl,omitempty" bson:"smallUrl,omitempty"`
+	MediumURL     string        `datastore:",omitempty,noindex" json:"mediumUrl,omitempty" bson:"mediumUrl,omitempty"`
+	LargeURL      string        `datastore:",omitempty,noindex" json:"largeUrl,omitempty" bson:"largeUrl,omitempty"`
+	Attribution   string        `datastore:",omitempty,noindex" json:"attribution,omitempty" bson:"attribution,omitempty"`
+	LicenseCode   string        `datastore:",omitempty,noindex" json:"licenseCode,omitempty" bson:"licenseCode,omitempty"`
 	Flags         []interface{} `datastore:",omitempty,noindex" json:"flags,omitempty" bson:"flags,omitempty"`
 }
 
@@ -84,8 +84,9 @@ type Photos []*Photo
 //}
 
 type PhotoType string
+
 const (
-	PhotoTypeFlickr = PhotoType("FlickrPhoto")
+	PhotoTypeFlickr      = PhotoType("FlickrPhoto")
 	PhotoTypeINaturalist = PhotoType("INaturalist")
 )
 

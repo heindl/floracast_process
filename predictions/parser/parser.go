@@ -2,18 +2,18 @@ package parser
 
 import (
 	"bitbucket.org/heindl/taxa/store"
-	"time"
-	"google.golang.org/genproto/googleapis/type/latlng"
 	"bitbucket.org/heindl/taxa/utils"
 	"context"
-	"gopkg.in/tomb.v2"
-	"github.com/saleswise/errors/errors"
-	"sync"
-	"strings"
 	"github.com/montanaflynn/stats"
+	"github.com/saleswise/errors/errors"
+	"google.golang.org/genproto/googleapis/type/latlng"
+	"gopkg.in/tomb.v2"
+	"strings"
+	"sync"
+	"time"
 )
 
-type Writer interface{
+type Writer interface {
 	WritePredictionLine(p store.Prediction) error
 	Close() error
 }
@@ -36,7 +36,7 @@ func NewPredictionParser(cxt context.Context, gcsBucketName string, localPath st
 
 	return &predictionParser{
 		WildernessAreaFetcher: NewWildernessAreaFetcher(taxastore),
-		GCSFetcher: gcsFetcher,
+		GCSFetcher:            gcsFetcher,
 	}, nil
 }
 
@@ -68,7 +68,7 @@ func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.TaxonID]float64, e
 	for taxon, predictionValues := range Ω.PredictionList {
 		totalTaxonPredictionCount := float64(len(predictionValues))
 		totalTaxonProtectedAreaCount := Ω.TotalProtectedAreaCount[taxon]
-		taxaRatios = append(taxaRatios, totalTaxonPredictionCount / totalTaxonProtectedAreaCount)
+		taxaRatios = append(taxaRatios, totalTaxonPredictionCount/totalTaxonProtectedAreaCount)
 		taxaRatiosMap[taxon] = totalTaxonPredictionCount / totalTaxonProtectedAreaCount
 	}
 
@@ -94,7 +94,7 @@ func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.TaxonID]float64, e
 		// Scale between 1 and 0.5
 		//((b-a)(x - min) / max - min) + a
 		if ratio != 0 {
-			taxaRatiosMap[taxon] = ((1 - 0.5) *(ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)) + 0.5
+			taxaRatiosMap[taxon] = ((1 - 0.5) * (ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)) + 0.5
 		}
 	}
 
@@ -145,13 +145,13 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 							return errors.Wrap(err, "could not parse date")
 						}
 						aggr.PredictionObjects = append(aggr.PredictionObjects, &store.Prediction{
-							CreatedAt: utils.TimePtr(time.Now()),
-							Location: latlng.LatLng{p.Latitude, p.Longitude},
+							CreatedAt:       utils.TimePtr(time.Now()),
+							Location:        latlng.LatLng{p.Latitude, p.Longitude},
 							PredictionValue: p.Target,
-							TaxonID: p.Taxon,
-							Date: utils.TimePtr(d),
-							FormattedDate: p.Date,
-							Month: d.Month(),
+							TaxonID:         p.Taxon,
+							Date:            utils.TimePtr(d),
+							FormattedDate:   p.Date,
+							Month:           d.Month(),
 							//WildernessAreaID: wa.ID,
 							//WildernessAreaName: wa.Name,
 						})
@@ -167,7 +167,6 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 	if err := tmb.Wait(); err != nil {
 		return nil, err
 	}
-
 
 	taxaScarcityMap, err := aggr.calcTaxonScarcity()
 	if err != nil {

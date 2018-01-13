@@ -1,22 +1,22 @@
 package main
 
 import (
-	"time"
-	"github.com/jonboulle/clockwork"
-	"gopkg.in/tomb.v2"
+	"bitbucket.org/heindl/taxa/ecoregions"
 	"bitbucket.org/heindl/taxa/store"
 	"bitbucket.org/heindl/taxa/utils"
-	"github.com/heindl/gbif"
-	"github.com/saleswise/errors/errors"
-	"strconv"
+	"flag"
 	"fmt"
+	"github.com/heindl/gbif"
+	"github.com/jonboulle/clockwork"
+	"github.com/saleswise/errors/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/genproto/googleapis/type/latlng"
-	"os"
 	"googlemaps.github.io/maps"
-	"bitbucket.org/heindl/taxa/ecoregions"
+	"gopkg.in/tomb.v2"
+	"os"
+	"strconv"
 	"strings"
-	"flag"
+	"time"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	}
 
 	fetcher, err := NewOccurrenceFetcher(ts, "/Users/m/Downloads/wwf_terr_ecos_oRn.json", clockwork.NewRealClock())
-	if (err != nil) {
+	if err != nil {
 		panic(err)
 	}
 
@@ -49,9 +49,9 @@ const (
 func NewOccurrenceFetcher(store store.TaxaStore, eco_region_file string, clock clockwork.Clock) (OccurrenceFetcher, error) {
 	f := occurrenceFetcher{
 		//Log:                           logrus.New(),
-		TaxaStore:                     store,
-		Limiter:                       make(chan struct{}, occurrenceFetchLimit),
-		Clock:                         clock,
+		TaxaStore: store,
+		Limiter:   make(chan struct{}, occurrenceFetchLimit),
+		Clock:     clock,
 	}
 	for i := 0; i < occurrenceFetchLimit; i++ {
 		f.Limiter <- struct{}{}
@@ -66,19 +66,19 @@ func NewOccurrenceFetcher(store store.TaxaStore, eco_region_file string, clock c
 	return OccurrenceFetcher(&f), nil
 }
 
-type OccurrenceFetcher interface{
+type OccurrenceFetcher interface {
 	FetchOccurrences(taxa []string) error
 }
 
 type occurrenceFetcher struct {
-	TaxaStore       store.TaxaStore
-	Clock           clockwork.Clock
+	TaxaStore store.TaxaStore
+	Clock     clockwork.Clock
 	//NSQProducer     nsqeco.Producer
 	// The species limiter sets the number of species whose occurrences will be updated concurrently.
 	Limiter chan struct{}
 	//geography.BoundaryFetcher
-	Occurrences *store.Occurrences
-	Schema *store.DataSources
+	Occurrences    *store.Occurrences
+	Schema         *store.DataSources
 	EcoRegionCache ecoregions.EcoRegionCache
 }
 
@@ -135,7 +135,6 @@ func (Ω *occurrenceFetcher) FetchOccurrences(taxa_ids []string) error {
 							return err
 						}
 
-
 						//if err := setElevations(occurrences); err != nil {
 						//	return err
 						//}
@@ -152,16 +151,16 @@ func (Ω *occurrenceFetcher) FetchOccurrences(taxa_ids []string) error {
 							//	defer func() {
 							//		Ω.Limiter <- struct{}{}
 							//	}()
-								isNewOccurrence, err := Ω.TaxaStore.UpsertOccurrence(cxt, o)
-								if err != nil {
+							isNewOccurrence, err := Ω.TaxaStore.UpsertOccurrence(cxt, o)
+							if err != nil {
+								return err
+							}
+							if isNewOccurrence {
+								if err := Ω.TaxaStore.IncrementTaxonEcoRegion(cxt, o.TaxonID, o.EcoRegion); err != nil {
 									return err
 								}
-								if isNewOccurrence {
-									if err := Ω.TaxaStore.IncrementTaxonEcoRegion(cxt, o.TaxonID, o.EcoRegion); err != nil {
-										return err
-									}
-								}
-								return nil
+							}
+							return nil
 							//})
 						}
 
@@ -178,7 +177,6 @@ func (Ω *occurrenceFetcher) FetchOccurrences(taxa_ids []string) error {
 
 		return nil
 
-
 	})
 
 	if err := tmb.Wait(); err != nil {
@@ -189,10 +187,9 @@ func (Ω *occurrenceFetcher) FetchOccurrences(taxa_ids []string) error {
 
 }
 
-
 func (Ω *occurrenceFetcher) fetchSourceData(src store.DataSource) (store.Occurrences, error) {
 
-	hasBeenFetchedInLastDay := src.LastFetchedAt != nil && !src.LastFetchedAt.IsZero() && src.LastFetchedAt.After(Ω.Clock.Now().Add(time.Hour * -24))
+	hasBeenFetchedInLastDay := src.LastFetchedAt != nil && !src.LastFetchedAt.IsZero() && src.LastFetchedAt.After(Ω.Clock.Now().Add(time.Hour*-24))
 	if hasBeenFetchedInLastDay {
 		return nil, nil
 	}
@@ -249,8 +246,8 @@ func newfetcher(sourceID store.DataSourceID, targetID store.DataSourceTargetID) 
 		}
 		return Fetcher(GBIF(i)), nil
 	//case species.SourceTypeEOL:
-		// EOL doesn't store occurrences.
-		//return nil, nil
+	// EOL doesn't store occurrences.
+	//return nil, nil
 	default:
 		return nil, errors.New("unsupported source type")
 	}
@@ -259,7 +256,6 @@ func newfetcher(sourceID store.DataSourceID, targetID store.DataSourceTargetID) 
 type Fetcher interface {
 	Fetch(begin *time.Time, end time.Time) (store.Occurrences, error)
 }
-
 
 type GBIF int
 
@@ -270,7 +266,7 @@ func (this GBIF) Fetch(begin *time.Time, end time.Time) (store.Occurrences, erro
 	}
 
 	q := gbif.OccurrenceSearchQuery{
-		TaxonKey:          int(this),
+		TaxonKey:           int(this),
 		LastInterpreted:    fmt.Sprintf("%s,%s", begin.Format("2006-01-02"), end.Format("2006-01-02")),
 		HasCoordinate:      true,
 		HasGeospatialIssue: false,
@@ -321,7 +317,7 @@ func (this GBIF) parse(o gbif.Occurrence) *store.Occurrence {
 		RecordedBy:    o.RecordedBy,
 		References:    o.References,
 		CreatedAt:     utils.TimePtr(time.Now()),
-		CountryCode: o.CountryCode,
+		CountryCode:   o.CountryCode,
 	}
 }
 
@@ -354,7 +350,7 @@ func setElevations(occurrences store.Occurrences) error {
 				}
 				res, err := mc.Elevation(context.Background(), &maps.ElevationRequest{Locations: locations})
 				// TODO: Not sure where this error is coming from but since elevations are handled in dataflow, ignore for now.
-				if err != nil && strings.Contains(err.Error(),"DATA_NOT_AVAILABLE") {
+				if err != nil && strings.Contains(err.Error(), "DATA_NOT_AVAILABLE") {
 					return nil
 				} else if err != nil {
 					return errors.Wrap(err, "could not fetch elevations")
@@ -383,4 +379,3 @@ func setElevations(occurrences store.Occurrences) error {
 	})
 	return tmb.Wait()
 }
-

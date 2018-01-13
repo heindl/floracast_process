@@ -1,13 +1,13 @@
 package main
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 	"bitbucket.org/heindl/taxa/store"
-	"github.com/jonboulle/clockwork"
-	"fmt"
 	"bitbucket.org/heindl/taxa/utils"
+	"fmt"
+	"github.com/jonboulle/clockwork"
+	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
+	"testing"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -24,7 +24,7 @@ func TestTaxonFetcher(t *testing.T) {
 		So(srcs[1].SourceID, ShouldEqual, store.DataSourceID("27"))
 		So(srcs[1].Kind, ShouldEqual, store.DataSourceKindOccurrence)
 		So(srcs[2].SourceID, ShouldEqual, store.DataSourceID("27"))
-		So(srcs[2].Kind,ShouldEqual, store.DataSourceKindPhoto)
+		So(srcs[2].Kind, ShouldEqual, store.DataSourceKindPhoto)
 	})
 
 	Convey("should fetch additional taxon ids from the gbif based on the canonical name", t, func() {

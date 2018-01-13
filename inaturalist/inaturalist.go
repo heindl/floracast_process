@@ -1,28 +1,27 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-	"io/ioutil"
-	"github.com/saleswise/errors/errors"
-	"encoding/json"
-	"gopkg.in/tomb.v2"
-	"time"
-	"bitbucket.org/heindl/taxa/utils"
-	. "github.com/saleswise/malias"
 	"bitbucket.org/heindl/taxa/store"
-	"github.com/PuerkitoBio/goquery"
-	"regexp"
-	"strconv"
-	"sync"
-	"github.com/jonboulle/clockwork"
-	"github.com/sethgrid/pester"
+	"bitbucket.org/heindl/taxa/utils"
 	"bytes"
 	"context"
+	"encoding/json"
 	"flag"
+	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/heindl/gbif"
+	"github.com/jonboulle/clockwork"
+	"github.com/saleswise/errors/errors"
+	. "github.com/saleswise/malias"
+	"github.com/sethgrid/pester"
+	"gopkg.in/tomb.v2"
+	"io/ioutil"
+	"regexp"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
-
 
 func main() {
 
@@ -54,13 +53,13 @@ func main() {
 
 type fetcher struct {
 	// Reference to google data store.
-	Store       store.TaxaStore
+	Store         store.TaxaStore
 	ProcessedTaxa []string
 	//DataSources store.DataSources
 	//Photos store.Photos
 	sync.Mutex
-	Clock       clockwork.Clock
-	Tomb *tomb.Tomb
+	Clock clockwork.Clock
+	Tomb  *tomb.Tomb
 }
 
 func (Ω *fetcher) FetchProcessTaxa(cxt context.Context, parent_taxa []store.TaxonID) error {
@@ -82,7 +81,7 @@ func (Ω *fetcher) _fetchProcessTaxa(cxt context.Context, parent_taxon store.Tax
 	Ω.Tomb.Go(func() error {
 
 		type TaxonCount struct {
-			Count int `json:"count"`
+			Count int   `json:"count"`
 			Taxon Taxon `json:"taxon"`
 		}
 
@@ -133,88 +132,87 @@ func (Ω *fetcher) _fetchProcessTaxa(cxt context.Context, parent_taxon store.Tax
 
 }
 
-
 type Counter struct {
 	TotalResults int `json:"total_results"`
-	Page int `json:"page"`
-	PerPage int `json:"per_page"`
+	Page         int `json:"page"`
+	PerPage      int `json:"per_page"`
 }
 
 type Taxon struct {
-	ObservationsCount int `json:"observations_count"`
-	TaxonSchemesCount int `json:"taxon_schemes_count"`
-	IsActive bool `json:"is_active"`
-	Ancestry string `json:"ancestry"`
-	IconicTaxonID int `json:"iconic_taxon_id"`
-	TaxonPhotos []struct {
+	ObservationsCount int    `json:"observations_count"`
+	TaxonSchemesCount int    `json:"taxon_schemes_count"`
+	IsActive          bool   `json:"is_active"`
+	Ancestry          string `json:"ancestry"`
+	IconicTaxonID     int    `json:"iconic_taxon_id"`
+	TaxonPhotos       []struct {
 		Photo Photo `json:"photo"`
 		Taxon Taxon `json:"taxon"`
 	} `json:"taxon_photos"`
-	RankLevel int `json:"rank_level"`
-	TaxonChangesCount int `json:"taxon_changes_count"`
-	AtlasID int `json:"atlas_id"`
-	ParentID int `json:"parent_id"`
-	Name string `json:"name"`
-	Rank string `json:"rank"`
-	ID int64 `json:"id"`
-	DefaultPhoto Photo `json:"default_photo"`
-	AncestorIds []int `json:"ancestor_ids"`
-	IconicTaxonName string `json:"iconic_taxon_name"`
-	PreferredCommonName string `json:"preferred_common_name"`
-	Ancestors []Taxon `json:"ancestors"`
-	Children []Taxon `json:"children"`
-	ListedTaxa []struct {
-		ID int `json:"id"`
-		TaxonID int `json:"taxon_id"`
+	RankLevel           int     `json:"rank_level"`
+	TaxonChangesCount   int     `json:"taxon_changes_count"`
+	AtlasID             int     `json:"atlas_id"`
+	ParentID            int     `json:"parent_id"`
+	Name                string  `json:"name"`
+	Rank                string  `json:"rank"`
+	ID                  int64   `json:"id"`
+	DefaultPhoto        Photo   `json:"default_photo"`
+	AncestorIds         []int   `json:"ancestor_ids"`
+	IconicTaxonName     string  `json:"iconic_taxon_name"`
+	PreferredCommonName string  `json:"preferred_common_name"`
+	Ancestors           []Taxon `json:"ancestors"`
+	Children            []Taxon `json:"children"`
+	ListedTaxa          []struct {
+		ID                 int    `json:"id"`
+		TaxonID            int    `json:"taxon_id"`
 		EstablishmentMeans string `json:"establishment_means"`
-		Place struct {
-			   ID int `json:"id"`
-			   Name string `json:"name"`
-			   DisplayName string `json:"display_name"`
-			   AdminLevel int `json:"admin_level"`
-			   AncestorPlaceIds []int `json:"ancestor_place_ids"`
-		   } `json:"place"`
+		Place              struct {
+			ID               int    `json:"id"`
+			Name             string `json:"name"`
+			DisplayName      string `json:"display_name"`
+			AdminLevel       int    `json:"admin_level"`
+			AncestorPlaceIds []int  `json:"ancestor_place_ids"`
+		} `json:"place"`
 		List struct {
-			   ID int `json:"id"`
-			   Title string `json:"title"`
-		   } `json:"list"`
+			ID    int    `json:"id"`
+			Title string `json:"title"`
+		} `json:"list"`
 	} `json:"listed_taxa"`
-	WikipediaSummary string `json:"wikipedia_summary"`
-	MinSpeciesAncestry string `json:"min_species_ancestry"`
-	CreatedAt time.Time `json:"created_at"`
+	WikipediaSummary   string    `json:"wikipedia_summary"`
+	MinSpeciesAncestry string    `json:"min_species_ancestry"`
+	CreatedAt          time.Time `json:"created_at"`
 }
 
 type Photo struct {
-	Flags []interface{} `json:"flags"`
-	Type string `json:"type"`
-	URL string `json:"url"`
-	SquareURL string `json:"square_url"`
-	NativePageURL string `json:"native_page_url"`
-	NativePhotoID string `json:"native_photo_id"`
-	SmallURL string `json:"small_url"`
-	Attribution string `json:"attribution"`
-	MediumURL string `json:"medium_url"`
-	ID int `json:"id"`
-	LicenseCode string `json:"license_code"`
-	OriginalDimensions interface{} `json:"original_dimensions"`
-	LargeURL string `json:"large_url"`
+	Flags              []interface{} `json:"flags"`
+	Type               string        `json:"type"`
+	URL                string        `json:"url"`
+	SquareURL          string        `json:"square_url"`
+	NativePageURL      string        `json:"native_page_url"`
+	NativePhotoID      string        `json:"native_photo_id"`
+	SmallURL           string        `json:"small_url"`
+	Attribution        string        `json:"attribution"`
+	MediumURL          string        `json:"medium_url"`
+	ID                 int           `json:"id"`
+	LicenseCode        string        `json:"license_code"`
+	OriginalDimensions interface{}   `json:"original_dimensions"`
+	LargeURL           string        `json:"large_url"`
 }
 
 func (Ω Photo) Format(taxonID store.TaxonID, sourceID store.DataSourceID) store.Photo {
 	return store.Photo{
-		ID: strconv.Itoa(Ω.ID),
-		DataSourceID: sourceID,
-		TaxonID: taxonID,
-		PhotoType: store.PhotoType(Ω.Type),
-		URL: Ω.URL,
-		SquareURL: Ω.SquareURL,
-		SmallURL: Ω.SmallURL,
-		MediumURL: Ω.MediumURL,
-		LargeURL: Ω.LargeURL,
+		ID:            strconv.Itoa(Ω.ID),
+		DataSourceID:  sourceID,
+		TaxonID:       taxonID,
+		PhotoType:     store.PhotoType(Ω.Type),
+		URL:           Ω.URL,
+		SquareURL:     Ω.SquareURL,
+		SmallURL:      Ω.SmallURL,
+		MediumURL:     Ω.MediumURL,
+		LargeURL:      Ω.LargeURL,
 		NativePhotoID: Ω.NativePageURL,
-		Attribution: Ω.Attribution,
-		LicenseCode: Ω.LicenseCode,
-		Flags: Ω.Flags,
+		Attribution:   Ω.Attribution,
+		LicenseCode:   Ω.LicenseCode,
+		Flags:         Ω.Flags,
 	}
 }
 
@@ -296,7 +294,7 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 
 	taxonID := store.TaxonID(strconv.Itoa(int(txn.ID)))
 
-	if utils.Contains(Ω.ProcessedTaxa,  string(taxonID)) {
+	if utils.Contains(Ω.ProcessedTaxa, string(taxonID)) {
 		return taxonID, nil
 	}
 
@@ -309,19 +307,19 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 		return store.TaxonID(""), errors.Newf("unsupported rank: %s", txn.Rank)
 	}
 
-	if !parent.Valid() && shouldHaveParent{
+	if !parent.Valid() && shouldHaveParent {
 		return store.TaxonID(""), errors.New("parent taxon id expected but invalid")
 	}
 
 	t := store.Taxon{
-		ParentID: parent,
-		CanonicalName: store.CanonicalName(txn.Name),
-		Rank: rank,
-		ID: taxonID,
-		RankLevel: store.RankLevel(txn.RankLevel),
-		CommonName: txn.PreferredCommonName,
-		CreatedAt: Ω.Clock.Now(),
-		ModifiedAt: Ω.Clock.Now(),
+		ParentID:         parent,
+		CanonicalName:    store.CanonicalName(txn.Name),
+		Rank:             rank,
+		ID:               taxonID,
+		RankLevel:        store.RankLevel(txn.RankLevel),
+		CommonName:       txn.PreferredCommonName,
+		CreatedAt:        Ω.Clock.Now(),
+		ModifiedAt:       Ω.Clock.Now(),
 		WikipediaSummary: txn.WikipediaSummary,
 	}
 
@@ -329,7 +327,7 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 		if lt.Place.AdminLevel == 1 {
 			t.States = append(t.States, store.State{
 				EstablishmentMeans: lt.EstablishmentMeans,
-				Name: lt.Place.Name,
+				Name:               lt.Place.Name,
 			})
 		}
 	}
@@ -362,7 +360,7 @@ func (Ω *fetcher) processTaxon(cxt context.Context, txn Taxon, parent store.Tax
 		return store.TaxonID(""), err
 	}
 
-	dataSources, err := Ω.fetchDataSources(t.ID, t.CanonicalName, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies || t.RankLevel == store.RankLevelVariety));
+	dataSources, err := Ω.fetchDataSources(t.ID, t.CanonicalName, (t.RankLevel == store.RankLevelSubSpecies || t.RankLevel == store.RankLevelSpecies || t.RankLevel == store.RankLevelVariety))
 	if err != nil {
 		return store.TaxonID(""), err
 	}
@@ -403,7 +401,7 @@ func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, canonicalName store.C
 
 	res := []store.DataSource{}
 	// Find the review items
-	pairs := []struct{
+	pairs := []struct {
 		OriginID store.DataSourceID
 		TargetID store.DataSourceTargetID
 	}{}
@@ -418,7 +416,7 @@ func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, canonicalName store.C
 			return
 		}
 		targetID := store.DataSourceTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
-		pairs = append(pairs, struct{
+		pairs = append(pairs, struct {
 			OriginID store.DataSourceID
 			TargetID store.DataSourceTargetID
 		}{originID, targetID})
@@ -426,22 +424,22 @@ func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, canonicalName store.C
 	for _, pair := range pairs {
 		if pair.OriginID == store.DataSourceIDGBIF && isSpecies {
 			res = append(res, store.DataSource{
-				Kind: store.DataSourceKindOccurrence,
+				Kind:     store.DataSourceKindOccurrence,
 				SourceID: store.DataSourceIDGBIF,
 				TargetID: pair.TargetID,
-				TaxonID: taxonID,
+				TaxonID:  taxonID,
 			})
 			res = append(res, store.DataSource{
-				Kind: store.DataSourceKindDescription,
+				Kind:     store.DataSourceKindDescription,
 				SourceID: store.DataSourceIDGBIF,
 				TargetID: pair.TargetID,
-				TaxonID: taxonID,
+				TaxonID:  taxonID,
 			})
 			res = append(res, store.DataSource{
-				Kind: store.DataSourceKindPhoto,
+				Kind:     store.DataSourceKindPhoto,
 				SourceID: store.DataSourceIDGBIF,
 				TargetID: pair.TargetID,
-				TaxonID: taxonID,
+				TaxonID:  taxonID,
 			})
 
 			additionalIDs, err := Ω.fetchAdditionalGBIFTaxonIDs(string(canonicalName), pair.TargetID)
@@ -451,22 +449,22 @@ func (Ω *fetcher) fetchDataSources(taxonID store.TaxonID, canonicalName store.C
 
 			for _, a := range additionalIDs {
 				res = append(res, store.DataSource{
-					Kind: store.DataSourceKindOccurrence,
+					Kind:     store.DataSourceKindOccurrence,
 					SourceID: store.DataSourceIDGBIF,
 					TargetID: a,
-					TaxonID: taxonID,
+					TaxonID:  taxonID,
 				})
 				res = append(res, store.DataSource{
-					Kind: store.DataSourceKindDescription,
+					Kind:     store.DataSourceKindDescription,
 					SourceID: store.DataSourceIDGBIF,
 					TargetID: a,
-					TaxonID: taxonID,
+					TaxonID:  taxonID,
 				})
 				res = append(res, store.DataSource{
-					Kind: store.DataSourceKindPhoto,
+					Kind:     store.DataSourceKindPhoto,
 					SourceID: store.DataSourceIDGBIF,
 					TargetID: a,
-					TaxonID: taxonID,
+					TaxonID:  taxonID,
 				})
 			}
 		}

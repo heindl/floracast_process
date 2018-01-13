@@ -2,26 +2,26 @@ package parser
 
 import (
 	"bitbucket.org/heindl/taxa/store"
-	"sync"
 	"bitbucket.org/heindl/taxa/utils"
 	"context"
 	"fmt"
 	"google.golang.org/genproto/googleapis/type/latlng"
 	"strings"
+	"sync"
 )
 
-type WildernessAreaFetcher interface{
+type WildernessAreaFetcher interface {
 	GetWildernessArea(cxt context.Context, latitude, longitude float64) (*store.ProtectedArea, error)
 }
 
 func NewWildernessAreaFetcher(taxastore store.TaxaStore) WildernessAreaFetcher {
 	return &wildernessAreaFetcher{
-		Store: taxastore,
+		Store:           taxastore,
 		WildernessAreas: store.ProtectedAreas{},
 	}
 }
 
-type wildernessAreaFetcher struct{
+type wildernessAreaFetcher struct {
 	Store store.TaxaStore
 	sync.Mutex
 	WildernessAreas store.ProtectedAreas

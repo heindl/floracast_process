@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 	//"bitbucket.org/taxa/utils"
-	"github.com/jonboulle/clockwork"
-	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
-	"golang.org/x/net/context"
 	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/taxa/utils"
+	"fmt"
+	"github.com/jonboulle/clockwork"
+	"golang.org/x/net/context"
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
@@ -43,19 +43,18 @@ func TestOccurrenceFetcher(t *testing.T) {
 		//So(err, ShouldBeNil)
 
 		//for _, t := range taxa {
-			list, err := taxastore.GetOccurrences(context.Background(), store.TaxonID(""))
-			So(err, ShouldBeNil)
-			m := map[store.TaxonID]int{}
-			for _, l := range list {
-				if _, ok := m[l.TaxonID]; !ok {
-					m[l.TaxonID] = 1
-				} else {
-					m[l.TaxonID] += 1
-				}
+		list, err := taxastore.GetOccurrences(context.Background(), store.TaxonID(""))
+		So(err, ShouldBeNil)
+		m := map[store.TaxonID]int{}
+		for _, l := range list {
+			if _, ok := m[l.TaxonID]; !ok {
+				m[l.TaxonID] = 1
+			} else {
+				m[l.TaxonID] += 1
 			}
+		}
 
-
-			fmt.Println(m)
+		fmt.Println(m)
 
 		Reset(func() {
 			So(taxastore.Close(), ShouldBeNil)
@@ -90,8 +89,8 @@ func TestElevationFetch(t *testing.T) {
 	Convey("should fetch occurrences and add to queue", t, func() {
 		list := store.Occurrences{
 			{Location: latlng.LatLng{25.75027, -80.766463}},
-			{Location: latlng.LatLng{36.2340512,-116.8863299}},
-			{Location: latlng.LatLng{33.7676338,-84.5606914}},
+			{Location: latlng.LatLng{36.2340512, -116.8863299}},
+			{Location: latlng.LatLng{33.7676338, -84.5606914}},
 		}
 		So(setElevations(list), ShouldBeNil)
 

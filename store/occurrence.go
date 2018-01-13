@@ -1,15 +1,15 @@
 package store
 
 import (
-	"time"
+	"bitbucket.org/heindl/taxa/utils"
 	"cloud.google.com/go/firestore"
-	"github.com/saleswise/errors/errors"
-	"google.golang.org/genproto/googleapis/type/latlng"
 	"context"
 	"fmt"
-	"strings"
 	"github.com/cenkalti/backoff"
-	"bitbucket.org/heindl/taxa/utils"
+	"github.com/saleswise/errors/errors"
+	"google.golang.org/genproto/googleapis/type/latlng"
+	"strings"
+	"time"
 )
 
 type Occurrences []Occurrence
@@ -23,18 +23,18 @@ type Occurrence struct {
 	Date          *time.Time    `firestore:",omitempty" json:",omitempty"`
 	FormattedDate string        `firestore:",omitempty" json:",omitempty"`
 	Month         time.Month    `firestore:",omitempty" json:",omitempty"`
-	References       string        `firestore:",omitempty" json:",omitempty"`
-	RecordedBy       string        `firestore:",omitempty" json:",omitempty"`
-	CreatedAt        *time.Time    `firestore:",omitempty" json:",omitempty"`
-	ModifiedAt       *time.Time    `firestore:",omitempty" json:",omitempty"`
+	References    string        `firestore:",omitempty" json:",omitempty"`
+	RecordedBy    string        `firestore:",omitempty" json:",omitempty"`
+	CreatedAt     *time.Time    `firestore:",omitempty" json:",omitempty"`
+	ModifiedAt    *time.Time    `firestore:",omitempty" json:",omitempty"`
 	// A globally unique identifier. Although missing in some cases, will be helpful in identifying source of data.
-	Elevation float64 `firestore:",omitempty" json:",omitempty"`
-	EcoRegion string `firestore:",omitempty" json:",omitempty"`
+	Elevation   float64 `firestore:",omitempty" json:",omitempty"`
+	EcoRegion   string  `firestore:",omitempty" json:",omitempty"`
 	CountryCode string
 	//S2CellIDs map[string]bool `firestore:",omitempty" json:",omitempty"`
 }
 
-func (Ω *Occurrence) mergeFields() []firestore.FieldPath{
+func (Ω *Occurrence) mergeFields() []firestore.FieldPath {
 
 	// Required fields
 	fields := []firestore.FieldPath{
@@ -63,8 +63,6 @@ func (Ω *Occurrence) mergeFields() []firestore.FieldPath{
 	return fields
 
 }
-
-
 
 func (Ω *Occurrence) Validate() error {
 	if Ω == nil {

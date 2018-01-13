@@ -1,15 +1,16 @@
 package store
 
 import (
-	"github.com/saleswise/errors/errors"
-	"context"
 	"cloud.google.com/go/firestore"
-	"time"
+	"context"
 	"fmt"
+	"github.com/saleswise/errors/errors"
 	"strings"
+	"time"
 )
 
 type DataSourceID string
+
 const (
 	DataSourceIDGBIF        = DataSourceID("27")
 	DataSourceIDINaturalist = DataSourceID("F1")
@@ -29,16 +30,16 @@ var SchemeSourceIDMap = map[DataSourceID]string{
 	DataSourceID("2"):  "Amphibiaweb. 2012",
 	DataSourceID("5"):  "Amphibian Species of the World 5.5",
 	DataSourceID("17"): "New England Wild Flower Society's Flora Novae Angliae",
-	DataSourceID("11"):           "NatureServe Explorer: An online encyclopedia of life. Version 7.1",
-	DataSourceID("12"):           "Calflora",
-	DataSourceID("13"):           "Odonata Central",
-	DataSourceID("14"):           "IUCN Red List of Threatened Species. Version 2012.2",
-	DataSourceID("10"):           "eBird/Clements Checklist 6.7",
-	DataSourceID("15"):           "CONABIO",
-	DataSourceID("6"):            "The Reptile Database",
-	DataSourceID("16"):           "Afribats",
-	DataSourceID("18"):           "Norma 059, 2010",
-	DataSourceID("4"):            "Draft IUCN/SSC, 2013.1",
+	DataSourceID("11"): "NatureServe Explorer: An online encyclopedia of life. Version 7.1",
+	DataSourceID("12"): "Calflora",
+	DataSourceID("13"): "Odonata Central",
+	DataSourceID("14"): "IUCN Red List of Threatened Species. Version 2012.2",
+	DataSourceID("10"): "eBird/Clements Checklist 6.7",
+	DataSourceID("15"): "CONABIO",
+	DataSourceID("6"):  "The Reptile Database",
+	DataSourceID("16"): "Afribats",
+	DataSourceID("18"): "Norma 059, 2010",
+	DataSourceID("4"):  "Draft IUCN/SSC, 2013.1",
 	DataSourceID("19"): "Draft IUCN/SSC Amphibian Specialist Group, 2011",
 	DataSourceID("20"): "eBird/Clements Checklist 6.8",
 	DataSourceID("21"): "IUCN Red List of Threatened Species. Version 2013.2",
@@ -55,9 +56,10 @@ var SchemeSourceIDMap = map[DataSourceID]string{
 }
 
 type DataSourceKind string
+
 const (
-	DataSourceKindOccurrence        = DataSourceKind("occurrence")
-	DataSourceKindPhoto = DataSourceKind("photo")
+	DataSourceKindOccurrence  = DataSourceKind("occurrence")
+	DataSourceKindPhoto       = DataSourceKind("photo")
 	DataSourceKindDescription = DataSourceKind("description")
 )
 
@@ -67,15 +69,15 @@ func (Ω DataSourceKind) Valid() bool {
 
 type DataSourceTargetID string
 
-type DataSource struct{
-	Kind DataSourceKind `firestore:",omitempty"`
-	SourceID      DataSourceID `firestore:",omitempty"`
+type DataSource struct {
+	Kind     DataSourceKind `firestore:",omitempty"`
+	SourceID DataSourceID   `firestore:",omitempty"`
 
 	TargetID      DataSourceTargetID `firestore:",omitempty"`
-	TaxonID TaxonID `firestore:",omitempty"`
-	CreatedAt     *time.Time          `firestore:",omitempty"`
-	ModifiedAt    *time.Time          `firestore:",omitempty"`
-	LastFetchedAt *time.Time          `firestore:",omitempty"`
+	TaxonID       TaxonID            `firestore:",omitempty"`
+	CreatedAt     *time.Time         `firestore:",omitempty"`
+	ModifiedAt    *time.Time         `firestore:",omitempty"`
+	LastFetchedAt *time.Time         `firestore:",omitempty"`
 }
 
 var DataSourceFieldsToMerge = []firestore.FieldPath{
@@ -106,7 +108,7 @@ func (Ω *DataSource) Validate() error {
 func (Ω *store) GetOccurrenceDataSources(context context.Context, taxonID TaxonID) (res DataSources, err error) {
 
 	q := Ω.FirestoreClient.Collection("DataSources").
-		Where("Kind", "==", DataSourceKindOccurrence);
+		Where("Kind", "==", DataSourceKindOccurrence)
 
 	if taxonID.Valid() {
 		q = q.Where("TaxonID", "==", taxonID)

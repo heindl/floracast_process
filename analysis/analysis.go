@@ -1,20 +1,20 @@
 package main
 
 import (
-	"github.com/saleswise/errors/errors"
-	"context"
+	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/taxa/utils"
 	"cloud.google.com/go/storage"
+	"context"
+	"flag"
 	"fmt"
+	"github.com/mongodb/mongo-tools/common/json"
+	"github.com/saleswise/errors/errors"
 	"google.golang.org/api/iterator"
 	"gopkg.in/tomb.v2"
 	"io/ioutil"
-	"github.com/mongodb/mongo-tools/common/json"
-	"bitbucket.org/heindl/taxa/store"
-	"flag"
-	"sync"
-	"bitbucket.org/heindl/taxa/utils"
 	"sort"
 	"strings"
+	"sync"
 )
 
 type PredictionLine struct {
@@ -25,8 +25,8 @@ type PredictionLine struct {
 
 type Analyzer struct {
 	Limiter chan struct{}
-	Store store.TaxaStore
-	Bucket *storage.BucketHandle
+	Store   store.TaxaStore
+	Bucket  *storage.BucketHandle
 	Catcher *Catcher
 }
 
@@ -35,8 +35,8 @@ type Catcher struct {
 	Predictions map[store.TaxonID]Values `json:",omitempty"`
 }
 
-type Values struct{
-	Total int `json:""`
+type Values struct {
+	Total          int `json:""`
 	AboveThreshold int `json:""`
 	BelowThreshold int `json:""`
 }
@@ -67,7 +67,7 @@ func main() {
 	flag.Parse()
 
 	f := Analyzer{
-		Limiter:                       make(chan struct{}, analyticsProcessLimit),
+		Limiter: make(chan struct{}, analyticsProcessLimit),
 		Catcher: &Catcher{Predictions: make(map[store.TaxonID]Values)},
 	}
 
@@ -116,8 +116,8 @@ func main() {
 
 type OccurrenceAggregation struct {
 	CommonName, CanonicalName string
-	ID string
-	Count int
+	ID                        string
+	Count                     int
 }
 type OccurrenceAggregationList []OccurrenceAggregation
 
@@ -154,10 +154,10 @@ func (Ω *Analyzer) CountOccurrences(cxt context.Context) error {
 			return err
 		}
 		aggregation = append(aggregation, OccurrenceAggregation{
-			CommonName: t.CommonName,
+			CommonName:    t.CommonName,
 			CanonicalName: string(t.CanonicalName),
-			ID: string(t.ID),
-			Count: len(occurrences)})
+			ID:            string(t.ID),
+			Count:         len(occurrences)})
 	}
 
 	sort.Sort(aggregation)
@@ -203,10 +203,10 @@ func (Ω *Analyzer) CountTaxaOccurrencesSources(cxt context.Context) error {
 			return err
 		}
 		aggregation = append(aggregation, OccurrenceAggregation{
-			CommonName: t.CommonName,
+			CommonName:    t.CommonName,
 			CanonicalName: string(t.CanonicalName),
-			ID: string(t.ID),
-			Count: len(srcs)})
+			ID:            string(t.ID),
+			Count:         len(srcs)})
 	}
 
 	sort.Sort(aggregation)
@@ -215,7 +215,6 @@ func (Ω *Analyzer) CountTaxaOccurrencesSources(cxt context.Context) error {
 
 	return nil
 }
-
 
 func (Ω *Analyzer) FetchPredictionAnalysis(cxt context.Context, predictionsDirectory string) error {
 	q := &storage.Query{Prefix: fmt.Sprintf("predictions/%s/", predictionsDirectory), Delimiter: "/"}

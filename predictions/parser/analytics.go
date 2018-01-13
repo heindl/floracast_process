@@ -1,11 +1,11 @@
 package parser
 
 import (
-	//"fmt"
-	//"google.golang.org/api/iterator"
-	//"gopkg.in/tomb.v2"
-	//"cloud.google.com/go/storage"
-	//"context"
+//"fmt"
+//"google.golang.org/api/iterator"
+//"gopkg.in/tomb.v2"
+//"cloud.google.com/go/storage"
+//"context"
 )
 
 //func (Ω *predictionParser) GatherAnalytics(cxt context.Context, predictionsDirectory string) error {

@@ -1,104 +1,62 @@
 package ecoregions
 
 import (
-	"os"
-	"bufio"
-	"github.com/buger/jsonparser"
-	"io/ioutil"
-	geojson "github.com/tidwall/tile38/geojson"
-	"gopkg.in/tomb.v2"
+	"bitbucket.org/heindl/taxa/ecoregions/generated_cache"
+	"github.com/tidwall/tile38/geojson"
 	"github.com/saleswise/errors/errors"
-	"sync"
+	"fmt"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
-type EcoRegionCache interface{
-	PointWithin(lat, lng float64) (string, string, error)
+type EcoRegions []EcoRegion
+
+type EcoRegion struct {
+	EcoName string // Ecoregion Name
+	EcoCode EcoCode // This is an alphanumeric code that is similar to eco_ID but a little easier to interpret. The first 2 characters (letters) are the realm the ecoregion is in. The 2nd 2 characters are the biome and the last 2 characters are the ecoregion number.
+	EcoNum int // A unique number for each ecoregion within each biome nested within each realm.
+	EcoID EcoID // This number is created by combining REALM, BIOME, and ECO_NUM, thus creating a unique numeric ID for each ecoregion.
+	Biome Biome
+	GeoHashes []string
+	GeoObject geojson.Object
 }
 
-// File can be downloaded here: https://worldmap.harvard.edu/data/geonode:wwf_terr_ecos_oRn
-// http://worldmap.harvard.edu/download/wfs/697/json?outputFormat=json&service=WFS&request=GetFeature&format_options=charset%3AUTF-8&typename=geonode%3Awwf_terr_ecos_oRn&version=1.0.0
-func NewEcoRegionCache(wwf_geojson string) (EcoRegionCache, error) {
-	r := &regions{}
-	if err := r.Load(wwf_geojson); err != nil {
-		return nil, err
-	}
-	return EcoRegionCache(r), nil
-}
+func NewEcoRegionsCache() (EcoRegions, error) {
+	res := EcoRegions{}
+	for _, cr := range cache.EcoRegionCache {
 
-type regions struct {
-	tmb     tomb.Tomb
-	bBox    geojson.BBox
-	sync.Mutex
-	objects []geoObject
-}
-
-type geoObject struct {
-	key string
-	obj geojson.Object
-	name string
-}
-
-func (Ω *regions) Load(wwf_geojson string) error {
-	// Read huge json file using decoder.
-	f, err := os.Open(wwf_geojson)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	b, err := ioutil.ReadAll(bufio.NewReader(f))
-	if err != nil {
-		return err
-	}
-
-	Ω.tmb = tomb.Tomb{}
-	Ω.bBox = geojson.New2DBBox(-124.848974, 24.396308, -66.885444, 49.384358)
-
-	Ω.tmb.Go(func() error {
-		if _, err := jsonparser.ArrayEach(b, Ω.parse, "features"); err != nil {
-			return errors.Wrap(err, "could not parse features array")
+		nr := EcoRegion{
+			EcoCode: EcoCode(cr.EcoCode),
+			EcoNum: int(cr.EcoNum),
+			EcoID: EcoID(cr.EcoID),
+			Biome: Biome(cr.Biome),
 		}
-		return nil
-	})
 
-	return Ω.tmb.Wait()
+		var ok bool
+		if nr.EcoName, ok = EcoIDDefinitions[nr.EcoID]; !ok {
+			continue
+		}
+		if _, ok := BiomeDefinitions[nr.Biome]; !ok {
+			continue
+		}
+
+		var err error
+		nr.GeoObject, err = geojson.ObjectJSON(cr.GeoJsonString)
+		if err != nil {
+			return nil, errors.Wrapf(err, "could not parse geojson string for region[%s] in biome[%s]", cr.EcoCode, cr.Biome)
+		}
+
+		res = append(res, nr)
+	}
+	return res, nil
 }
 
-func (Ω *regions) PointWithin(lat, lng float64) (name string, key string, err error) {
+
+func (Ω EcoRegions) HasPoint(lat, lng float64) (*EcoRegion, error) {
 	p := geojson.New2DPoint(lng, lat)
-	for _, o := range Ω.objects {
-		if p.Within(o.obj) {
-			return o.name, o.key, nil
+	for i := range Ω {
+		if p.Within(Ω[i].GeoObject) {
+			return &Ω[i], nil
 		}
 	}
-	return "", "", nil
-}
-
-func(Ω *regions) parse(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-	Ω.tmb.Go(func() error {
-		if err != nil {
-			return err
-		}
-		obj, err := geojson.ObjectJSON(string(value))
-		if err != nil {
-			return errors.Wrap(err, "could not parse geojson")
-		}
-		if !obj.IntersectsBBox(Ω.bBox) {
-			return nil
-		}
-
-		name, _, _, err := jsonparser.Get(value, "properties", "ECO_NAME")
-		if err != nil {
-			return errors.Wrap(err, "could not read ECO_NUM property")
-		}
-		key, _, _, err := jsonparser.Get(value, "properties", "ECO_SYM")
-		if err != nil {
-			return errors.Wrap(err, "could not read ECO_NUM property")
-		}
-		Ω.Lock()
-		defer Ω.Unlock()
-		Ω.objects = append(Ω.objects, geoObject{name: string(name), key: string(key), obj: obj})
-
-		return nil
-	})
+	return nil, nil
 }

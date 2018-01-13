@@ -1,8 +1,8 @@
 package store
 
 import (
-	"testing"
 	"github.com/jonboulle/clockwork"
+	"testing"
 	"time"
 )
 

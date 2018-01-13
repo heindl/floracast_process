@@ -1,16 +1,16 @@
 package geocache
 
 import (
-	"github.com/tidwall/buntdb"
-	"fmt"
-	"github.com/saleswise/errors/errors"
-	"github.com/elgs/gostrgen"
-	"path"
-	"os"
 	"bitbucket.org/heindl/taxa/store"
-	"github.com/kellydunn/golang-geo"
-	"strings"
 	"bitbucket.org/heindl/taxa/utils"
+	"fmt"
+	"github.com/elgs/gostrgen"
+	"github.com/kellydunn/golang-geo"
+	"github.com/saleswise/errors/errors"
+	"github.com/tidwall/buntdb"
+	"os"
+	"path"
+	"strings"
 )
 
 type CacheWriter struct {
@@ -43,14 +43,14 @@ func NewCacheWriter(taxa []string) (*CacheWriter, error) {
 func ensureIndex(tx *buntdb.Tx, taxon, date string) (string, error) {
 
 	if len(date) != 8 {
-		return "", errors.New( "invalid date")
+		return "", errors.New("invalid date")
 	}
 
 	if taxon == "" {
 		taxon = "taxa"
 	}
 
-	index := taxon + "-" + date;
+	index := taxon + "-" + date
 
 	indexes, err := tx.Indexes()
 	if err != nil {
@@ -58,7 +58,7 @@ func ensureIndex(tx *buntdb.Tx, taxon, date string) (string, error) {
 	}
 
 	if !utils.Contains(indexes, index) {
-		pattern := index+":*:pos"
+		pattern := index + ":*:pos"
 		if err := tx.CreateSpatialIndex(index, pattern, buntdb.IndexRect); err != nil {
 			return "", err
 		}
@@ -90,24 +90,23 @@ func datesMatch(qDate, tDate string) bool {
 
 func (Ω *CacheWriter) ReadTaxa(lat, lng, radius float64, qDate string, taxon string) ([]string, error) {
 
-	fmt.Println("reading", lat, lng , radius, qDate, taxon)
+	fmt.Println("reading", lat, lng, radius, qDate, taxon)
 	res := []string{}
 
-
 	if len(qDate) != 8 {
-		return nil, errors.New( "invalid date")
+		return nil, errors.New("invalid date")
 	}
 
-	column := "taxa-"+qDate
+	column := "taxa-" + qDate
 	if strings.TrimSpace(taxon) != "" {
-		column = taxon+"-"+qDate
+		column = taxon + "-" + qDate
 	}
 
 	fmt.Println("column", column)
 
 	Ω.DB.View(func(tx *buntdb.Tx) error {
 		return tx.Intersects(column, bbox(lat, lng, radius), func(key, val string) bool {
-			k := strings.Split(strings.Split(key,":")[1], ",")
+			k := strings.Split(strings.Split(key, ":")[1], ",")
 			taxonID := k[0]
 			areaID := k[1]
 			prediction := k[2]
@@ -159,5 +158,3 @@ func (Ω *CacheWriter) Close() error {
 	}
 	return nil
 }
-
-

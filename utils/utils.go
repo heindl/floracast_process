@@ -3,13 +3,13 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/kpawlik/geojson"
 	"io/ioutil"
 	"os"
 	"strings"
 	"time"
-"github.com/kpawlik/geojson"
-	"fmt"
 )
 
 var NorthAmericaBBOX = [2][2]float64{{-169.433594, 13.267549}, {-49.902344, 57.906568}}
@@ -17,7 +17,7 @@ var NorthAmericaBBOX = [2][2]float64{{-169.433594, 13.267549}, {-49.902344, 57.9
 var EPSILON float64 = 0.00001
 
 func CoordinatesEqual(a, b float64) bool {
-	if ((a - b) < EPSILON && (b - a) < EPSILON) {
+	if (a-b) < EPSILON && (b-a) < EPSILON {
 		return true
 	}
 	return false
@@ -35,7 +35,7 @@ func JsonOrSpew(o interface{}) string {
 	return response.String()
 }
 
-func TimePtr(v time.Time)  *time.Time {
+func TimePtr(v time.Time) *time.Time {
 	return &v
 }
 

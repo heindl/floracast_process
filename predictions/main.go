@@ -1,22 +1,22 @@
 package main
 
 import (
+	"bitbucket.org/heindl/taxa/predictions/filecache"
+	"bitbucket.org/heindl/taxa/predictions/geocache"
+	"bitbucket.org/heindl/taxa/predictions/parser"
+	"bitbucket.org/heindl/taxa/store"
 	"context"
 	"flag"
-	"bitbucket.org/heindl/taxa/predictions/parser"
-	"bitbucket.org/heindl/taxa/predictions/geocache"
-	"strings"
 	"fmt"
-	"net/http"
 	"github.com/gorilla/mux"
+	"net/http"
 	"strconv"
-	"bitbucket.org/heindl/taxa/predictions/filecache"
-	"bitbucket.org/heindl/taxa/store"
+	"strings"
 )
 
 const predictionUploadLimit = 2000
 
-type CacheWriter interface{
+type CacheWriter interface {
 	WritePredictionLine(p *store.Prediction) error
 	ReadTaxa(lat, lng, radius float64, qDate string, taxon string) ([]string, error)
 	Close() error
@@ -152,6 +152,4 @@ func main() {
 
 	// If we wrote to a geocache, hold it open as a web server.
 
-
 }
-

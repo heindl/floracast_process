@@ -1,105 +1,60 @@
 package store
 
 import (
-	"google.golang.org/genproto/googleapis/type/latlng"
-	"github.com/saleswise/errors/errors"
 	"context"
-	"math"
-	"bitbucket.org/heindl/taxa/utils"
-	"time"
-	"github.com/cenkalti/backoff"
-	"strings"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"github.com/paulmach/go.geojson"
+	"github.com/saleswise/errors/errors"
+	"strings"
+	"time"
 )
 
 type ProtectedArea struct {
-	ID                    string             `json:",omitempty"`
-	State                 ProtectedAreaState `json:",omitempty"`
-	Acres                 float64            `json:",omitempty"`
-	Name                  string             `json:",omitempty"`
-	Centre                latlng.LatLng      `json:",omitempty"`
-	HeightMeters float64      `json:",omitempty"`
-	WidthMeters float64 `json:",omitempty"`
-	Bounds string `json:",omitempty"`
-	ManagerType           string             `json:",omitempty"`
-	ManagerName           string             `json:",omitempty"`
-	ManagementDesignation string             `json:",omitempty"`
-	OwnerType             string             `json:",omitempty"`
-	OwnerName             string             `json:",omitempty"`
-	Category              string             `json:",omitempty"`
-	YearEstablished       int                `json:",omitempty"`
-	PublicAccess          string             `json:",omitempty"`
-	GapAnalysisProjectStatus string `json:",omitempty"`
+	ID              string           `json:",omitempty" csv:""`
+	NameStandard    string           `json:",omitempty" csv:""`
+	NameLocal       string           `json:",omitempty" csv:""`
+	StateAbbr       string           `json:",omitempty" csv:""`
+	Bounds          [2][2]float64    `json:",omitempty" csv:""` // [SouthWest, NorthEast]
+	Centroid        [2]float64       `json:",omitempty" csv:""` // Latitude, Longitude
+	GISAcres        float64          `json:",omitempty" csv:""`
+	Height          float64          `json:",omitempty" csv:""` // in Meters
+	Width           float64          `json:",omitempty" csv:""` // in Meters
+	Category        AreaCategory     `json:",omitempty" csv:""`
+	Designation     AreaDesignation  `json:",omitempty" csv:""`
+	ManagerStandardName AreaManagerName  `json:",omitempty" csv:""`
+	ManagerLocalName    string           `json:",omitempty" csv:""`
+	ManagerType     AreaManagerType  `json:",omitempty" csv:""`
+	Owner           AreaOwnerName    `json:",omitempty" csv:""`
+	OwnerType       AreaOwnerType    `json:",omitempty" csv:""`
+	PublicAccess    AreaPublicAccess `json:",omitempty" csv:""`
+	IUCNCategory    AreaIUCNCategory `json:",omitempty" csv:""`
+	AreaGAPStatus   AreaGAPStatus    `json:",omitempty" csv:""` // Shows if a disturbance event
 }
 
-func(Ω *ProtectedArea) Valid() (isValid bool, reason string) {
+func (Ω *ProtectedArea) Valid() (isValid bool, reason string, value interface{}) {
 
 	if Ω.ID == "" {
-		return false, "id"
+		return false, "id", Ω.ID
 	}
 
-	if v, ok := ValidProtectedAreaStates[Ω.State.Abbr]; !ok || Ω.State.Name != v {
-		return false, "state"
+	if _, ok := ValidProtectedAreaStates[Ω.StateAbbr]; !ok {
+		return false, "state", Ω.StateAbbr
 	}
 
-	if Ω.Centre.Latitude == 0 || Ω.Centre.Longitude == 0 {
-		return false, "centre"
+	if len(Ω.Centroid) == 0 || Ω.Centroid[0] == 0 || Ω.Centroid[1] == 0 {
+		return false, "centre", Ω.Centroid
 	}
 
-	if Ω.Acres < 50 {
-		return false, "acres"
-	}
+	//if Ω.GISAcres < 50 {
+	//	return false, "acres", Ω.GISAcres
+	//}
 
-	if !strings.Contains(Ω.GapAnalysisProjectStatus, "managed for biodiversity") {
-		return false, "gap_analysis"
-	}
+	//if strings.ToLower(Ω.PublicAccess) == "closed" {
+	//	return false, "public_access", Ω.PublicAccess
+	//}
 
-	if strings.ToLower(Ω.PublicAccess) == "closed" {
-		return false, "public_access"
-	}
-
-	if !utils.Contains([]string{
-			"Area of Critical Environmental Concern",
-			"Conservation Area",
-			"Conservation Easement",
-			"Local Conservation Area",
-			"National Forest",
-			"National Grassland",
-			"National Lakeshore or Seashore",
-			"National Park",
-			"National Public Lands",
-			"National Recreation Area",
-			"National Scenic, Botanical or Volcanic Area",
-			"National Wildlife Refuge",
-			"State Conservation Area",
-			"Recreation Management Area",
-			"State Park",
-			"State Wilderness",
-			"State Recreation Area",
-			"State Resource Management Area",
-			"Watershed Protection Area",
-			"Wild and Scenic River",
-			"Wilderness Area",
-			"Wilderness Study Area"},
-		Ω.ManagementDesignation,
-	) {
-		return false, "management_designation"
-	}
-
-	if !utils.Contains([]string{
-		"Federal",
-		"Joint",
-		"Local Government",
-		"Non-Governmental Organization",
-		"State",
-		},
-		Ω.ManagerType,
-	) {
-		return false, "manager_type"
-	}
-
-	return true, ""
+	return true, "", nil
 }
 
 type ProtectedAreaState struct {
@@ -111,7 +66,7 @@ type ProtectedAreas []ProtectedArea
 
 func (a ProtectedAreas) Len() int           { return len(a) }
 func (a ProtectedAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ProtectedAreas) Less(i, j int) bool { return a[i].Acres > a[j].Acres }
+func (a ProtectedAreas) Less(i, j int) bool { return a[i].GISAcres > a[j].GISAcres }
 
 func (Ω *store) ReadProtectedAreaByID(cxt context.Context, id string) (*ProtectedArea, error) {
 	doc, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(id).Get(cxt)
@@ -148,41 +103,42 @@ func (Ω *store) ReadProtectedAreas(cxt context.Context) ([]ProtectedArea, error
 }
 
 func (Ω *store) ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error) {
-
-	// Validate
-	if lat == 0 || lng == 0 {
-		return nil, errors.New("invalid protected area id")
-	}
-
-	docs, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).
-		// TODO: Would be great to use a geo query here or at least an approximation.
-		Where("Centre.Longitude", ">", math.Floor(lng)).
-		Where("Centre.Longitude", "<=", math.Ceil(lng)).
-		Documents(cxt).
-		GetAll()
-
-	if err != nil {
-		return nil, errors.Wrap(err, "could not find wilderness area")
-	}
-
-	for _, d := range docs {
-		w := ProtectedArea{}
-		if err := d.DataTo(&w); err != nil {
-			return nil, errors.Wrap(err, "could not type cast ProtectedArea")
-		}
-		if utils.CoordinatesEqual(lat, w.Centre.Latitude) && utils.CoordinatesEqual(lat, w.Centre.Latitude) {
-			return &w, nil
-		}
-	}
-
-	return nil, errors.Newf("no wilderness area found: [%f, %f]", lat, lng)
+//
+//	// Validate
+//	if lat == 0 || lng == 0 {
+//		return nil, errors.New("invalid protected area id")
+//	}
+//
+//	docs, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).
+//		// TODO: Would be great to use a geo query here or at least an approximation.
+//		Where("Centre.Longitude", ">", math.Floor(lng)).
+//		Where("Centre.Longitude", "<=", math.Ceil(lng)).
+//		Documents(cxt).
+//		GetAll()
+//
+//	if err != nil {
+//		return nil, errors.Wrap(err, "could not find wilderness area")
+//	}
+//
+//	for _, d := range docs {
+//		w := ProtectedArea{}
+//		if err := d.DataTo(&w); err != nil {
+//			return nil, errors.Wrap(err, "could not type cast ProtectedArea")
+//		}
+//		if utils.CoordinatesEqual(lat, w.Centre.Latitude) && utils.CoordinatesEqual(lat, w.Centre.Latitude) {
+//			return &w, nil
+//		}
+//	}
+//
+//	return nil, errors.Newf("no wilderness area found: [%f, %f]", lat, lng)
+return nil, nil
 }
 
-var counter = 0;
+var counter = 0
 
 func (Ω *store) SetProtectedArea(cxt context.Context, wa ProtectedArea) error {
 
-	counter = counter + 1;
+	counter = counter + 1
 
 	// Validate
 	if wa.ID == "" {

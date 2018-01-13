@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"time"
-	"strconv"
 	"github.com/saleswise/errors/errors"
 	. "github.com/saleswise/malias"
+	"strconv"
+	"time"
 )
 
 type RangeVal string

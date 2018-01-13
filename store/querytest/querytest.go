@@ -26,17 +26,15 @@ func main() {
 	//	TaxonID: store.TaxonID("473935"),
 	//}
 
-
-
 	o := store.Occurrence{
 		FormattedDate: "20170806",
-		TargetID: "473935",
-		DataSourceID: store.DataSourceIDGBIF,
-		Location: latlng.LatLng {
-			Latitude: 43.788655,
+		TargetID:      "473935",
+		DataSourceID:  store.DataSourceIDGBIF,
+		Location: latlng.LatLng{
+			Latitude:  43.788655,
 			Longitude: -75.097508,
 		},
-		Month: time.August,
+		Month:   time.August,
 		TaxonID: store.TaxonID("473935"),
 	}
 

@@ -2,10 +2,10 @@ package store
 
 import (
 	"cloud.google.com/go/firestore"
-	"golang.org/x/net/context"
-	"os"
 	"github.com/saleswise/errors/errors"
+	"golang.org/x/net/context"
 	"google.golang.org/api/option"
+	"os"
 )
 
 // gcloud beta emulators datastore start --project=floracast-20c01 --store-on-disk=false
@@ -33,7 +33,6 @@ func NewLiveFirestore() (*firestore.Client, error) {
 // In the short term just make this a test project.
 func NewMockFirestore() (*firestore.Client, error) {
 	return NewLiveFirestore()
-
 
 	//projectID := os.Getenv("FLORACAST_GCLOUD_PROJECT_ID")
 	//if projectID == "" {

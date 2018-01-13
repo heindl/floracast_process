@@ -1,11 +1,11 @@
 package store
 
 import (
-	"time"
-	"github.com/jonboulle/clockwork"
 	"cloud.google.com/go/firestore"
 	"context"
+	"github.com/jonboulle/clockwork"
 	"github.com/paulmach/go.geojson"
+	"time"
 )
 
 type TaxaStore interface {
@@ -54,11 +54,10 @@ func NewTaxaStore() (TaxaStore, error) {
 }
 
 type store struct {
-	Clock          clockwork.Clock
+	Clock           clockwork.Clock
 	FirestoreClient *firestore.Client
 }
 
 func (Ω *store) Close() error {
 	return Ω.FirestoreClient.Close()
 }
-

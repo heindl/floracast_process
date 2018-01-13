@@ -1,55 +1,67 @@
 package main
 
 import (
-	"github.com/saleswise/errors/errors"
-	"strings"
-	"fmt"
 	"bitbucket.org/heindl/taxa/store"
-	"google.golang.org/genproto/googleapis/type/latlng"
-	"unicode/utf8"
-	"github.com/paulmach/go.geojson"
-	"github.com/paulmach/go.geo"
-	"io/ioutil"
+	"bitbucket.org/heindl/taxa/utils"
 	"flag"
-	"path/filepath"
+	"fmt"
+	"github.com/paulmach/go.geo"
+	"github.com/paulmach/go.geojson"
+	"github.com/saleswise/errors/errors"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
+	"unicode/utf8"
+	"github.com/gocarina/gocsv"
+	"bitbucket.org/heindl/taxa/ecoregions"
 )
+
 
 
 func main() {
 
 	geojsonPath := flag.String("geojson", "/tmp/gap_analysis", "Path to geojson files to search recursively.")
 
-	flag.Parse()
 
 	if *geojsonPath == "" {
 		panic("A geojson directory must be specified.")
 	}
 
-	store, err := store.NewTaxaStore()
+	taxaStore, err := store.NewTaxaStore()
 	if err != nil {
 		panic(err)
 	}
 
-	parser := &Parser{Store: store}
+	//ecoRegionCache, err := ecoregions.NewEcoRegionCache(*ecoRegionFile)
+	//if err != nil {
+	//	panic(err)
+	//}
 
+	parser := &Parser{
+		Store: taxaStore,
+		Stats: NewStatsContainer(),
+		//EcoRegionCache: ecoRegionCache,
+	}
+
+	return
 
 	if err := filepath.Walk(*geojsonPath, parser.RecursiveSearchParse); err != nil {
 		panic(err)
 	}
-
-
 
 	return
 }
 
 type Parser struct {
 	Store store.TaxaStore
+	Stats *StatsContainer
+	EcoRegionCache ecoregions.EcoRegionCache
 }
 
 func (p *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) error {
-
-	fmt.Println(path, f.Name(), err)
 
 	if err != nil {
 		return errors.Wrap(err, "passed error from file path walk")
@@ -73,27 +85,13 @@ func (p *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) err
 		return err
 	}
 
-	fmt.Println(pa.Name)
+	if pa == nil {
+		return nil
+	}
 
 	return nil
 
 }
-
-/* GEOJSON KEY */
-
-//"d_State_Nm",
-//"d_GAP_Sts",
-//"GIS_Acres",
-//"Loc_Nm",
-//"WDPA_Cd", // World Database of Protected Areas Code, https://www.protectedplanet.net/
-//"d_Mang_Nam", // Manager Name, "Natural Resources Conservation Service"
-//"d_Mang_Typ", // Management Type, "Federal"
-//"d_Own_Type", // Owner type, "Private"
-//"d_Own_Name", // Owner name
-//"d_Des_Tp", // The unit’s land management description or designation, standardized for nation (e.g. Area of Critical Environmental Concern, Wilderness Area, State Park, Local Rec Area, Conservation Easement). See the PAD-US Data Standard for a crosswalk of "Designation Type" from source data files or the geodatabase look up table for "Designation Type" for domain descriptions. "Designation Type" supports PAD-US queries and categorical conservation measures or public access assignments in the absence of other information.
-//"Date_Est", // The Year (yyyy) the protected area was designated, decreed or otherwise established. Date is assigned to each unit by name, without event status(e.g. Yellowstone National Park: 1872, Frank Church-River of No Return Wilderness Area: 1980)
-//"d_Access", // Level of public access permitted. Open requires no special requirements for public access to the property (may include regular hours available); Restricted requires a special permit from the owner for access, a registration permit on public land or has highly variable times when open to use; Closed occurs where no public access allowed (land bank property, special ecological study areas, military bases, etc. Unknown is assigned where information is not currently available. Access is assigned categorically by Designation Type or provided by PAD-US State Data Stewards, federal or NGO partners. Contact the PAD-US Coordinator with available public access information.
-//"d_Category", // General category for the protection mechanism associated with the protected area. ‘Fee’ is the most common way real estate is owned. A conservation ‘easement’ creates a legally enforceable land preservation agreement between a landowner and government agency or qualified land protection organization (i.e. land trust). ‘Other’ types of protection include leases, agreements or those over marine waters. ‘Designation’ is applied to designations in the federal theme not tied to title documents (e.g. National Monument, Wild and Scenic River). These may be removed to reduce overlaps for area based analyses.
 
 func (p *Parser) FormatAreaName(id, name string) (string, error) {
 	// There are a few invalid UTF8 characters in a few of the names, which will not save to firestore.
@@ -115,72 +113,176 @@ func (p *Parser) FormatAreaName(id, name string) (string, error) {
 	return name, nil
 }
 
-func (p *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
+const (
+	CategoryFee         = "Fee"
+	CategoryDesignation = "Designation"
+	CategoryEasement    = "Easement"
+	CategoryOther       = "Other"
+	CategoryUnknown     = "Unknown"
+)
+
+
+func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 
 	fc, err := geojson.UnmarshalFeatureCollection(gb)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not unmarshal field collection")
 	}
 
-	if len(fc.Features) > 1 {
-		fmt.Println("have feature length greater than one")
-	}
-
 	f := fc.Features[0]
 
 	pa := store.ProtectedArea{
-		ID: f.PropertyMustString("WDPA_Cd"),
-		PublicAccess: f.PropertyMustString("d_Access"),
-		GapAnalysisProjectStatus: f.PropertyMustString("d_GAP_Sts"),
-		Acres: f.PropertyMustFloat64("GIS_Acres"),
-		ManagementDesignation: f.PropertyMustString("d_Des_Tp"),
-		ManagerType: f.PropertyMustString("d_Mang_Typ"),
-		ManagerName: f.PropertyMustString("d_Mang_Nam"),
-		Category: f.PropertyMustString("d_Category"),
-		OwnerType: f.PropertyMustString("d_Own_Type"),
-		OwnerName: f.PropertyMustString("d_Own_Name"),
-		YearEstablished: f.PropertyMustInt("Date_Est"),
-	}
+		ID:              strconv.Itoa(f.PropertyMustInt("WDPA_Cd")),
+		StateAbbr:           f.PropertyMustString("State_Nm"),
+		Category:        store.AreaCategory(f.PropertyMustString("Category")),  // Category, d_Category
+		Designation:     store.AreaDesignation(f.PropertyMustString("Des_Tp")),    // d_Des_Tp, Des_Tp
+		ManagerStandardName: store.AreaManagerName(f.PropertyMustString("Mang_Nam")),  //  d_Mang_Nam, Mang_Name
+		ManagerLocalName:    f.PropertyMustString("Loc_Mang"),  // Loc_Mang
+		ManagerType:     store.AreaManagerType(f.PropertyMustString("Mang_Type")), // d_Mang_Typ, Mang_Type
+		Owner:           store.AreaOwnerName(f.PropertyMustString("Own_Name")),  // Own_Name, d_Own_Name, Loc_Own
+		OwnerType:       store.AreaOwnerType(f.PropertyMustString("Own_Type")),  // Own_Type, d_Own_Type
+		PublicAccess:   store.AreaPublicAccess(f.PropertyMustString("Access")),
+		IUCNCategory:    store.AreaIUCNCategory(f.PropertyMustString("IUCN_Cat")),
+		AreaGAPStatus:   store.AreaGAPStatus(f.PropertyMustString("GAP_Sts")),
+		}
 
-	pa.Name, err = p.FormatAreaName(pa.ID, f.PropertyMustString("Loc_Nm"))
+
+
+	// d_GAP_Sts
+
+	//if !utils.Contains([]string{CategoryFee, CategoryDesignation, CategoryEasement, CategoryOther, CategoryUnknown}, pa.Category) {
+	//	fmt.Println("New Category", pa.Category)
+	//}
+
+	//if _, ok := designs[f.PropertyMustString("Mang_Nam")]; !ok {
+	//	designs[f.PropertyMustString("d_Mang_Nam")] = f.PropertyMustString("d_Mang_Nam")
+	//} else {
+	//	designs[f.PropertyMustString("d_Mang_Nam")] += 1
+	//}
+
+	//fmt.Println(
+	//	"designation",
+	//	f.PropertyMustString("d_Des_Tp"), ",",
+	//	//f.PropertyMustString("Loc_Ds"), ",",
+	//	f.PropertyMustString("Des_Tp"), ",",
+	//)
+
+	pa.NameStandard, err = Ω.FormatAreaName(pa.ID, f.PropertyMustString("Unit_Nm")) // Unit_Nm
 	if err != nil {
 		return nil, err
 	}
 
-	pa.State = store.ProtectedAreaState{
-		Name: f.PropertyMustString("d_State_Nm"),
+	pa.NameLocal, err = Ω.FormatAreaName(pa.ID, f.PropertyMustString("Loc_Nm")) // Unit_Nm
+	if err != nil {
+		return nil, err
 	}
 
-	for k, v := range store.ValidProtectedAreaStates {
-		if v == pa.State.Name {
-			pa.State.Abbr = k
-		}
+	// Total GISAcres
+	for _, _f := range fc.Features {
+		pa.GISAcres += _f.PropertyMustFloat64("GIS_Acres")
 	}
 
 	// Another option https://github.com/mapbox/polylabel
-	centre, bounds, err := p.ParsePolygon(f)
+	//centre, bounds, minDistanceFromNearestPoint, err := p.ParsePolygon(fc)
+	centroid, bounds, _, err := Ω.ParsePolygon(fc)
 	if err != nil {
 		return nil, err
 	}
 
-	pa.Centre = latlng.LatLng{centre.Lat(), centre.Lng()}
-	pa.HeightMeters = bounds.GeoHeight()
-	pa.WidthMeters = bounds.GeoWidth()
-	pa.Bounds = bounds.String()
+	pa.Centroid = [2]float64{centroid.Lat(), centroid.Lng()}
+	pa.Height = bounds.GeoHeight()
+	pa.Width = bounds.GeoWidth()
+	ne := bounds.NorthEast()
+	sw := bounds.SouthWest()
+	pa.Bounds = [2][2]float64{{sw.Lat(), sw.Lng()}, {ne.Lat(), ne.Lng()}}
 
-	if valid, _ := pa.Valid(); !valid {
+	//Ω.EcoRegionCache.PointWithin(centroid.Lat(), centroid.Lng())
+
+	valid, reason, invalidValue := pa.Valid()
+
+	if !valid {
+		fmt.Println("invalid", reason, invalidValue)
 		return nil, nil
+	}
+
+	if err := Ω.PrintCSV(&pa); err != nil {
+		return nil, err
 	}
 
 	return &pa, nil
 }
 
-func (p *Parser) ParsePolygon(f *geojson.Feature) (centre *geo.Point, bounds *geo.Bound, err error) {
-		if !f.Geometry.IsMultiPolygon() && !f.Geometry.IsPolygon() {
-			return nil, nil, errors.Newf("unsupported geometry type: %s", f.Geometry.Type)
-		}
+var AccumulatedDefinitions = map[string]map[string]string{}
+var AccumulatedCounters = map[string]map[string]int{}
 
-		pointSet := geo.NewPointSet()
+func (p *Parser) AccumulateMaps(f *geojson.Feature) {
+	for _, a := range [][]string{
+		{"AreaCategory", "Category", "d_Category"},
+		{"AreaDesignation", "Des_Tp", "d_Des_Tp"},
+		{"AreaManagerName", "Mang_Name", "d_Mang_Nam"},
+		{"AreaManagerType", "Mang_Type", "d_Mang_Typ"},
+		{"AreaOwnerName", "Own_Name", "d_Own_Name"},
+		{"AreaOwnerType", "Own_Type", "d_Own_Type"},
+		{"AreaPublicAccess", "Access", "d_Access"},
+		{"AreaIUCNCategory", "IUCN_Cat", "d_IUCN_Cat"},
+		{"AreaGAPStatus", "GAP_Sts", "d_GAP_Sts"},
+	} {
+		if _, ok := AccumulatedDefinitions[a[0]]; !ok {
+			AccumulatedDefinitions[a[0]] = map[string]string{}
+		}
+		if _, ok := AccumulatedDefinitions[a[0]][f.PropertyMustString(a[1])]; !ok {
+			AccumulatedDefinitions[a[0]][f.PropertyMustString(a[1])] = f.PropertyMustString(a[2])
+		}
+	}
+	if f.PropertyMustString("Unit_Nm") != f.PropertyMustString("Loc_Nm") {
+		fmt.Println("{", f.PropertyMustString("Unit_Nm"), " : ", f.PropertyMustString("Loc_Nm"), "}")
+	}
+
+	for _, a := range [][]string{
+		{"GapStatus", "GAP_Sts"},
+		{"IUCNCategory", "IUCN_Cat"},
+		{"PublicAccess", "Access"},
+		{"Category", "Category"},
+	} {
+		if _, ok := AccumulatedCounters[a[0]]; !ok {
+			AccumulatedCounters[a[0]] = map[string]int{}
+		}
+		v := f.PropertyMustString(a[1])
+		if _, ok := AccumulatedCounters[a[0]][v]; !ok {
+			AccumulatedCounters[a[0]][v] = 1
+		} else {
+			AccumulatedCounters[a[0]][v] += 1
+		}
+	}
+	return
+}
+
+func (p *Parser) PrintAccumulatedMaps()  {
+	for a, b := range AccumulatedDefinitions {
+		keys := []string{}
+		for c, _ := range b {
+			keys = append(keys, c)
+		}
+		sort.Strings(keys)
+		fmt.Println(fmt.Sprintf("type %s string", a))
+		fmt.Println(fmt.Sprintf("var %sDict = map[%s]string{", a, a))
+		for _, k := range keys {
+			fmt.Println(fmt.Sprintf(`%s("%s"): "%s",`, a, k, b[k]))
+		}
+		fmt.Println(fmt.Sprintf("}"))
+	}
+
+	fmt.Println(utils.JsonOrSpew(AccumulatedCounters))
+}
+
+func (p *Parser) ParsePolygon(fc *geojson.FeatureCollection) (centre *geo.Point, bounds *geo.Bound, minDistanceFromNearestPoint float64, err error) {
+
+	pointSet := geo.NewPointSet()
+
+	for _, f := range fc.Features {
+		if !f.Geometry.IsMultiPolygon() && !f.Geometry.IsPolygon() {
+			return nil, nil, 0, errors.Newf("unsupported geometry type: %s", f.Geometry.Type)
+		}
 
 		// MultiPolygon    [][][][]float64
 		if f.Geometry.IsMultiPolygon() {
@@ -205,9 +307,20 @@ func (p *Parser) ParsePolygon(f *geojson.Feature) (centre *geo.Point, bounds *ge
 			}
 		}
 
-		min, i := pointSet.GeoDistanceFrom(pointSet.GeoCentroid())
-		fmt.Println("Distance From", f.PropertyMustString("WDPA_Cd"), min, pointSet.GetAt(i))
+	}
+	centroid := pointSet.GeoCentroid()
+	min, _ := pointSet.GeoDistanceFrom(centroid)
+	bound := pointSet.Bound()
 
-		return pointSet.GeoCentroid(), pointSet.Bound(), nil
+	return centroid, bound, min, nil
 
+}
+
+func (p *Parser) PrintCSV(area *store.ProtectedArea) error {
+	s, err := gocsv.MarshalString(area)
+	if err != nil {
+		return errors.Wrap(err, "could not marshal csv")
+	}
+	fmt.Println(s)
+	return nil
 }

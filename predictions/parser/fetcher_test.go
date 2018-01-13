@@ -1,13 +1,13 @@
 package parser
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-	"bitbucket.org/heindl/taxa/store"
-	"golang.org/x/net/context"
-	"fmt"
-	"sync"
 	"bitbucket.org/heindl/taxa/predictions/geocache"
+	"bitbucket.org/heindl/taxa/store"
+	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
+	"sync"
+	"testing"
 )
 
 type TestWriter struct {

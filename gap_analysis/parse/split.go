@@ -1,12 +1,12 @@
 package main
 
 import (
-	"flag"
-	"io/ioutil"
-	"github.com/paulmach/go.geojson"
-	"strconv"
 	"encoding/json"
+	"flag"
+	"github.com/paulmach/go.geojson"
+	"io/ioutil"
 	"path"
+	"strconv"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 	outputFeatureCollections := map[string]*geojson.FeatureCollection{}
 
 	zeros := 0
-	for _, f := range inputFeatureCollection.Features{
+	for _, f := range inputFeatureCollection.Features {
 		if v, ok := f.Properties["WDPA_Cd"]; ok {
 			fid := v.(float64)
 			if fid == 0 {
@@ -57,6 +57,5 @@ func main() {
 			panic(err)
 		}
 	}
-
 
 }

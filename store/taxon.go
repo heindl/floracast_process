@@ -1,11 +1,11 @@
 package store
 
 import (
-	"time"
 	"cloud.google.com/go/firestore"
-	"golang.org/x/net/context"
 	"github.com/saleswise/errors/errors"
+	"golang.org/x/net/context"
 	"strings"
+	"time"
 )
 
 //const EntityKindTaxon = "Taxon"
@@ -23,43 +23,44 @@ func (Ω TaxonID) Valid() bool {
 }
 
 type TaxonRank string
+
 const (
 	// Originating from INaturalist:
-	RankKingdom = TaxonRank("Kingdom")
-	RankPhylum = TaxonRank("Phylum")
-	RankSubPhylum = TaxonRank("SubPhylum")
-	RankClass = TaxonRank("Class")
-	RankSubClass = TaxonRank("SubClass")
-	RankOrder = TaxonRank("Order")
+	RankKingdom     = TaxonRank("Kingdom")
+	RankPhylum      = TaxonRank("Phylum")
+	RankSubPhylum   = TaxonRank("SubPhylum")
+	RankClass       = TaxonRank("Class")
+	RankSubClass    = TaxonRank("SubClass")
+	RankOrder       = TaxonRank("Order")
 	RankSuperFamily = TaxonRank("SuperFamily")
-	RankFamily = TaxonRank("Family")
-	RankSubFamily = TaxonRank("SubFamily")
-	RankTribe = TaxonRank("Tribe")
-	RankSubTribe = TaxonRank("SubTribe")
-	RankGenus = TaxonRank("Genus")
-	RankSpecies = TaxonRank("Species")
-	RankSubSpecies = TaxonRank("SubSpecies")
-	RankForm = TaxonRank("Form")
-	RankVariety = TaxonRank("Variety")
+	RankFamily      = TaxonRank("Family")
+	RankSubFamily   = TaxonRank("SubFamily")
+	RankTribe       = TaxonRank("Tribe")
+	RankSubTribe    = TaxonRank("SubTribe")
+	RankGenus       = TaxonRank("Genus")
+	RankSpecies     = TaxonRank("Species")
+	RankSubSpecies  = TaxonRank("SubSpecies")
+	RankForm        = TaxonRank("Form")
+	RankVariety     = TaxonRank("Variety")
 )
 
 var TaxonRankMap = map[string]TaxonRank{
-	"kingdom": RankKingdom,
-	"phylum": RankPhylum,
-	"subphylum": RankSubPhylum,
-	"class": RankClass,
-	"subclass": RankSubClass,
-	"order": RankOrder,
+	"kingdom":     RankKingdom,
+	"phylum":      RankPhylum,
+	"subphylum":   RankSubPhylum,
+	"class":       RankClass,
+	"subclass":    RankSubClass,
+	"order":       RankOrder,
 	"superfamily": RankSuperFamily,
-	"family": RankFamily,
-	"subfamily": RankSubFamily,
-	"tribe": RankTribe,
-	"subtribe": RankSubTribe,
-	"genus": RankGenus,
-	"species": RankSpecies,
-	"subspecies": RankSubSpecies,
-	"form": RankForm,
-	"variety": RankVariety,
+	"family":      RankFamily,
+	"subfamily":   RankSubFamily,
+	"tribe":       RankTribe,
+	"subtribe":    RankSubTribe,
+	"genus":       RankGenus,
+	"species":     RankSpecies,
+	"subspecies":  RankSubSpecies,
+	"form":        RankForm,
+	"variety":     RankVariety,
 }
 
 func (Ω TaxonRank) Valid() bool {
@@ -70,38 +71,39 @@ func (Ω TaxonRank) Valid() bool {
 }
 
 type RankLevel int
+
 const (
 	// Originating from INaturalist:
-	RankLevelKingdom = RankLevel(70)
-	RankLevelPhylum = RankLevel(60)
-	RankLevelSubPhylum = RankLevel(57)
-	RankLevelClass = RankLevel(50)
-	RankLevelSubClass = RankLevel(47)
-	RankLevelOrder = RankLevel(40)
+	RankLevelKingdom     = RankLevel(70)
+	RankLevelPhylum      = RankLevel(60)
+	RankLevelSubPhylum   = RankLevel(57)
+	RankLevelClass       = RankLevel(50)
+	RankLevelSubClass    = RankLevel(47)
+	RankLevelOrder       = RankLevel(40)
 	RankLevelSuperFamily = RankLevel(33)
-	RankLevelFamily = RankLevel(30)
-	RankLevelSubFamily = RankLevel(27)
-	RankLevelTribe = RankLevel(25)
-	RankLevelSubTribe = RankLevel(24)
-	RankLevelGenus = RankLevel(20)
-	RankLevelSpecies = RankLevel(10)
-	RankLevelSubSpecies = RankLevel(5)
-	RankLevelVariety = RankLevel(5)
+	RankLevelFamily      = RankLevel(30)
+	RankLevelSubFamily   = RankLevel(27)
+	RankLevelTribe       = RankLevel(25)
+	RankLevelSubTribe    = RankLevel(24)
+	RankLevelGenus       = RankLevel(20)
+	RankLevelSpecies     = RankLevel(10)
+	RankLevelSubSpecies  = RankLevel(5)
+	RankLevelVariety     = RankLevel(5)
 )
 
 type Taxon struct {
-	CanonicalName    CanonicalName `firestore:",omitempty"`
-	ID               TaxonID       `firestore:",omitempty"`
-	ParentID         TaxonID       `firestore:",omitempty"`
-	PhotoURL string `firestore:",omitempty"`
-	Rank             TaxonRank     `firestore:",omitempty"`
-	RankLevel        RankLevel     `firestore:",omitempty"`
-	CommonName       string        `firestore:",omitempty"`
-	ModifiedAt       time.Time     `firestore:",omitempty"`
-	CreatedAt        time.Time     `firestore:",omitempty"`
-	States           []State       `firestore:",omitempty"`
-	WikipediaSummary string        `firestore:",omitempty"`
-	EcoRegions map[string]int `firestore:",omitempty"`
+	CanonicalName    CanonicalName  `firestore:",omitempty"`
+	ID               TaxonID        `firestore:",omitempty"`
+	ParentID         TaxonID        `firestore:",omitempty"`
+	PhotoURL         string         `firestore:",omitempty"`
+	Rank             TaxonRank      `firestore:",omitempty"`
+	RankLevel        RankLevel      `firestore:",omitempty"`
+	CommonName       string         `firestore:",omitempty"`
+	ModifiedAt       time.Time      `firestore:",omitempty"`
+	CreatedAt        time.Time      `firestore:",omitempty"`
+	States           []State        `firestore:",omitempty"`
+	WikipediaSummary string         `firestore:",omitempty"`
+	EcoRegions       map[string]int `firestore:",omitempty"`
 }
 
 func (Ω Taxon) Combine(s *Taxon) *Taxon {
@@ -284,7 +286,6 @@ func (Ω *store) ReadTaxon(cxt context.Context, id TaxonID) (*Taxon, error) {
 	return &t, nil
 }
 
-
 // IncrementTaxonEcoRegion updates a map of world wildlife fund eco-regions with the count of occurrences in each.
 // This is to be used to sort the taxa to include in each model for the eco region.
 // Formula: (OccurrenceCountForTaxonWithinEcoRegion / TotalOccurrenceCountForTaxon) / TotalEcoRegions
@@ -300,7 +301,7 @@ func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, e
 			return errors.Wrapf(err, "could not get taxon: %s", string(taxonID))
 		}
 
-		fieldPath := firestore.FieldPath{"EcoRegions", "_"+ecoRegionKey}
+		fieldPath := firestore.FieldPath{"EcoRegions", "_" + ecoRegionKey}
 
 		ecoRegionCount, err := doc.DataAtPath(fieldPath)
 		if err != nil && !strings.Contains(err.Error(), "no field") && !strings.Contains(err.Error(), `value for field "EcoRegions" is not a map`) {

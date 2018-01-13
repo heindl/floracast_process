@@ -1,16 +1,16 @@
 package filecache
 
 import (
-	"fmt"
 	"bitbucket.org/heindl/taxa/store"
+	"encoding/json"
+	"fmt"
+	"github.com/elgs/gostrgen"
+	"github.com/saleswise/errors/errors"
 	"os"
 	"path"
-	"github.com/saleswise/errors/errors"
-	"github.com/elgs/gostrgen"
-	"encoding/json"
 )
 
-type FileCache struct{
+type FileCache struct {
 	FilePath string
 }
 
