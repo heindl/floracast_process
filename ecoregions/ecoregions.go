@@ -7,7 +7,7 @@ import (
 	"gopkg.in/tomb.v2"
 )
 
-type EcoRegions []EcoRegion
+type EcoRegionsCache []EcoRegion
 
 type EcoRegion struct {
 	EcoName    string  // Ecoregion Name
@@ -18,8 +18,8 @@ type EcoRegion struct {
 	GeoObjects []geojson.Object
 }
 
-func NewEcoRegionsCache() (EcoRegions, error) {
-	res := EcoRegions{}
+func NewEcoRegionsCache() (EcoRegionsCache, error) {
+	res := EcoRegionsCache{}
 	for _, cr := range cache.EcoRegionCache {
 
 		nr := EcoRegion{
@@ -50,7 +50,7 @@ func NewEcoRegionsCache() (EcoRegions, error) {
 	return res, nil
 }
 
-func (Ω EcoRegions) EcoID(lat, lng float64) EcoID {
+func (Ω EcoRegionsCache) EcoID(lat, lng float64) EcoID {
 	p := geojson.New2DPoint(lng, lat)
 
 	var id EcoID

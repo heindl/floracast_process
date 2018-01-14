@@ -7,8 +7,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gocarina/gocsv"
-	"github.com/paulmach/go.geo"
 	"github.com/paulmach/go.geojson"
+	//"github.com/tidwall/tile38/geojson"
 	"github.com/saleswise/errors/errors"
 	"io/ioutil"
 	"os"
@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode/utf8"
+	"bitbucket.org/heindl/taxa/gap_analysis/polylabel"
 )
 
 func main() {
@@ -32,18 +33,16 @@ func main() {
 		panic(err)
 	}
 
-	//ecoRegionCache, err := ecoregions.NewEcoRegionCache(*ecoRegionFile)
-	//if err != nil {
-	//	panic(err)
-	//}
+	ecoRegionCache, err := ecoregions.NewEcoRegionsCache()
+	if err != nil {
+		panic(err)
+	}
 
 	parser := &Parser{
 		Store: taxaStore,
 		Stats: NewStatsContainer(),
-		//EcoRegionCache: ecoRegionCache,
+		EcoRegionCache: ecoRegionCache,
 	}
-
-	return
 
 	if err := filepath.Walk(*geojsonPath, parser.RecursiveSearchParse); err != nil {
 		panic(err)
@@ -55,7 +54,7 @@ func main() {
 type Parser struct {
 	Store          store.TaxaStore
 	Stats          *StatsContainer
-	EcoRegionCache ecoregions.EcoRegionCache
+	EcoRegionCache ecoregions.EcoRegionsCache
 }
 
 func (p *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) error {
@@ -120,6 +119,7 @@ const (
 
 func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 
+
 	fc, err := geojson.UnmarshalFeatureCollection(gb)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not unmarshal field collection")
@@ -135,7 +135,8 @@ func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 		ManagerStandardName: store.AreaManagerName(f.PropertyMustString("Mang_Nam")),  //  d_Mang_Nam, Mang_Name
 		ManagerLocalName:    f.PropertyMustString("Loc_Mang"),                         // Loc_Mang
 		ManagerType:         store.AreaManagerType(f.PropertyMustString("Mang_Type")), // d_Mang_Typ, Mang_Type
-		Owner:               store.AreaOwnerName(f.PropertyMustString("Own_Name")),    // Own_Name, d_Own_Name, Loc_Own
+		OwnerName:               store.AreaOwnerName(f.PropertyMustString("Own_Name")),    // Own_Name, d_Own_Name,
+		OwnerNameLocal: 	f.PropertyMustString("Loc_Own"), //  Loc_Own
 		OwnerType:           store.AreaOwnerType(f.PropertyMustString("Own_Type")),    // Own_Type, d_Own_Type
 		PublicAccess:        store.AreaPublicAccess(f.PropertyMustString("Access")),
 		IUCNCategory:        store.AreaIUCNCategory(f.PropertyMustString("IUCN_Cat")),
@@ -178,17 +179,43 @@ func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 
 	// Another option https://github.com/mapbox/polylabel
 	//centre, bounds, minDistanceFromNearestPoint, err := p.ParsePolygon(fc)
-	centroid, bounds, _, err := Ω.ParsePolygon(fc)
+	centroid, err := Ω.ParsePolygon(fc)
 	if err != nil {
 		return nil, err
 	}
 
-	pa.Centroid = [2]float64{centroid.Lat(), centroid.Lng()}
-	pa.Height = bounds.GeoHeight()
-	pa.Width = bounds.GeoWidth()
-	ne := bounds.NorthEast()
-	sw := bounds.SouthWest()
-	pa.Bounds = [2][2]float64{{sw.Lat(), sw.Lng()}, {ne.Lat(), ne.Lng()}}
+	ecoID := Ω.EcoRegionCache.EcoID(centroid.Latitude, centroid.Longitude)
+	if !ecoID.Valid() {
+		fmt.Println("invalid", centroid.Latitude, centroid.Longitude)
+	}
+
+	return nil, nil
+
+	//newLat, newLng, newContains, pastContains, err := SecondOpinionCentroid(gb, centroid.Lat(), centroid.Lng())
+	//
+	//distanceBetweenCentroids := centroid.GeoDistanceFrom(&geo.Point{newLng, newLat})
+	//
+	//
+	//if newContains != pastContains {
+	//	fmt.Println(utils.JsonOrSpew(map[string]interface{}{
+	//		"intial_centroid":           []float64{centroid.Lat(), centroid.Lng()},
+	//		"intial_contained":          pastContains,
+	//		"second_centroid":           []float64{newLat, newLng},
+	//		"second_contained":          newContains,
+	//		"initial_min_from_boundary": minDistanceFromNearestPoint,
+	//		"distance_between":          distanceBetweenCentroids,
+	//	}))
+	//}
+	//
+	//return nil, nil
+
+
+	//pa.Centroid = [2]float64{centroid.Lat(), centroid.Lng()}
+	//pa.Height = bounds.GeoHeight()
+	//pa.Width = bounds.GeoWidth()
+	//ne := bounds.NorthEast()
+	//sw := bounds.SouthWest()
+	//pa.Bounds = [2][2]float64{{sw.Lat(), sw.Lng()}, {ne.Lat(), ne.Lng()}}
 
 	//Ω.EcoRegionCache.PointWithin(centroid.Lat(), centroid.Lng())
 
@@ -269,44 +296,30 @@ func (p *Parser) PrintAccumulatedMaps() {
 	fmt.Println(utils.JsonOrSpew(AccumulatedCounters))
 }
 
-func (p *Parser) ParsePolygon(fc *geojson.FeatureCollection) (centre *geo.Point, bounds *geo.Bound, minDistanceFromNearestPoint float64, err error) {
+func (p *Parser) ParsePolygon(fc *geojson.FeatureCollection) (centre *polylabel.Point, err error) {
 
-	pointSet := geo.NewPointSet()
+
+	polygons := []polylabel.Polygon{}
 
 	for _, f := range fc.Features {
 		if !f.Geometry.IsMultiPolygon() && !f.Geometry.IsPolygon() {
-			return nil, nil, 0, errors.Newf("unsupported geometry type: %s", f.Geometry.Type)
+			return nil, errors.Newf("unsupported geometry type: %s", f.Geometry.Type)
 		}
-
 		// MultiPolygon    [][][][]float64
 		if f.Geometry.IsMultiPolygon() {
-			for _, a := range f.Geometry.MultiPolygon {
-				// [][][]float64
-				for _, b := range a {
-					// [][]float64
-					for _, c := range b {
-						pointSet = pointSet.Push(geo.NewPointFromLatLng(c[1], c[0]))
-					}
-				}
+			for _, p := range f.Geometry.MultiPolygon {
+				polygons = append(polygons, polylabel.Polygon(p))
 			}
 		}
 		// Polygon         [][][]float64
 		if f.Geometry.IsPolygon() {
-			for _, a := range f.Geometry.Polygon {
-				// [][]float64
-				for _, b := range a {
-					// []float64
-					pointSet = pointSet.Push(geo.NewPointFromLatLng(b[1], b[0]))
-				}
-			}
+			polygons = append(polygons, polylabel.Polygon(f.Geometry.Polygon))
 		}
-
 	}
-	centroid := pointSet.GeoCentroid()
-	min, _ := pointSet.GeoDistanceFrom(centroid)
-	bound := pointSet.Bound()
 
-	return centroid, bound, min, nil
+	poly := polylabel.PolyLabel(0, polygons...)
+
+	return poly, nil
 
 }
 

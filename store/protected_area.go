@@ -25,7 +25,8 @@ type ProtectedArea struct {
 	ManagerStandardName AreaManagerName  `json:",omitempty" csv:""`
 	ManagerLocalName    string           `json:",omitempty" csv:""`
 	ManagerType         AreaManagerType  `json:",omitempty" csv:""`
-	Owner               AreaOwnerName    `json:",omitempty" csv:""`
+	OwnerName               AreaOwnerName    `json:",omitempty" csv:""`
+	OwnerNameLocal               string    `json:",omitempty" csv:""`
 	OwnerType           AreaOwnerType    `json:",omitempty" csv:""`
 	PublicAccess        AreaPublicAccess `json:",omitempty" csv:""`
 	IUCNCategory        AreaIUCNCategory `json:",omitempty" csv:""`
