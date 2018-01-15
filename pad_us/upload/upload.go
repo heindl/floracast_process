@@ -17,7 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode/utf8"
-	"bitbucket.org/heindl/taxa/gap_analysis/polylabel"
+	"bitbucket.org/heindl/taxa/terra"
 )
 
 func main() {
@@ -127,6 +127,8 @@ func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 
 	f := fc.Features[0]
 
+	Ensure gap status code is being properly converted because that can signal how careful to be with the area
+
 	pa := store.ProtectedArea{
 		ID:                  strconv.Itoa(f.PropertyMustInt("WDPA_Cd")),
 		StateAbbr:           f.PropertyMustString("State_Nm"),
@@ -177,19 +179,32 @@ func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 		pa.GISAcres += _f.PropertyMustFloat64("GIS_Acres")
 	}
 
+
+	//if pa.NameStandard != "Eastshore State Park" {
+	//	return nil, nil
+	//}
+
+
+
 	// Another option https://github.com/mapbox/polylabel
 	//centre, bounds, minDistanceFromNearestPoint, err := p.ParsePolygon(fc)
-	centroid, err := Ω.ParsePolygon(fc)
+	poly, centroid, err := Ω.ParsePolygon(fc)
 	if err != nil {
 		return nil, err
 	}
+	pa.PolyLabel = [2]float64{poly.Lat, poly.Lng}
+	pa.Centroid = [2]float64{centroid.Lat, centroid.Lng}
 
-	ecoID := Ω.EcoRegionCache.EcoID(centroid.Latitude, centroid.Longitude)
+	ecoID := Ω.EcoRegionCache.EcoID(poly.Lat, poly.Lng)
 	if !ecoID.Valid() {
-		fmt.Println("invalid", centroid.Latitude, centroid.Longitude)
+		fmt.Println("")
+		fmt.Println(string(gb))
+		fmt.Println(utils.JsonOrSpew(pa))
 	}
 
 	return nil, nil
+
+	//return nil, nil
 
 	//newLat, newLng, newContains, pastContains, err := SecondOpinionCentroid(gb, centroid.Lat(), centroid.Lng())
 	//
@@ -296,14 +311,14 @@ func (p *Parser) PrintAccumulatedMaps() {
 	fmt.Println(utils.JsonOrSpew(AccumulatedCounters))
 }
 
-func (p *Parser) ParsePolygon(fc *geojson.FeatureCollection) (centre *polylabel.Point, err error) {
+func (Ω *Parser) ParsePolygon(fc *geojson.FeatureCollection) (poly, centroid *polylabel.Point, err error) {
 
 
 	polygons := []polylabel.Polygon{}
 
 	for _, f := range fc.Features {
 		if !f.Geometry.IsMultiPolygon() && !f.Geometry.IsPolygon() {
-			return nil, errors.Newf("unsupported geometry type: %s", f.Geometry.Type)
+			return nil, nil, errors.Newf("unsupported geometry type: %s", f.Geometry.Type)
 		}
 		// MultiPolygon    [][][][]float64
 		if f.Geometry.IsMultiPolygon() {
@@ -317,9 +332,9 @@ func (p *Parser) ParsePolygon(fc *geojson.FeatureCollection) (centre *polylabel.
 		}
 	}
 
-	poly := polylabel.PolyLabel(0, polygons...)
+	poly, centroid = polylabel.PolyLabel(0, polygons...)
 
-	return poly, nil
+	return
 
 }
 

@@ -4,7 +4,9 @@ import (
 	"bitbucket.org/heindl/taxa/ecoregions/generated_cache"
 	"github.com/saleswise/errors/errors"
 	"github.com/tidwall/tile38/geojson"
+	//"github.com/paulmach/go.geojson"
 	"gopkg.in/tomb.v2"
+
 )
 
 type EcoRegionsCache []EcoRegion
@@ -38,10 +40,19 @@ func NewEcoRegionsCache() (EcoRegionsCache, error) {
 		}
 
 		for _, geoStr := range cr.Geometries {
+
+			//geometry, err := geojson.UnmarshalGeometry([]byte(geoStr))
+			//if err != nil {
+			//	return nil, errors.Wrap(err, "could not unmarshal geometry")
+			//}
+
 			geoObj, err := geojson.ObjectJSON(geoStr)
 			if err != nil {
 				return nil, errors.Wrapf(err, "could not parse geojson string for region[%s] in biome[%s]", cr.EcoCode, cr.Biome)
 			}
+
+			geoObj.
+			geoObj.
 			nr.GeoObjects = append(nr.GeoObjects, geoObj)
 		}
 
@@ -63,6 +74,8 @@ func (Ω EcoRegionsCache) EcoID(lat, lng float64) EcoID {
 			tmb.Go(func() error {
 				o := _o
 				for _, geoObj := range o.GeoObjects {
+
+					//p.Nearby()
 					if p.Within(geoObj) {
 						id = o.EcoID
 						tmb.Kill(nil)

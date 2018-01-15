@@ -16,6 +16,7 @@ type ProtectedArea struct {
 	NameLocal           string           `json:",omitempty" csv:""`
 	StateAbbr           string           `json:",omitempty" csv:""`
 	Bounds              [2][2]float64    `json:",omitempty" csv:""` // [SouthWest, NorthEast]
+	PolyLabel           [2]float64       `json:",omitempty" csv:""` // Latitude, Longitude
 	Centroid            [2]float64       `json:",omitempty" csv:""` // Latitude, Longitude
 	GISAcres            float64          `json:",omitempty" csv:""`
 	Height              float64          `json:",omitempty" csv:""` // in Meters
