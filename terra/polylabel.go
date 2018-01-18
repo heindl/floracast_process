@@ -3,58 +3,9 @@ package terra
 import (
 	"math"
 	"sort"
-	"github.com/paulmach/go.geo"
 )
 
-type Polygon [][][]float64
-
-type Point struct{
-	Lat, Lng float64
-}
-
-func PolyLabel(precision float64, polygons ...Polygon) (poly, centroid *Point) {
-
-	if len(polygons) == 0 {
-		return nil, nil
-	}
-
-	cp := calc_centroid(polygons...)
-
-	var nDistance float64
-	var nPoint *geo.Point
-
-	for _, polygon := range polygons {
-		p := polyLabel(polygon, precision)
-		d := p.DistanceFrom(cp)
-		if  nPoint == nil || d < nDistance {
-			nPoint = p
-			nDistance = d
-		}
-	}
-
-	return &Point{nPoint.Lat(), nPoint.Lng()}, &Point{cp.Lat(), cp.Lng()}
-
-}
-
-func calc_centroid(polygons ...Polygon) *geo.Point {
-
-	set := geo.NewPointSet()
-
-	// [][][][]float64
-	for _, polygon := range polygons {
-		// [][][]float64
-		for _, ring := range polygon {
-			// [][]float64
-			for _, point := range ring {
-				set = set.Push(geo.NewPointFromLatLng(point[1], point[0]))
-			}
-		}
-	}
-	return set.GeoCentroid()
-
-}
-
-func polyLabel(polygon Polygon, precision float64) *geo.Point {
+func PolyLabel(polygon [][][]float64, precision float64) Point {
 
 	if precision == 0 {
 		precision = 0.001
@@ -89,7 +40,7 @@ func polyLabel(polygon Polygon, precision float64) *geo.Point {
 	cellQueue := cells{}
 
 	if cellSize == 0 {
-		return geo.NewPointFromLatLng(minY, minX)
+		return NewPoint(minY, minX)
 	};
 
 	// cover polygon with initial cells
@@ -137,7 +88,7 @@ func polyLabel(polygon Polygon, precision float64) *geo.Point {
 		numProbes += 4
 	}
 
-	return geo.NewPointFromLatLng(bestCell.y, bestCell.x)
+	return NewPoint(bestCell.y, bestCell.x)
 }
 
 
@@ -154,7 +105,7 @@ func (a cells) Len() int           { return len(a) }
 func (a cells) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a cells) Less(i, j int) bool { return a[i].max > a[j].max}
 
-func newCell(x, y, h float64, polygon Polygon) cell {
+func newCell(x, y, h float64, polygon [][][]float64) cell {
 	c := cell{
 		x: x,
 		y: y,
@@ -166,7 +117,7 @@ func newCell(x, y, h float64, polygon Polygon) cell {
 }
 
 // signed distance from point to polygon outline (negative if point is outside)
-func pointToPolygonDist(x, y float64, polygon Polygon) float64 {
+func pointToPolygonDist(x, y float64, polygon [][][]float64) float64 {
 	inside := false
 	minDistSq := math.Inf(1)// Infinity;
 
@@ -199,7 +150,7 @@ func pointToPolygonDist(x, y float64, polygon Polygon) float64 {
 }
 
 // get polygon centroid
-func getCentroidCell(polygon Polygon) cell {
+func getCentroidCell(polygon [][][]float64) cell {
 	area := 0.0
 	x := 0.0
 	y := 0.0

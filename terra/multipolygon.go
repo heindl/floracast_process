@@ -2,8 +2,6 @@ package terra
 
 import (
 	"github.com/golang/geo/s2"
-	"fmt"
-	"math"
 )
 
 
@@ -20,13 +18,25 @@ func (Ω MultiPolygon) Empty() bool {
 	return true
 }
 
+func (Ω MultiPolygon) Area() float64 {
+	area := 0.0
+	for _, p := range Ω {
+		for _, l := range p.Loops() {
+			if l.IsHole() || len(l.Vertices()) == 0 {
+				continue
+			}
+			// // Multiply by radius of earth (km) square
+			// (4π)r2
+			area += l.Area() * (6371 * 6371)
+			break
+		}
+	}
+	return area
+}
+
 func (Ω MultiPolygon) Contains(lat, lng float64) bool {
 	p := s2.PointFromLatLng(s2.LatLngFromDegrees(lat, lng))
-	for i, polygon := range Ω {
-
-		for  _, l := range polygon.Loops() {
-			fmt.Println(i, fmt.Sprintf("%.10f", l.Area()), len(l.Vertices()), l.IsHole(), math.Ceil(l.Area()), s2.LatLngFromPoint(l.Centroid()).String())
-		}
+	for _, polygon := range Ω {
 		if polygon.ContainsPoint(p) {
 			return true
 		}
@@ -47,13 +57,88 @@ func (Ω MultiPolygon) ReferencePoints() [][2]float64 {
 	return res
 }
 
-func (Ω MultiPolygon) PushPolygon(p *s2.Polygon) MultiPolygon {
-	return append(Ω, p)
+
+func (Ω MultiPolygon) LargestPolygon() *s2.Polygon {
+	maxArea := 0.0
+	var maxPolygon *s2.Polygon
+	for _, polygon := range Ω {
+		for _, l := range polygon.Loops() {
+			if l.IsHole() {
+				continue
+			}
+			a := l.Area()
+			if a <= maxArea {
+				continue
+			}
+			maxArea = a
+			maxPolygon = polygon
+			break
+		}
+	}
+	return maxPolygon
+}
+
+func (Ω MultiPolygon) ToArray() [][][][]float64 {
+
+	multipolygon_array := [][][][]float64{}
+	for _, polygon := range Ω {
+		multipolygon_array = append(multipolygon_array, PolygonToArray(polygon))
+	}
+	return multipolygon_array
+}
+
+func PolygonToArray(polygon *s2.Polygon) [][][]float64 {
+	polygon_array := [][][]float64{}
+	holes := [][][]float64{}
+	for _, loop := range polygon.Loops() {
+		loop_array := [][]float64{}
+		for _, v := range loop.Vertices() {
+			coords := s2.LatLngFromPoint(v)
+			loop_array = append(loop_array, []float64{coords.Lng.Degrees(), coords.Lat.Degrees()})
+		}
+		if loop.IsHole() {
+			holes = append(holes, loop_array)
+		} else {
+			polygon_array = append(polygon_array, loop_array)
+		}
+	}
+	return append(polygon_array, holes...)
+}
+
+func (Ω MultiPolygon) PolylabelOfLargestPolygon() Point {
+	return PolyLabel(PolygonToArray(Ω.LargestPolygon()), 0)
+}
+
+func (Ω MultiPolygon) CentroidOfLargestPolygon() Point {
+	largest := 0.0
+	coord := Point{}
+	for _, polygon := range Ω {
+		for _, l := range polygon.Loops() {
+			if l.IsHole() {
+				continue
+			}
+			a := l.Area()
+			if a <= largest {
+				continue
+			}
+			largest = a
+			ll := s2.LatLngFromPoint(l.Centroid())
+			coord = NewPoint(ll.Lat.Degrees(), ll.Lng.Degrees())
+		}
+	}
+	return coord
+}
+
+
+func (Ω MultiPolygon) PushPolygon(_p *s2.Polygon) MultiPolygon {
+	p := *_p
+	return append(Ω, &p)
 }
 
 func (Ω MultiPolygon) PushMultiPolygon(mp MultiPolygon) MultiPolygon {
-	for _, p := range mp {
-		Ω = Ω.PushPolygon(p)
+	for _, _p := range mp {
+		p := *_p
+		Ω = Ω.PushPolygon(&p)
 	}
 	return Ω
 }
@@ -66,7 +151,6 @@ func NewPolygon(pArray [][][]float64) (*s2.Polygon, error) {
 		if l := newLoop(ring); l != nil {
 			loops = append([]*s2.Loop{l}, loops...)
 		}
-		break
 	}
 	return s2.PolygonFromLoops(loops), nil
 }

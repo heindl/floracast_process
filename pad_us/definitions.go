@@ -13,8 +13,8 @@ var CategoryDefinitions = map[Category]string{
 	Category("Designation"): "Designation",
 	Category("Easement"):    "Easement",
 	Category("Fee"):         "Fee",
-	Category("Other"):       "Other",
-	Category("Unknown"):     "Unknown",
+	Category("Other"):       "Other", // Mostly Wildlife Management Areas in Alabama
+	//Category("Unknown"):     "Unknown",
 }
 
 type Designation string
@@ -22,21 +22,26 @@ type Designation string
 var DesignationDefinitions = map[Designation]string{
 	Designation("ACC"):   "Access Area",
 	Designation("ACEC"):  "Area of Critical Environmental Concern",
+	//Designation("AGRE"): "Agricultural Easement",
 	Designation("CONE"):  "Conservation Easement",
+	Designation("FORE"): "Forest Stewardship Easement",
 	Designation("FOTH"):  "Federal Other or Unknown",
 	Designation("HCA"):   "Historic or Cultural Area",
+	Designation("IRA"): "Inventoried Roadless Area",
 	Designation("LCA"):   "Local Conservation Area",
 	Designation("LHCA"):  "Local Historic or Cultural Area",
 	Designation("LOTH"):  "Local Other or Unknown",
-	Designation("LP"):    "Local Park",
+	// Designation("LP"):    "Local Park", // These tend to be baseball fields or golf courses, so skip.
 	Designation("LREC"):  "Local Recreation Area",
 	Designation("LRMA"):  "Local Resource Management Area",
-	Designation("MIL"):   "Military Land",
+	//Designation("MIL"):   "Military Land",
 	Designation("MIT"):   "Mitigation Land or Bank",
-	Designation("MPA"):   "Marine Protected Area",
+	//Designation("MPA"):   "Marine Protected Area",
 	Designation("NCA"):   "Conservation Area",
 	Designation("ND"):    "Not Designated",
 	Designation("NF"):    "National Forest",
+	Designation("NG"): "National Grassland",
+	Designation("NLS"): "National Lakeshore or Seashore",
 	Designation("NM"):    "National Monument or Landmark",
 	Designation("NP"):    "National Park",
 	Designation("NRA"):   "National Recreation Area",
@@ -51,6 +56,7 @@ var DesignationDefinitions = map[Designation]string{
 	Designation("POTH"):  "Private Other or Unknown",
 	Designation("PREC"):  "Private Recreation or Education",
 	Designation("PROC"):  "Approved or Proclamation Boundary",
+	Designation("PUB"): "National Public Lands",
 	Designation("REA"):   "Research or Educational Area",
 	Designation("REC"):   "Recreation Management Area",
 	Designation("RECE"):  "Recreation or Education Easement",
@@ -64,12 +70,14 @@ var DesignationDefinitions = map[Designation]string{
 	Designation("SREC"):  "State Recreation Area",
 	Designation("SRMA"):  "State Resource Management Area",
 	Designation("SW"):    "State Wilderness",
-	Designation("TRIBL"): "Native American Land",
-	Designation("UNK"):   "Unknown",
+	//Designation("TRIBL"): "Native American Land",
 	Designation("WA"):    "Wilderness Area",
 	Designation("WPA"):   "Watershed Protection Area",
 	Designation("WSA"):   "Wilderness Study Area",
 	Designation("WSR"):   "Wild and Scenic River",
+	Designation("UNK"): "Unknown",
+	Designation("UNKE"): "Unknown Easement",
+
 }
 
 type ManagerName string
@@ -120,69 +128,77 @@ var ManagerTypeDefinitions = map[ManagerType]string{
 	ManagerType("UNK"):  "Unknown",
 }
 
-type AreaOwnerName string
+type OwnerName string
 
-var AreaOwnerNameDefinitions = map[AreaOwnerName]string{
-	AreaOwnerName("CITY"): "City Land",
-	AreaOwnerName("CNTY"): "County Land",
-	AreaOwnerName("DESG"): "Designation",
-	AreaOwnerName("DOD"):  "Department of Defense",
-	AreaOwnerName("FWS"):  "U.S. Fish & Wildlife Service",
-	AreaOwnerName("JNT"):  "Joint",
-	AreaOwnerName("NGO"):  "Non-Governmental Organization",
-	AreaOwnerName("NOAA"): "National Oceanic and Atmospheric Administration",
-	AreaOwnerName("NPS"):  "National Park Service",
-	AreaOwnerName("OTHF"): "Other or Unknown Federal Land",
-	AreaOwnerName("OTHS"): "Other or Unknown State Land",
-	AreaOwnerName("PVT"):  "Private",
-	AreaOwnerName("REG"):  "Regional Agency Land",
-	AreaOwnerName("RWD"):  "Regional Water Districts",
-	AreaOwnerName("SDC"):  "State Department of Conservation",
-	AreaOwnerName("SDNR"): "State Department of Natural Resources",
-	AreaOwnerName("SDOL"): "State Department of Land",
-	AreaOwnerName("SFW"):  "State Fish and Wildlife",
-	AreaOwnerName("SLB"):  "State Land Board",
-	AreaOwnerName("SPR"):  "State Park and Recreation",
-	AreaOwnerName("TRIB"): "American Indian Lands",
-	AreaOwnerName("UNK"):  "Unknown",
-	AreaOwnerName("UNKL"): "Other or Unknown Local Government",
-	AreaOwnerName("USBR"): "Bureau of Reclamation",
-	AreaOwnerName("USFS"): "Forest Service",
+var OwnerNameDefinitions = map[OwnerName]string{
+	OwnerName("BLM"):   "Bureau of Land Management",
+	OwnerName("CITY"): "City Land",
+	OwnerName("CNTY"): "County Land",
+	OwnerName("DESG"): "Designation",
+	OwnerName("DOD"):  "Department of Defense",
+	OwnerName("FWS"):  "U.S. Fish & Wildlife Service",
+	OwnerName("JNT"):  "Joint",
+	OwnerName("NGO"):  "Non-Governmental Organization",
+	OwnerName("NOAA"): "National Oceanic and Atmospheric Administration",
+	OwnerName("NPS"):  "National Park Service",
+	OwnerName("OTHF"): "Other or Unknown Federal Land",
+	OwnerName("OTHS"): "Other or Unknown State Land",
+	OwnerName("PVT"):  "Private",
+	OwnerName("REG"):  "Regional Agency Land",
+	OwnerName("RWD"):  "Regional Water Districts",
+	OwnerName("SDC"):  "State Department of Conservation",
+	OwnerName("SDNR"): "State Department of Natural Resources",
+	OwnerName("SDOL"): "State Department of Land",
+	OwnerName("SFW"):  "State Fish and Wildlife",
+	OwnerName("SLB"):  "State Land Board",
+	OwnerName("SPR"):  "State Park and Recreation",
+	//OwnerName("TRIB"): "American Indian Lands",
+	OwnerName("UNK"):  "Unknown",
+	OwnerName("UNKL"): "Other or Unknown Local Government",
+	OwnerName("USBR"): "Bureau of Reclamation",
+	OwnerName("USFS"): "Forest Service",
 }
 
-type AreaPublicAccess string
+type PublicAccess string
 
-var AreaPublicAccessDefinitions = map[AreaPublicAccess]string{
-	AreaPublicAccess("OA"): "Open Access",
-	AreaPublicAccess("RA"): "Restricted Access",
-	AreaPublicAccess("UK"): "Unknown",
-	AreaPublicAccess("XA"): "Closed",
+const PublicAccessClosed = PublicAccess("XA");
+const PublicAccessRestricted = PublicAccess("RA")
+const PublicAccessUnknown = PublicAccess("UK")
+
+var PublicAccessDefinitions = map[PublicAccess]string{
+	PublicAccess("OA"): "Open Access",
+	PublicAccess("RA"): "Restricted Access",
+	PublicAccess("UK"): "Unknown",
+	PublicAccess("XA"): "Closed",
 }
 
-type AreaIUCNCategory string
+type IUCNCategory string
 
-var AreaIUCNCategoryDefinitions = map[AreaIUCNCategory]string{
-	AreaIUCNCategory("II"):  "II: National park",
-	AreaIUCNCategory("III"): "III: Natural monument or feature",
-	AreaIUCNCategory("IV"):  "IV: Habitat / species management",
-	AreaIUCNCategory("Ia"):  "Ia: Strict nature reserves",
-	AreaIUCNCategory("Ib"):  "Ib: Wilderness areas",
-	AreaIUCNCategory("N/R"): "Not Reported",
-	AreaIUCNCategory("V"):   "V: Protected landscape / seascape",
-	AreaIUCNCategory("VI"):  "VI: Protected area with sustainable use of natural resources",
+var AreaIUCNCategoryDefinitions = map[IUCNCategory]string{
+	IUCNCategory("II"):  "II: National park",
+	IUCNCategory("III"): "III: Natural monument or feature",
+	IUCNCategory("IV"):  "IV: Habitat / species management",
+	IUCNCategory("Ia"):  "Ia: Strict nature reserves",
+	IUCNCategory("Ib"):  "Ib: Wilderness areas",
+	IUCNCategory("N/R"): "Not Reported",
+	IUCNCategory("V"):   "V: Protected landscape / seascape",
+	IUCNCategory("VI"):  "VI: Protected area with sustainable use of natural resources",
+	IUCNCategory("Other Conservation Area"): "Other Conservation Area",
+	IUCNCategory("Unassigned"): "Unassigned", // Looks like state parks in smaller states are generally unassigned, so let it pass.
+
 }
 
-type AreaOwnerType string
+type OwnerType string
 
-var AreaOwnerTypeDefinitions = map[AreaOwnerType]string{
-	AreaOwnerType("DESG"): "Designation",
-	AreaOwnerType("DIST"): "Regional Agency Special District",
-	AreaOwnerType("FED"):  "Federal",
-	AreaOwnerType("JNT"):  "Joint",
-	AreaOwnerType("LOC"):  "Local Government",
-	AreaOwnerType("NGO"):  "Non-Governmental Organization",
-	AreaOwnerType("PVT"):  "Private",
-	AreaOwnerType("STAT"): "State",
-	AreaOwnerType("TRIB"): "American Indian Lands",
-	AreaOwnerType("UNK"):  "Unknown",
+var OwnerTypeDefinitions = map[OwnerType]string{
+	OwnerType("DESG"): "Designation",
+	OwnerType("DIST"): "Regional Agency Special District",
+	OwnerType("FED"):  "Federal",
+	OwnerType("JNT"):  "Joint",
+	OwnerType("LOC"):  "Local Government",
+	OwnerType("NGO"):  "Non-Governmental Organization",
+	OwnerType("PVT"):  "Private",
+	OwnerType("STAT"): "State",
+	//OwnerType("TRIB"): "American Indian Lands",
+	OwnerType("UNK"): "Unknown",
 }

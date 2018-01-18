@@ -31,4 +31,4 @@ ogr2ogr -f 'ESRI Shapefile' \
 
 #shp2json "$STATE_PATH/state.shp" -o "$STATE_PATH/state.json"
 
-#go run ./split.go --in "$STATE_PATH/state.json" --out "$AREAS_PATH/"
+go run ./split.go --in "$STATE_PATH/state.geojson" --out "$AREAS_PATH/"

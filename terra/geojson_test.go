@@ -434,23 +434,20 @@ func TestEcoRegionFetch(t *testing.T) {
    }
 }`)
 
-
-
 		multipolygon := MultiPolygon{}
 		So(ParseGeoJSONFeature(seal_beach, func(encoded_properties []byte, polygon MultiPolygon) error {
 			multipolygon = polygon
 			return nil
 		}), ShouldBeNil)
 
-		//f, err := multipolygon.ToGeoJSONFeature(nil)
-		//So(err, ShouldBeNil)
-
+		_, err := multipolygon.ToGeoJSONFeature(nil)
+		So(err, ShouldBeNil)
 		//fmt.Println(string(f))
+		So(multipolygon.Contains(33.735760815044635,-118.06564807891844), ShouldBeFalse) // Within Hole
 		So(multipolygon.Contains(33.745252,-118.0801775), ShouldBeTrue)
-
-		//So(multipolygon.Contains(33.7387304,-118.0735578), ShouldBeTrue)
-		//So(multipolygon.Contains(33.8041577,-84.4721115), ShouldBeFalse) // Atlanta
-		//So(multipolygon.Contains(33.7215987,-118.1046553), ShouldBeFalse) // In the Ocean.
+		So(multipolygon.Contains(33.7387304,-118.0735578), ShouldBeTrue)
+		So(multipolygon.Contains(33.8041577,-84.4721115), ShouldBeFalse) // Atlanta
+		So(multipolygon.Contains(33.7215987,-118.1046553), ShouldBeFalse) // In the Ocean.
 	})
 }
 
