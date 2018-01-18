@@ -1,15 +1,15 @@
 package ecoregions
 
 import (
-	"bitbucket.org/heindl/taxa/ecoregions/cache"
-	"github.com/saleswise/errors/errors"
 	"gopkg.in/tomb.v2"
 	"bitbucket.org/heindl/taxa/terra"
 )
 
 
 
-type EcoRegionsCache []*EcoRegion
+type EcoRegionsCache struct {
+	fc *terra.FeatureCollection
+}
 
 type EcoRegion struct {
 	EcoName    string  // Ecoregion Name
@@ -20,54 +20,26 @@ type EcoRegion struct {
 	MultiPolygon terra.MultiPolygon
 }
 
-func NewEcoRegionsCache() (EcoRegionsCache, error) {
-	res := EcoRegionsCache{}
-	for _, cr := range cache.EcoRegionCache {
-
-		nr := EcoRegion{
-			EcoCode: EcoCode(cr.EcoCode),
-			EcoNum:  EcoNum(cr.EcoNum),
-			EcoID:   EcoID(cr.EcoID),
-			Biome:   Biome(cr.Biome),
-			MultiPolygon: terra.MultiPolygon{},
-		}
-
-		//var ok bool
-		//if nr.EcoName, ok = EcoIDDefinitions[nr.EcoID]; !ok {
-		//	fmt.Println(nr.EcoID)
-		//	continue
-		//}
-		//if _, ok := BiomeDefinitions[nr.Biome]; !ok {
-		//	fmt.Println(nr.Biome)
-		//	continue
-		//}
-
-		for _, geo := range cr.Geometries {
-			p, err := terra.NewPolygon(geo)
-			if err != nil {
-				return nil, errors.Wrap(err, "could not create polygon")
-			}
-			nr.MultiPolygon = nr.MultiPolygon.PushPolygon(p)
-		}
-
-		res = append(res, &nr)
+func NewEcoRegionsCache() (*EcoRegionsCache, error) {
+	fc, err := terra.ReadFeatureCollectionFromGeoJSONFile("./parser/ecoregions.geojson", nil)
+	if err != nil {
+		return nil, err
 	}
-	return res, nil
+	return &EcoRegionsCache{fc}, nil
 }
 
-func (Ω EcoRegionsCache) EcoID(lat, lng float64) EcoID {
+func (Ω *EcoRegionsCache) EcoID(lat, lng float64) EcoID {
 
 	var id EcoID
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for _i := range Ω {
-			i := _i
-			_o := Ω[i]
+		for _, _feature := range Ω.fc.Features() {
+			feature := _feature
 			tmb.Go(func() error {
-				o := _o
-				if o.MultiPolygon.Contains(lat, lng) {
-					id = o.EcoID
+				if feature.Contains(lat, lng) {
+					b, _ := feature.GetPropertyInt("ECO_ID")
+					id = EcoID(b)
 				}
 				return nil
 			})

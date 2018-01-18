@@ -2,6 +2,7 @@ package terra
 
 import (
 	"github.com/golang/geo/s2"
+	"bytes"
 )
 
 
@@ -76,6 +77,34 @@ func (Ω MultiPolygon) LargestPolygon() *s2.Polygon {
 		}
 	}
 	return maxPolygon
+}
+
+func (Ω MultiPolygon) Decode(a [][]byte) (MultiPolygon, error) {
+	mp := MultiPolygon{}
+	for _, b := range a {
+		r := bytes.NewReader(b)
+		p := s2.Polygon{}
+		if err := p.Decode(r); err != nil {
+			return nil, err
+		}
+		mp = mp.PushPolygon(&p)
+	}
+	return mp, nil
+}
+
+func (Ω MultiPolygon) Encode() ([][]byte, error) {
+
+	res := [][]byte{}
+
+	for _, p := range Ω {
+		var b bytes.Buffer
+		if err := p.Encode(&b); err != nil {
+			return nil, err
+		}
+		res = append(res, b.Bytes())
+	}
+
+	return res, nil
 }
 
 func (Ω MultiPolygon) ToArray() [][][][]float64 {

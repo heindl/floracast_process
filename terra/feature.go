@@ -19,8 +19,12 @@ func (Ω *Feature) Normalize() {
 	Ω.area = Ω.multiPolygon.Area()
 }
 
-func (Ω *Feature) MultipolygonArray() [][][][]float64 {
-	return Ω.multiPolygon.ToArray()
+func (Ω *Feature) MultiPolygon() MultiPolygon {
+	return Ω.multiPolygon
+}
+
+func (Ω *Feature) EncodedMultipolygon() ([][]byte, error) {
+	return Ω.multiPolygon.Encode()
 }
 
 func (Ω *Feature) SetProperties(b []byte) {
@@ -96,4 +100,12 @@ func (Ω *Feature) GetPropertyString(prop string) (string, error) {
 		return "", errors.Wrap(err, "could not get string")
 	}
 	return s, nil
+}
+
+func (Ω *Feature) GetPropertyInt(prop string) (int, error) {
+	i, err := jsonparser.GetInt(Ω.properties, prop)
+	if err != nil {
+		return 0, errors.Wrap(err, "could not get int")
+	}
+	return int(i), nil
 }
