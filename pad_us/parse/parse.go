@@ -9,14 +9,22 @@ import (
 	"strconv"
 	"github.com/elgs/gostrgen"
 	"strings"
+	"unicode"
 )
 
-const PrintName = ""
+const LogStatus = 1
 
+
+var filteredNames = []string{
+	"golf", "soccer", "recreation", "athletic", "softball",
+	"baseball", "horse", "arts", "gym", "cemetery", "museum",
+	"community center", "sports", "city high", "high school", "tennis", "pavilion",
+	"skate park", "unknown", "elementary", "library",
+}
 
 func main() {
-	in := flag.String("in", "/tmp/gap_analysis/CA/state.geojson", "Input json file")
-	out := flag.String("out", "/tmp/gap_analysis/CA/areas", "Combined json directory")
+	in := flag.String("in", "/tmp/gap_analysis/GA/state.geojson", "Input json file")
+	out := flag.String("out", "/tmp/gap_analysis/GA/areas", "Combined json directory")
 
 	flag.Parse()
 
@@ -27,34 +35,43 @@ func main() {
 	processor := Processor{
 		OutputDirectory: *out,
 		Aggregated: terra.FeatureCollection{},
+		Stats: map[string]int{},
 	}
 
 	if err := terra.ReadGeoJSONFeatureCollectionFile(*in, processor.ReceiveFeature); err != nil {
 		panic(err)
 	}
 
-	processor.PrintStats()
+	processor.Stats["Initial Filtered Total"] = processor.Aggregated.Count()
 
-	fmt.Println("Initial Filtered Total", processor.Aggregated.Count())
 
-	grouped_by_wdpa := processor.Aggregated.FilterByProperty(filter_exists(true), "WDPA_Cd").GroupByProperty(cast_string, "Unit_Nm")
-	grouped_by_pai := processor.Aggregated.FilterByProperty(filter_exists(true), "Source_PAI").GroupByProperty(cast_string,  "Unit_Nm")
-	grouped_by_undefined := processor.Aggregated.
-		FilterByProperty(filter_exists(false), "Source_PAI").
-		FilterByProperty(filter_exists(false), "WDPA_Cd").
-		GroupByProperty(cast_string, "Unit_Nm")
+	filtered_unit_names := processor.Aggregated.FilterByProperty(func(i interface{}) bool {
+		s := strings.ToLower(string(i.([]byte)))
+		for _, f := range filteredNames {
+			if strings.Contains(s, f) {
+				return true
+			}
+		}
+		// Filter out places with only numbers
+		for _, r := range s {
+			if unicode.IsLetter(r) {
+				return false
+			}
+		}
+		return true
+	}, "Unit_Nm")
 
-		name_grouped := terra.FeatureCollections{}
-		name_grouped = append(name_grouped, grouped_by_wdpa...)
-	name_grouped = append(name_grouped, grouped_by_pai...)
-	name_grouped = append(name_grouped, grouped_by_undefined...)
+	processor.Stats["After Name Filter"] = filtered_unit_names.Count()
 
-	fmt.Println("After Name Group", len(name_grouped))
+	name_grouped := filtered_unit_names.GroupByProperties("Unit_Nm", "Loc_Nm")
+
+	processor.Stats["After Name Group"] = len(name_grouped)
 
 	max_centroid_distance := 20.0
 	above_centroid_distance := terra.FeatureCollections{}
 	below_centroid_distance := terra.FeatureCollections{}
 	for _, v := range name_grouped {
+		// TODO: Explode and regroup those that are too large by Unit_Nm & Loc_Nm
 		if v.Count() > 1 && v.MaxDistanceFromCentroid() > max_centroid_distance {
 			above_centroid_distance = append(above_centroid_distance, v)
 		} else {
@@ -62,32 +79,54 @@ func main() {
 		}
 	}
 
-	fmt.Println("After Centroid Distance", len(below_centroid_distance))
+	processor.Stats["After Centroid Distance Filter"] =  len(below_centroid_distance)
 
-	minimum_area_filtered := below_centroid_distance.FilterByMinimumArea(1)
+	minimum_area_filtered := below_centroid_distance.FilterByMinimumArea(0.50)
 
-	fmt.Println("After Minimum Area", len(minimum_area_filtered))
+	processor.Stats["After Minimum Area Filter"] = len(minimum_area_filtered)
 
-	decimated := minimum_area_filtered.DecimateClusters(25)
+	// TODO: Sort based on additional fields, particularly protected or access status.
+	decimated_cluster := minimum_area_filtered.DecimateClusters(15)
 
-	fmt.Println("After Decimation", len(decimated))
+	processor.Stats["After Cluster Decimation"] = len(decimated_cluster)
 
-	//gj, err := decimated.PolyLabels().GeoJSON()
+	processor.PrintStats()
+
+
+	for _, v := range decimated_cluster {
+
+		fname := fmt.Sprintf("%s/%.6f_%.6f.geojson", *out, v.PolyLabel().Latitude(), v.PolyLabel().Longitude())
+
+		//gj, err := v.GeoJSON()
+		//if err != nil {
+		//	panic(err)
+		//}
+
+		fmt.Println(fname)
+
+		//if err := ioutil.WriteFile(fname, gj, os.ModePerm); err != nil {
+		//	panic(err)
+		//}
+	}
+
+	//gj, err := decimated_cluster.PolyLabels().GeoJSON()
 	//if err != nil {
 	//	panic(err)
 	//}
 	//fmt.Println(string(gj))
-
-
-
-	return
 
 }
 
 func filter_exists(shouldExist bool) (func(interface{}) bool) {
 	return func(i interface{}) bool {
 		s := string(i.([]byte))
-		exists := s != "" && s != "null" && s != "0"
+		//fmt.Println(s)
+		exists := (s != "" && s != "null" && s != "0")
+
+		if (shouldExist != exists) {
+			fmt.Println(s, exists, shouldExist != exists)
+		}
+
 		return shouldExist != exists
 	}
 }
@@ -105,12 +144,19 @@ type Processor struct {
 	GolfCourse int
 	PublicAccessUnknown    int
 	UnassignedIUCNCategory int
-	UnknownDesignation int
 	Total                  int
 	EmptyAreas             int
+	LocalParks int
+	MarineProtectedArea int
+	Stats map[string]int
 }
 
 func (Ω *Processor) PrintStats() {
+
+	if LogStatus == 0 {
+		return
+	}
+
 	fmt.Println("Total", Ω.Total)
 	fmt.Println("PublicAccessClosed", Ω.PublicAccessClosed)
 	fmt.Println("PublicAccessRestricted", Ω.PublicAccessRestricted)
@@ -118,7 +164,12 @@ func (Ω *Processor) PrintStats() {
 	fmt.Println("GolfCourse", Ω.GolfCourse)
 	fmt.Println("Empty Areas", Ω.EmptyAreas)
 	fmt.Println("UnassignedIUCNCategory", Ω.UnassignedIUCNCategory)
-	fmt.Println("UnknownDesignation", Ω.UnknownDesignation)
+	fmt.Println("MarineProtectedArea", Ω.MarineProtectedArea)
+	fmt.Println("LocalParks", Ω.LocalParks)
+
+	for k, v := range Ω.Stats {
+		fmt.Println(k, v)
+	}
 }
 
 func (Ω *Processor) ShouldSaveProtectedArea(feature *terra.Feature) bool {
@@ -131,10 +182,6 @@ func (Ω *Processor) ShouldSaveProtectedArea(feature *terra.Feature) bool {
 	pa := pad_us.ProtectedArea{}
 	if err := feature.GetProperties(&pa); err != nil {
 		panic(err)
-	}
-
-	if pa.UnitNm == "" {
-		panic("no unit name")
 	}
 
 	switch pa.Access {
@@ -151,8 +198,8 @@ func (Ω *Processor) ShouldSaveProtectedArea(feature *terra.Feature) bool {
 		//return false
 	}
 
-	if strings.Contains(strings.ToLower(pa.UnitNm), "golf") {
-		Ω.GolfCourse += 1
+	if _, ok := pad_us.GAPStatusDefinitions[pa.GAPStatusCode]; !ok {
+		fmt.Println(fmt.Sprintf(`GapStatus("%s"): "%s", | %s`, pa.GAPStatusCode, pa.DGAPSts, pa.UnitNm))
 		return false
 	}
 
@@ -187,6 +234,14 @@ func (Ω *Processor) ShouldSaveProtectedArea(feature *terra.Feature) bool {
 	}
 
 	if _, ok := pad_us.DesignationDefinitions[pa.Designation]; !ok {
+		if pa.Designation ==  pad_us.Designation("LP") {
+			Ω.LocalParks += 1
+			return false
+		}
+		if pa.Designation ==  pad_us.Designation("MPA") {
+			Ω.MarineProtectedArea += 1
+			return false
+		}
 		fmt.Println(fmt.Sprintf(`Designation("%s"): "%s", | %s`, pa.Designation, pa.DDesTp, pa.UnitNm))
 		return false
 	}

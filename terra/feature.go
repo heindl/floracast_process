@@ -14,6 +14,11 @@ type Feature struct {
 	multiPolygon MultiPolygon
 }
 
+func (Ω *Feature) Normalize() {
+	Ω.polyLabel = Ω.multiPolygon.PolylabelOfLargestPolygon()
+	Ω.area = Ω.multiPolygon.Area()
+}
+
 func (Ω *Feature) SetProperties(b []byte) {
 	Ω.properties = b
 }
@@ -27,8 +32,7 @@ func (Ω *Feature) GetProperties(i interface{}) error {
 
 func (Ω *Feature) PushMultiPolygon(m MultiPolygon) {
 	Ω.multiPolygon = Ω.multiPolygon.PushMultiPolygon(m)
-	Ω.area = Ω.multiPolygon.Area()
-	Ω.polyLabel = Ω.multiPolygon.PolylabelOfLargestPolygon()
+	Ω.Normalize()
 }
 
 func (Ω *Feature) Valid() bool {

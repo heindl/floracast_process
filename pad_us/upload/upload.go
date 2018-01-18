@@ -127,6 +127,8 @@ func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
 
 	f := fc.Features[0]
 
+	Convert WA to wildlife area, sp to state park, wma to wildlife management area, or just use those as subnames.
+
 	Ensure gap status code is being properly converted because that can signal how careful to be with the area
 
 	pa := store.ProtectedArea{

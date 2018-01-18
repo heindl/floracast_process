@@ -5,6 +5,8 @@ type GAPStatus string
 var GAPStatusDefinitions = map[GAPStatus]string{
 	GAPStatus("1"): "1 - managed for biodiversity - disturbance events proceed or are mimicked",
 	GAPStatus("2"): "2 - managed for biodiversity - disturbance events suppressed",
+	GAPStatus("3"): "3 - managed for multiple uses - subject to extractive (e.g. mining or logging) or OHV use",
+	GAPStatus("4"): "4 - no known mandate for protection", // Ends up covering many Wildlife Refuges
 }
 
 type Category string
@@ -14,7 +16,7 @@ var CategoryDefinitions = map[Category]string{
 	Category("Easement"):    "Easement",
 	Category("Fee"):         "Fee",
 	Category("Other"):       "Other", // Mostly Wildlife Management Areas in Alabama
-	//Category("Unknown"):     "Unknown",
+	Category("Unknown"):     "Unknown",  // Mostly Preserves in Florida
 }
 
 type Designation string
@@ -57,6 +59,7 @@ var DesignationDefinitions = map[Designation]string{
 	Designation("PREC"):  "Private Recreation or Education",
 	Designation("PROC"):  "Approved or Proclamation Boundary",
 	Designation("PUB"): "National Public Lands",
+	Designation("RANE"): "Ranch Easement",
 	Designation("REA"):   "Research or Educational Area",
 	Designation("REC"):   "Recreation Management Area",
 	Designation("RECE"):  "Recreation or Education Easement",
@@ -77,7 +80,6 @@ var DesignationDefinitions = map[Designation]string{
 	Designation("WSR"):   "Wild and Scenic River",
 	Designation("UNK"): "Unknown",
 	Designation("UNKE"): "Unknown Easement",
-
 }
 
 type ManagerName string

@@ -22,6 +22,7 @@ func (Ω *FeatureCollection) Features() []*Feature {
 
 func (Ω *FeatureCollection) Append(features ...*Feature) error {
 	for i := range features {
+		features[i].Normalize()
 		if !features[i].Valid() {
 			return errors.New("invalid feature")
 		}
@@ -87,6 +88,7 @@ func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bo
 	for _, feature := range Ω.features {
 		i, err := feature.GetProperty(property_key)
 		if err != nil {
+			panic(err)
 			// Hard break because should function may be looking for nil or something
 			return nil
 		}
@@ -103,21 +105,25 @@ func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bo
 
 // Note that this function ignores missing strings.
 // max_distance_from_centroid
-func (Ω *FeatureCollection) GroupByProperty(typecast_to_string func(interface{}) string, property_key string) FeatureCollections {
-	if property_key == "" {
+func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) FeatureCollections {
+	if len(property_keys) == 0 {
 		return nil
 	}
 	output_holder := map[string][]*Feature{}
 	for _, feature := range Ω.features {
-		i, err := feature.GetProperty(property_key)
-		if err != nil {
-			return nil
+		a := ""
+		for _, k := range property_keys {
+			i, err := feature.GetProperty(k)
+			if err != nil {
+				return nil
+			}
+			b := i.([]byte)
+			a += string(b)
 		}
-		v := typecast_to_string(i)
-		if _, ok := output_holder[v]; !ok {
-			output_holder[v] = []*Feature{}
+		if _, ok := output_holder[a]; !ok {
+			output_holder[a] = []*Feature{}
 		}
-		output_holder[v] = append(output_holder[v], feature)
+		output_holder[a] = append(output_holder[a], feature)
 	}
 
 	output := FeatureCollections{}
@@ -194,6 +200,7 @@ func (Ω FeatureCollections) PolyLabels() Points {
 	return labels
 }
 
+// Sorter accepts two property maps and returns true if a is greater than b. If sorter is nil, the area will be used.
 func (Ω FeatureCollections) DecimateClusters(minKm float64) FeatureCollections {
 
 	a := FeatureCollections{}
