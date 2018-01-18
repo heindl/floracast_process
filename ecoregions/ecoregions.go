@@ -1,15 +1,15 @@
 package ecoregions
 
 import (
-	"bitbucket.org/heindl/taxa/ecoregions/generated_cache"
+	"bitbucket.org/heindl/taxa/ecoregions/cache"
 	"github.com/saleswise/errors/errors"
-	"github.com/tidwall/tile38/geojson"
-	//"github.com/paulmach/go.geojson"
 	"gopkg.in/tomb.v2"
-
+	"bitbucket.org/heindl/taxa/terra"
 )
 
-type EcoRegionsCache []EcoRegion
+
+
+type EcoRegionsCache []*EcoRegion
 
 type EcoRegion struct {
 	EcoName    string  // Ecoregion Name
@@ -17,7 +17,7 @@ type EcoRegion struct {
 	EcoNum     EcoNum  // A unique number for each ecoregion within each biome nested within each realm.
 	EcoID      EcoID   // This number is created by combining REALM, BIOME, and ECO_NUM, thus creating a unique numeric ID for each ecoregion.
 	Biome      Biome
-	GeoObjects []geojson.Object
+	MultiPolygon terra.MultiPolygon
 }
 
 func NewEcoRegionsCache() (EcoRegionsCache, error) {
@@ -29,40 +29,33 @@ func NewEcoRegionsCache() (EcoRegionsCache, error) {
 			EcoNum:  EcoNum(cr.EcoNum),
 			EcoID:   EcoID(cr.EcoID),
 			Biome:   Biome(cr.Biome),
+			MultiPolygon: terra.MultiPolygon{},
 		}
 
-		var ok bool
-		if nr.EcoName, ok = EcoIDDefinitions[nr.EcoID]; !ok {
-			continue
-		}
-		if _, ok := BiomeDefinitions[nr.Biome]; !ok {
-			continue
-		}
+		//var ok bool
+		//if nr.EcoName, ok = EcoIDDefinitions[nr.EcoID]; !ok {
+		//	fmt.Println(nr.EcoID)
+		//	continue
+		//}
+		//if _, ok := BiomeDefinitions[nr.Biome]; !ok {
+		//	fmt.Println(nr.Biome)
+		//	continue
+		//}
 
-		for _, geoStr := range cr.Geometries {
-
-			//geometry, err := geojson.UnmarshalGeometry([]byte(geoStr))
-			//if err != nil {
-			//	return nil, errors.Wrap(err, "could not unmarshal geometry")
-			//}
-
-			geoObj, err := geojson.ObjectJSON(geoStr)
+		for _, geo := range cr.Geometries {
+			p, err := terra.NewPolygon(geo)
 			if err != nil {
-				return nil, errors.Wrapf(err, "could not parse geojson string for region[%s] in biome[%s]", cr.EcoCode, cr.Biome)
+				return nil, errors.Wrap(err, "could not create polygon")
 			}
-
-			geoObj.
-			geoObj.
-			nr.GeoObjects = append(nr.GeoObjects, geoObj)
+			nr.MultiPolygon = nr.MultiPolygon.PushPolygon(p)
 		}
 
-		res = append(res, nr)
+		res = append(res, &nr)
 	}
 	return res, nil
 }
 
 func (Ω EcoRegionsCache) EcoID(lat, lng float64) EcoID {
-	p := geojson.New2DPoint(lng, lat)
 
 	var id EcoID
 
@@ -73,13 +66,8 @@ func (Ω EcoRegionsCache) EcoID(lat, lng float64) EcoID {
 			_o := Ω[i]
 			tmb.Go(func() error {
 				o := _o
-				for _, geoObj := range o.GeoObjects {
-
-					//p.Nearby()
-					if p.Within(geoObj) {
-						id = o.EcoID
-						tmb.Kill(nil)
-					}
+				if o.MultiPolygon.Contains(lat, lng) {
+					id = o.EcoID
 				}
 				return nil
 			})

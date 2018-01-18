@@ -19,6 +19,10 @@ func (Ω *Feature) Normalize() {
 	Ω.area = Ω.multiPolygon.Area()
 }
 
+func (Ω *Feature) MultipolygonArray() [][][][]float64 {
+	return Ω.multiPolygon.ToArray()
+}
+
 func (Ω *Feature) SetProperties(b []byte) {
 	Ω.properties = b
 }

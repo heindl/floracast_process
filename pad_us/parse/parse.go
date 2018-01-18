@@ -23,8 +23,8 @@ var filteredNames = []string{
 }
 
 func main() {
-	in := flag.String("in", "/tmp/gap_analysis/GA/state.geojson", "Input json file")
-	out := flag.String("out", "/tmp/gap_analysis/GA/areas", "Combined json directory")
+	in := flag.String("in", "/tmp/gap_analysis/ID/state.geojson", "Input json file")
+	out := flag.String("out", "/tmp/gap_analysis/ID/areas", "Combined json directory")
 
 	flag.Parse()
 
@@ -38,7 +38,7 @@ func main() {
 		Stats: map[string]int{},
 	}
 
-	if err := terra.ReadGeoJSONFeatureCollectionFile(*in, processor.ReceiveFeature); err != nil {
+	if err := terra.ReadFeaturesFromGeoJSONFeatureCollectionFile(*in, processor.ReceiveFeature); err != nil {
 		panic(err)
 	}
 

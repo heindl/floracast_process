@@ -8,11 +8,39 @@ import (
 	"gopkg.in/tomb.v2"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/paulmach/go.geojson"
+	"sync"
 )
 
 type GeoJSONParsedCallback func(feature *Feature) error
 
-func ReadGeoJSONFeatureCollectionFile(filepath string, callback GeoJSONParsedCallback) error {
+func ReadFeatureCollectionFromGeoJSONFile(filepath string, property_filter func([]byte) bool) (*FeatureCollection, error) {
+
+	fc_holder := []*Feature{}
+	m := sync.Mutex{}
+
+	callback := func(f *Feature) error {
+		m.Lock()
+		defer m.Unlock()
+		if property_filter != nil && property_filter(f.properties) {
+			return nil
+		}
+		fc_holder = append(fc_holder, f)
+		return nil
+	}
+
+	if err := ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath, callback); err != nil {
+		return nil, err
+	}
+
+	fc := FeatureCollection{}
+	if err := fc.Append(fc_holder...); err != nil {
+		return nil, err
+	}
+	
+	return &fc, nil
+}
+
+func ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath string, callback GeoJSONParsedCallback) error {
 	f, err := os.Open(filepath)
 	if err != nil {
 		panic(err)
@@ -31,12 +59,15 @@ func ParseGeoJSONFeatureCollection(encodedFeatureCollection []byte, callback Geo
 		if _, err := jsonparser.ArrayEach(encodedFeatureCollection, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 			tmb.Go(func() error {
 				if err != nil {
-					return err
+					return errors.Wrapf(err, "could not parse features array: %s", string(value))
 				}
-				return ParseGeoJSONFeature(value, callback)
+				if err := ParseGeoJSONFeature(value, callback); err != nil {
+					return errors.Wrapf(err, "could not parse features array: %s", string(value))
+				}
+				return nil
 			})
 		}, "features"); err != nil {
-			return errors.Wrap(err, "could not parse features array")
+			return err
 		}
 		return nil
 	})

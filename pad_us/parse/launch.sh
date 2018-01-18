@@ -53,6 +53,8 @@ WI
 WY
 )
 
-printf '%s\n' "${STATES[@]}" | parallel -j2 "./parse.sh {.}"
+STATES=(ID)
+
+printf '%s\n' "${STATES[@]}" | parallel -j1 "./parse.sh {.}"
 
 

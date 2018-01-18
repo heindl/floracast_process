@@ -171,6 +171,26 @@ func (Ω FeatureCollection) MaxDistanceFromCentroid() float64 {
 	return max
 }
 
+type CondenseMergePropertiesFunc func(a, b []byte) []byte
+
+func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFunc) *Feature {
+
+	multipolygon := MultiPolygon{}
+	properties := []byte{}
+	for _, f := range Ω.features {
+		properties = merge_properties(properties, f.properties)
+		multipolygon = multipolygon.PushMultiPolygon(f.multiPolygon)
+	}
+	f := Feature{
+		multiPolygon: multipolygon,
+		properties: properties,
+	}
+
+	f.Normalize()
+
+	return &f
+}
+
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
@@ -198,6 +218,18 @@ func (Ω FeatureCollections) PolyLabels() Points {
 		labels = append(labels, ic.PolyLabel())
 	}
 	return labels
+}
+
+func (Ω FeatureCollections) Condense(merge_properties CondenseMergePropertiesFunc) (*FeatureCollection, error) {
+	features := []*Feature{}
+	for _, fc := range Ω {
+		features = append(features, fc.Condense(merge_properties))
+	}
+	fc := FeatureCollection{}
+	if err := fc.Append(features...); err != nil {
+		return nil, err
+	}
+	return &fc, nil
 }
 
 // Sorter accepts two property maps and returns true if a is greater than b. If sorter is nil, the area will be used.
