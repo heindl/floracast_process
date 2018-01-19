@@ -3,60 +3,89 @@ package store
 import (
 	"context"
 	"fmt"
-	"github.com/cenkalti/backoff"
-	"github.com/paulmach/go.geojson"
+	//"github.com/cenkalti/backoff"
+	"bitbucket.org/heindl/taxa/utils"
 	"github.com/saleswise/errors/errors"
 	"strings"
-	"time"
+	"gopkg.in/tomb.v2"
 )
 
 type ProtectedArea struct {
-	ID                  string           `json:",omitempty" csv:""`
-	NameStandard        string           `json:",omitempty" csv:""`
-	NameLocal           string           `json:",omitempty" csv:""`
-	StateAbbr           string           `json:",omitempty" csv:""`
-	Bounds              [2][2]float64    `json:",omitempty" csv:""` // [SouthWest, NorthEast]
-	PolyLabel           [2]float64       `json:",omitempty" csv:""` // Latitude, Longitude
-	Centroid            [2]float64       `json:",omitempty" csv:""` // Latitude, Longitude
-	GISAcres            float64          `json:",omitempty" csv:""`
-	Height              float64          `json:",omitempty" csv:""` // in Meters
-	Width               float64          `json:",omitempty" csv:""` // in Meters
-	Category            AreaCategory     `json:",omitempty" csv:""`
-	Designation         AreaDesignation  `json:",omitempty" csv:""`
-	ManagerStandardName AreaManagerName  `json:",omitempty" csv:""`
-	ManagerLocalName    string           `json:",omitempty" csv:""`
-	ManagerType         AreaManagerType  `json:",omitempty" csv:""`
-	OwnerName               AreaOwnerName    `json:",omitempty" csv:""`
-	OwnerNameLocal               string    `json:",omitempty" csv:""`
-	OwnerType           AreaOwnerType    `json:",omitempty" csv:""`
-	PublicAccess        AreaPublicAccess `json:",omitempty" csv:""`
-	IUCNCategory        AreaIUCNCategory `json:",omitempty" csv:""`
-	AreaGAPStatus       AreaGAPStatus    `json:",omitempty" csv:""` // Shows if a disturbance event
+	Name            string           `firestore:"" json:""`
+	State           string           `firestore:"" json:""`
+	PolyLabel       []float64        `firestore:"" json:""` // Longitude, Latitude
+	Area            float64          `firestore:"" json:""` // Kilometers
+	ProtectionLevel *ProtectionLevel `firestore:"" json:""`
+	Designation     string           `firestore:"" json:""`
+	Owner           string           `firestore:"" json:""`
+	AccessLevel     *AccessLevel     `firestore:"" json:""`
+	GeoFeatures     *GeoFeatures     `firestore:"" json:""`
 }
 
-func (Ω *ProtectedArea) Valid() (isValid bool, reason string, value interface{}) {
+func NewProtectedAreaID(lat, lng float64) string {
+	return strings.Replace(fmt.Sprintf("%.6f_%.6f", lat, lng), ".", "|", -1)
+}
 
-	if Ω.ID == "" {
-		return false, "id", Ω.ID
+func (a *ProtectedArea) ID() string {
+	return NewProtectedAreaID(a.PolyLabel[1], a.PolyLabel[0])
+}
+func (a *ProtectedArea) Lat() float64 {
+	return a.PolyLabel[1]
+}
+
+func (a *ProtectedArea) Lng() float64 {
+	return a.PolyLabel[0]
+}
+
+func (a *ProtectedArea) SetGeoFeatures(f *GeoFeatures) {
+	a.GeoFeatures = f
+}
+
+type AccessLevel int
+
+const (
+	AccessLevelOpen       AccessLevel = iota // 0
+	AccessLevelRestricted                    // 1
+	AccessLevelUnknown                       // 2
+	AccessLevelClosed                        // 3
+)
+
+type ProtectionLevel int
+
+const (
+	ProtectionLevelHighest     ProtectionLevel = iota // 0
+	ProtectionLevelHigh                               // 1
+	ProtectionLevelMultipleUse                        // 2
+	ProtectionLevelUnknown                            // 3
+)
+
+func (Ω *ProtectedArea) Valid() bool {
+
+	if _, ok := ValidProtectedAreaStates[Ω.State]; !ok {
+		return false
 	}
 
-	if _, ok := ValidProtectedAreaStates[Ω.StateAbbr]; !ok {
-		return false, "state", Ω.StateAbbr
+	if len(Ω.PolyLabel) == 0 || Ω.PolyLabel[0] == 0 || Ω.PolyLabel[1] == 0 {
+		return false
 	}
 
-	if len(Ω.Centroid) == 0 || Ω.Centroid[0] == 0 || Ω.Centroid[1] == 0 {
-		return false, "centre", Ω.Centroid
+	if Ω.GeoFeatures == nil || !Ω.GeoFeatures.Valid() {
+		return false
 	}
 
-	//if Ω.GISAcres < 50 {
-	//	return false, "acres", Ω.GISAcres
-	//}
+	if Ω.Name == "" {
+		return false
+	}
 
-	//if strings.ToLower(Ω.PublicAccess) == "closed" {
-	//	return false, "public_access", Ω.PublicAccess
-	//}
+	if Ω.AccessLevel == nil {
+		return false
+	}
 
-	return true, "", nil
+	if Ω.ProtectionLevel == nil {
+		return false
+	}
+
+	return true
 }
 
 type ProtectedAreaState struct {
@@ -64,14 +93,16 @@ type ProtectedAreaState struct {
 	Abbr string `json:""`
 }
 
-type ProtectedAreas []ProtectedArea
+//
+//type ProtectedAreas []ProtectedArea
+//
+//func (a ProtectedAreas) Len() int           { return len(a) }
+//func (a ProtectedAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+//func (a ProtectedAreas) Less(i, j int) bool { return a[i].GISAcres > a[j].GISAcres }
 
-func (a ProtectedAreas) Len() int           { return len(a) }
-func (a ProtectedAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ProtectedAreas) Less(i, j int) bool { return a[i].GISAcres > a[j].GISAcres }
+func (Ω *store) ReadProtectedArea(cxt context.Context, lat, lng float64) (*ProtectedArea, error) {
 
-func (Ω *store) ReadProtectedAreaByID(cxt context.Context, id string) (*ProtectedArea, error) {
-	doc, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(id).Get(cxt)
+	doc, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(NewProtectedAreaID(lat, lng)).Get(cxt)
 	if err != nil {
 		errors.Wrap(err, "could not get ProtectedArea")
 	}
@@ -104,87 +135,81 @@ func (Ω *store) ReadProtectedAreas(cxt context.Context) ([]ProtectedArea, error
 	return res, nil
 }
 
-func (Ω *store) ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error) {
-	//
-	//	// Validate
-	//	if lat == 0 || lng == 0 {
-	//		return nil, errors.New("invalid protected area id")
-	//	}
-	//
-	//	docs, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).
-	//		// TODO: Would be great to use a geo query here or at least an approximation.
-	//		Where("Centre.Longitude", ">", math.Floor(lng)).
-	//		Where("Centre.Longitude", "<=", math.Ceil(lng)).
-	//		Documents(cxt).
-	//		GetAll()
-	//
-	//	if err != nil {
-	//		return nil, errors.Wrap(err, "could not find wilderness area")
-	//	}
-	//
-	//	for _, d := range docs {
-	//		w := ProtectedArea{}
-	//		if err := d.DataTo(&w); err != nil {
-	//			return nil, errors.Wrap(err, "could not type cast ProtectedArea")
-	//		}
-	//		if utils.CoordinatesEqual(lat, w.Centre.Latitude) && utils.CoordinatesEqual(lat, w.Centre.Latitude) {
-	//			return &w, nil
-	//		}
-	//	}
-	//
-	//	return nil, errors.Newf("no wilderness area found: [%f, %f]", lat, lng)
-	return nil, nil
-}
-
 var counter = 0
 
-func (Ω *store) SetProtectedArea(cxt context.Context, wa ProtectedArea) error {
+func (Ω *store) SetProtectedAreas(cxt context.Context, areas ...*ProtectedArea) error {
 
 	counter = counter + 1
 
-	// Validate
-	if wa.ID == "" {
-		return errors.New("invalid wilderness area id")
+	batches := [][]*ProtectedArea{}
+	batch_count := (len(areas) + 500 - 1) / 500
+
+	for i := 0; i < len(areas); i += batch_count {
+		end := i + batch_count
+		if end > len(areas) {
+			end = len(areas)
+		}
+		batches = append(batches, areas[i:end])
 	}
 
-	bkf := backoff.NewExponentialBackOff()
-	bkf.InitialInterval = time.Second * 1
-	ticker := backoff.NewTicker(bkf)
-	for _ = range ticker.C {
-		_, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(wa.ID).Set(cxt, wa)
-		if err != nil && strings.Contains(err.Error(), "Internal error encountered") {
-			fmt.Println("Internal error encountered", err)
-			continue
+	// TODO: Make parallel
+	tmb := tomb.Tomb{}
+	invalid_counter := 0
+	tmb.Go(func() error {
+		for _, _batch := range batches {
+			batch := _batch
+			tmb.Go(func() error {
+				locations := []PredictableLocation{}
+				for _, a := range batch {
+					locations = append(locations, a)
+				}
+				if err := Ω.GeoFeaturesProcessor.ProcessLocations(cxt, locations...); err != nil {
+					return err
+				}
+				firestore_batch := Ω.FirestoreClient.Batch()
+				for _, area := range batch {
+					if !area.Valid() {
+						invalid_counter += 1
+						fmt.Println("invalid", invalid_counter, utils.JsonOrSpew(area))
+						continue
+					}
+					firestore_batch = firestore_batch.Set(
+						Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(area.ID()),
+						area)
+				}
+				if _, err := firestore_batch.Commit(cxt); err != nil {
+					return errors.Wrap(err, "could not commit firestore batch")
+				}
+				return nil
+			})
 		}
-		if err != nil {
-			ticker.Stop()
-			return errors.Wrap(err, "could not set protected area")
-		}
-		ticker.Stop()
-		break
-	}
+		return nil
+	})
 
-	return nil
-}
+	return tmb.Wait()
 
-func (Ω *store) SetProtectedAreaGeometry(cxt context.Context, areaID string, geoJSONGeometry geojson.Geometry) error {
 
-	////if !geoJSONGeometry.IsMultiPolygon() {
-	////	return errors.New("Unsupported geojson geometry type.")
-	////}
-	//
-	//b, err := json.Marshal(geoJSONGeometry)
-	//if err != nil {
-	//	return errors.Wrap(err, "Could not marshal geojson multipolygon.")
+	//// Validate
+	//if wa.ID == "" {
+	//	return errors.New("invalid wilderness area id")
 	//}
 	//
-	////"Geometry": base64.StdEncoding.EncodeToString([]byte(geometry)),
-	//if _, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(areaID).Update(cxt, []firestore.Update{
-	//	{Path:"MultiPolygon", Value: b},
-	//}); err != nil {
-	//	return errors.Wrapf(err, "could not update protected area [%s] geometry", areaID)
+	//bkf := backoff.NewExponentialBackOff()
+	//bkf.InitialInterval = time.Second * 1
+	//ticker := backoff.NewTicker(bkf)
+	//for _ = range ticker.C {
+	//	_, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(string(wa.ID)).Set(cxt, wa)
+	//	if err != nil && strings.Contains(err.Error(), "Internal error encountered") {
+	//		fmt.Println("Internal error encountered", err)
+	//		continue
+	//	}
+	//	if err != nil {
+	//		ticker.Stop()
+	//		return errors.Wrap(err, "could not set protected area")
+	//	}
+	//	ticker.Stop()
+	//	break
 	//}
-	return nil
 }
 
 var ValidProtectedAreaStates = map[string]string{

@@ -1,17 +1,20 @@
 package main
 
 import (
-	"bitbucket.org/heindl/taxa/ecoregions"
+	"bitbucket.org/heindl/taxa/pad_us"
 	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/taxa/terra"
 	"flag"
-	"fmt"
-	"github.com/gocarina/gocsv"
 	"github.com/saleswise/errors/errors"
+	"golang.org/x/net/context"
+	"gopkg.in/tomb.v2"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"sync"
 	"unicode/utf8"
-	"bitbucket.org/heindl/taxa/terra"
+	"fmt"
 )
 
 func main() {
@@ -27,78 +30,167 @@ func main() {
 		panic(err)
 	}
 
-	ecoRegionCache, err := ecoregions.NewEcoRegionsCache()
-	if err != nil {
-		panic(err)
-	}
-
 	parser := &Parser{
-		Store: taxaStore,
-		Stats: NewStatsContainer(),
-		EcoRegionCache: ecoRegionCache,
+		Context: context.Background(),
+		Holder:  []*store.ProtectedArea{},
+		Tmb:     tomb.Tomb{},
 	}
 
-	if err := filepath.Walk(*geojsonPath, parser.RecursiveSearchParse); err != nil {
+	parser.Tmb.Go(func() error {
+		return filepath.Walk(*geojsonPath, parser.RecursiveSearchParse)
+	})
+
+	if err := parser.Tmb.Wait(); err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Total", total)
-	fmt.Println("Missing Ecoregion", missing_ecoregion)
+	fmt.Println("Setting", len(parser.Holder), "Protected Areas")
+
+	if err := taxaStore.SetProtectedAreas(parser.Context, parser.Holder...); err != nil {
+		panic(err)
+	}
 
 	return
 }
 
 type Parser struct {
-	Store          store.TaxaStore
-	Stats          *StatsContainer
-	EcoRegionCache ecoregions.EcoRegionsCache
+	Context context.Context
+	Tmb     tomb.Tomb
+	sync.Mutex
+	Holder []*store.ProtectedArea
 }
-
-var total = 0;
-var missing_ecoregion = 0;
 
 func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) error {
 
-	if err != nil {
-		return errors.Wrap(err, "passed error from file path walk")
-	}
+	Ω.Tmb.Go(func() error {
+		if err != nil {
+			return errors.Wrap(err, "passed error from file path walk")
+		}
 
-	if f.IsDir() {
+		if f.IsDir() {
+			return nil
+		}
+
+		if strings.Contains(f.Name(), "state.geojson") {
+			return nil
+		}
+
+		if !strings.HasSuffix(f.Name(), ".geojson") {
+			return nil
+		}
+
+		fc, err := terra.ReadFeatureCollectionFromGeoJSONFile(path, nil)
+		if err != nil {
+			return err
+		}
+
+		// Combine features into single store ProtectedArea.
+
+		spa := store.ProtectedArea{
+			Area:      fc.Area(),
+			PolyLabel: fc.PolyLabel().AsArray(),
+		}
+
+		for _, feature := range fc.Features() {
+			pa := pad_us.ProtectedArea{}
+			if err := feature.GetProperties(&pa); err != nil {
+				return err
+			}
+			gsc, err := strconv.Atoi(string(pa.GAPStatusCode))
+			if err != nil {
+				return err
+			}
+			if spa.ProtectionLevel == nil || store.ProtectionLevel(gsc-1) < *spa.ProtectionLevel {
+				pl := store.ProtectionLevel(gsc - 1)
+				spa.ProtectionLevel = &pl
+			}
+
+			access := store.AccessLevelUnknown
+			switch string(pa.Access) {
+			case "OA":
+				access = store.AccessLevelOpen
+			case "RA":
+				access = store.AccessLevelRestricted
+			case "UK":
+				access = store.AccessLevelUnknown
+			case "XA":
+				access = store.AccessLevelClosed
+			}
+
+			if spa.AccessLevel == nil || access < *spa.AccessLevel {
+				spa.AccessLevel = &access
+			}
+
+			name, err := Ω.EscapeAreaName(parse_string_value(spa.Name, pa.UnitNm))
+			if err != nil {
+				return err
+			}
+			spa.Name = Ω.FormatAreaName(name)
+
+			spa.State = pa.StateNm
+
+			spa.Designation = parse_string_value(spa.Designation, pa.DDesTp)
+			spa.Owner = parse_string_value(spa.Owner, pa.DOwnName)
+		}
+
+		Ω.Lock()
+		defer Ω.Unlock()
+		Ω.Holder = append(Ω.Holder, &spa)
+
 		return nil
-	}
-
-	if strings.Contains(f.Name(), "state.geojson") {
-		return nil
-	}
-
-	if !strings.HasSuffix(f.Name(), ".geojson") {
-		return nil
-	}
-
-	fc, err := terra.ReadFeatureCollectionFromGeoJSONFile(path)
-	if err != nil {
-		return err
-	}
-
-	total +=1
-
-	ecoID := Ω.EcoRegionCache.EcoID(fc.PolyLabel().Latitude(), fc.PolyLabel().Longitude())
-	if !ecoID.Valid() {
-		missing_ecoregion += 1
-	}
+	})
 
 	return nil
 
 }
 
+func parse_string_value(existing, given string) string {
+
+	if existing == given {
+		return existing
+	}
+
+	if existing == "" && given != "" {
+		return given
+	}
+
+	existing_has_negative_flag := false
+	given_has_negative_flag := false
+	for _, f := range []string{"unknown", "other", "easement", "private"} {
+		if strings.Contains(strings.ToLower(existing), f) {
+			existing_has_negative_flag = true
+		}
+		if strings.Contains(strings.ToLower(given), f) {
+			given_has_negative_flag = true
+		}
+	}
+
+	if existing_has_negative_flag != given_has_negative_flag && existing_has_negative_flag {
+		return given
+	} else {
+		return existing
+	}
+
+	if len(existing) > len(given) {
+		return existing
+	} else {
+		return given
+	}
+
+	return given
+}
+
 func (p *Parser) FormatAreaName(name string) string {
 	// Convert abbreviated suffixes to full names.
-	name = strings.TrimSpace(strings.ToLower(name))
+	name = strings.ToLower(name)
+	name = strings.Replace(name, "_", " ", -1)
+	// Standardize Spaces
+	name = strings.Join(strings.Fields(name), " ")
 	for suffix, replacement := range map[string]string{
-		"wa": "Wilderness Area",
-		"sp": "State Park",
+		"wa":  "Wilderness Area",
+		"sp":  "State Park",
 		"wma": "Wildlife Management Area",
-		} {
+	} {
 		if strings.HasSuffix(name, suffix) {
 			name = strings.Replace(name, suffix, replacement, -1)
 		}
@@ -127,145 +219,4 @@ func (p *Parser) EscapeAreaName(name string) (string, error) {
 	}
 
 	return name, nil
-}
-
-func (Ω *Parser) Parse(gb []byte) (*store.ProtectedArea, error) {
-
-
-	return nil, nil
-
-	//fc, err := geojson.UnmarshalFeatureCollection(gb)
-	//if err != nil {
-	//	return nil, errors.Wrap(err, "could not unmarshal field collection")
-	//}
-	//
-	//f := fc.Features[0]
-
-
-
-	//Ensure gap status code is being properly converted because that can signal how careful to be with the area
-	//
-	//pa := store.ProtectedArea{
-	//	ID:                  strconv.Itoa(f.PropertyMustInt("WDPA_Cd")),
-	//	StateAbbr:           f.PropertyMustString("State_Nm"),
-	//	Category:            store.AreaCategory(f.PropertyMustString("Category")),     // Category, d_Category
-	//	Designation:         store.AreaDesignation(f.PropertyMustString("Des_Tp")),    // d_Des_Tp, Des_Tp
-	//	ManagerStandardName: store.AreaManagerName(f.PropertyMustString("Mang_Nam")),  //  d_Mang_Nam, Mang_Name
-	//	ManagerLocalName:    f.PropertyMustString("Loc_Mang"),                         // Loc_Mang
-	//	ManagerType:         store.AreaManagerType(f.PropertyMustString("Mang_Type")), // d_Mang_Typ, Mang_Type
-	//	OwnerName:               store.AreaOwnerName(f.PropertyMustString("Own_Name")),    // Own_Name, d_Own_Name,
-	//	OwnerNameLocal: 	f.PropertyMustString("Loc_Own"), //  Loc_Own
-	//	OwnerType:           store.AreaOwnerType(f.PropertyMustString("Own_Type")),    // Own_Type, d_Own_Type
-	//	PublicAccess:        store.AreaPublicAccess(f.PropertyMustString("Access")),
-	//	IUCNCategory:        store.AreaIUCNCategory(f.PropertyMustString("IUCN_Cat")),
-	//	AreaGAPStatus:       store.AreaGAPStatus(f.PropertyMustString("GAP_Sts")),
-	//}
-
-	// d_GAP_Sts
-
-	//if !utils.Contains([]string{CategoryFee, CategoryDesignation, CategoryEasement, CategoryOther, CategoryUnknown}, pa.Category) {
-	//	fmt.Println("New Category", pa.Category)
-	//}
-
-	//if _, ok := designs[f.PropertyMustString("Mang_Nam")]; !ok {
-	//	designs[f.PropertyMustString("d_Mang_Nam")] = f.PropertyMustString("d_Mang_Nam")
-	//} else {
-	//	designs[f.PropertyMustString("d_Mang_Nam")] += 1
-	//}
-
-	//fmt.Println(
-	//	"designation",
-	//	f.PropertyMustString("d_Des_Tp"), ",",
-	//	//f.PropertyMustString("Loc_Ds"), ",",
-	//	f.PropertyMustString("Des_Tp"), ",",
-	//)
-
-	//pa.NameStandard, err = Ω.FormatAreaName(pa.ID, f.PropertyMustString("Unit_Nm")) // Unit_Nm
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//pa.NameLocal, err = Ω.FormatAreaName(pa.ID, f.PropertyMustString("Loc_Nm")) // Unit_Nm
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//// Total GISAcres
-	//for _, _f := range fc.Features {
-	//	pa.GISAcres += _f.PropertyMustFloat64("GIS_Acres")
-	//}
-
-
-	//if pa.NameStandard != "Eastshore State Park" {
-	//	return nil, nil
-	//}
-
-
-
-	// Another option https://github.com/mapbox/polylabel
-	//centre, bounds, minDistanceFromNearestPoint, err := p.ParsePolygon(fc)
-	//poly, centroid, err := Ω.ParsePolygon(fc)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//pa.PolyLabel = [2]float64{poly.Lat, poly.Lng}
-	//pa.Centroid = [2]float64{centroid.Lat, centroid.Lng}
-	//
-	//
-	//
-	//return nil, nil
-
-	//return nil, nil
-
-	//newLat, newLng, newContains, pastContains, err := SecondOpinionCentroid(gb, centroid.Lat(), centroid.Lng())
-	//
-	//distanceBetweenCentroids := centroid.GeoDistanceFrom(&geo.Point{newLng, newLat})
-	//
-	//
-	//if newContains != pastContains {
-	//	fmt.Println(utils.JsonOrSpew(map[string]interface{}{
-	//		"intial_centroid":           []float64{centroid.Lat(), centroid.Lng()},
-	//		"intial_contained":          pastContains,
-	//		"second_centroid":           []float64{newLat, newLng},
-	//		"second_contained":          newContains,
-	//		"initial_min_from_boundary": minDistanceFromNearestPoint,
-	//		"distance_between":          distanceBetweenCentroids,
-	//	}))
-	//}
-	//
-	//return nil, nil
-
-
-	//pa.Centroid = [2]float64{centroid.Lat(), centroid.Lng()}
-	//pa.Height = bounds.GeoHeight()
-	//pa.Width = bounds.GeoWidth()
-	//ne := bounds.NorthEast()
-	//sw := bounds.SouthWest()
-	//pa.Bounds = [2][2]float64{{sw.Lat(), sw.Lng()}, {ne.Lat(), ne.Lng()}}
-
-	//Ω.EcoRegionCache.PointWithin(centroid.Lat(), centroid.Lng())
-
-	//valid, reason, invalidValue := pa.Valid()
-	//
-	//if !valid {
-	//	fmt.Println("invalid", reason, invalidValue)
-	//	return nil, nil
-	//}
-	//
-	//if err := Ω.PrintCSV(&pa); err != nil {
-	//	return nil, err
-	//}
-	//
-	//return &pa, nil
-}
-
-
-
-func (p *Parser) PrintCSV(area *store.ProtectedArea) error {
-	s, err := gocsv.MarshalString(area)
-	if err != nil {
-		return errors.Wrap(err, "could not marshal csv")
-	}
-	fmt.Println(s)
-	return nil
 }

@@ -23,6 +23,11 @@ var BiomeDefinitions = map[Biome]string{
 	Biome(14): "Mangroves",
 }
 
+func (Ω Biome) Valid() bool {
+	_, ok := BiomeDefinitions[Ω]
+	return ok
+}
+
 type Realm string //  Biogeographical Realm
 var RealmDefinitions = map[Realm]string{
 	Realm("AA"): "Australasia",
@@ -33,6 +38,11 @@ var RealmDefinitions = map[Realm]string{
 	Realm("NT"): "Neotropics",
 	Realm("OC"): "Oceania",
 	Realm("PA"): "Palearctic",
+}
+
+func (Ω Realm) Valid() bool {
+	_, ok := RealmDefinitions[Ω]
+	return ok
 }
 
 type GlobalStatus int
@@ -46,6 +56,10 @@ var GlobalStatusDefinitions = map[GlobalStatus]string{
 
 type EcoNum int // A unique number for each ecoregion within each biome nested within each realm.
 
+func (Ω EcoNum) Valid() bool {
+	return Ω != 0
+}
+
 type EcoID int
 
 func (Ω EcoID) Valid() bool {
@@ -58,32 +72,43 @@ func (Ω EcoID) Name() string {
 	return v
 }
 
-func (Ω EcoID) split() (Biome, EcoNum) {
-
+func (Ω EcoID) split() []string {
 	if !Ω.Valid() {
-		return Biome(0), EcoNum(0)
+		return nil
 	}
-
 	s := strconv.Itoa(int(Ω))
 	// Pad to ensure the realm isn't throwing us off, though realm should always be five.
 	if len(s) != 6 {
 		s = "0" + s
 	}
-
-	b, _ := strconv.Atoi(s[2:4])
-	e, _ := strconv.Atoi(s[4:6])
-
-	return Biome(b), EcoNum(e)
+	return []string{s[0:2], s[2:4], s[4:6]}
 }
 
+//func (Ω EcoID) Realm() Realm {
+//	a := Ω.split()
+//	if len(a) != 3 {
+//		return Realm(0)
+//	}
+//	i, _ := strconv.Atoi(a[0])
+//	return Realm(i)
+//}
+
 func (Ω EcoID) Biome() Biome {
-	b, _ := Ω.split()
-	return b
+	a := Ω.split()
+	if len(a) != 3 {
+		return Biome(0)
+	}
+	i, _ := strconv.Atoi(a[1])
+	return Biome(i)
 }
 
 func (Ω EcoID) EcoNum() EcoNum {
-	_, e := Ω.split()
-	return e
+	a := Ω.split()
+	if len(a) != 3 {
+		return EcoNum(0)
+	}
+	i, _ := strconv.Atoi(a[2])
+	return EcoNum(i)
 }
 
 var EcoIDDefinitions = map[EcoID]string{

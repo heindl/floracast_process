@@ -15,70 +15,70 @@ var CategoryDefinitions = map[Category]string{
 	Category("Designation"): "Designation",
 	Category("Easement"):    "Easement",
 	Category("Fee"):         "Fee",
-	Category("Other"):       "Other", // Mostly Wildlife Management Areas in Alabama
-	Category("Unknown"):     "Unknown",  // Mostly Preserves in Florida
+	Category("Other"):       "Other",   // Mostly Wildlife Management Areas in Alabama
+	Category("Unknown"):     "Unknown", // Mostly Preserves in Florida
 }
 
 type Designation string
 
 var DesignationDefinitions = map[Designation]string{
-	Designation("ACC"):   "Access Area",
-	Designation("ACEC"):  "Area of Critical Environmental Concern",
+	Designation("ACC"):  "Access Area",
+	Designation("ACEC"): "Area of Critical Environmental Concern",
 	//Designation("AGRE"): "Agricultural Easement",
-	Designation("CONE"):  "Conservation Easement",
+	Designation("CONE"): "Conservation Easement",
 	Designation("FORE"): "Forest Stewardship Easement",
-	Designation("FOTH"):  "Federal Other or Unknown",
-	Designation("HCA"):   "Historic or Cultural Area",
-	Designation("IRA"): "Inventoried Roadless Area",
-	Designation("LCA"):   "Local Conservation Area",
-	Designation("LHCA"):  "Local Historic or Cultural Area",
-	Designation("LOTH"):  "Local Other or Unknown",
+	Designation("FOTH"): "Federal Other or Unknown",
+	Designation("HCA"):  "Historic or Cultural Area",
+	Designation("IRA"):  "Inventoried Roadless Area",
+	Designation("LCA"):  "Local Conservation Area",
+	Designation("LHCA"): "Local Historic or Cultural Area",
+	Designation("LOTH"): "Local Other or Unknown",
 	// Designation("LP"):    "Local Park", // These tend to be baseball fields or golf courses, so skip.
-	Designation("LREC"):  "Local Recreation Area",
-	Designation("LRMA"):  "Local Resource Management Area",
+	Designation("LREC"): "Local Recreation Area",
+	Designation("LRMA"): "Local Resource Management Area",
 	//Designation("MIL"):   "Military Land",
-	Designation("MIT"):   "Mitigation Land or Bank",
+	Designation("MIT"): "Mitigation Land or Bank",
 	//Designation("MPA"):   "Marine Protected Area",
-	Designation("NCA"):   "Conservation Area",
-	Designation("ND"):    "Not Designated",
-	Designation("NF"):    "National Forest",
-	Designation("NG"): "National Grassland",
-	Designation("NLS"): "National Lakeshore or Seashore",
-	Designation("NM"):    "National Monument or Landmark",
-	Designation("NP"):    "National Park",
-	Designation("NRA"):   "National Recreation Area",
-	Designation("NSBV"):  "National Scenic, Botanical or Volcanic Area",
-	Designation("NT"):    "National Scenic or Historic Trail",
-	Designation("NWR"):   "National Wildlife Refuge",
-	Designation("OTHE"):  "Other Easement",
-	Designation("PAGR"):  "Private Agricultural",
-	Designation("PCON"):  "Private Conservation",
-	Designation("PFOR"):  "Private Forest Stewardship",
-	Designation("PHCA"):  "Private Historic or Cultural",
-	Designation("POTH"):  "Private Other or Unknown",
-	Designation("PREC"):  "Private Recreation or Education",
-	Designation("PROC"):  "Approved or Proclamation Boundary",
-	Designation("PUB"): "National Public Lands",
+	Designation("NCA"):  "Conservation Area",
+	Designation("ND"):   "Not Designated",
+	Designation("NF"):   "National Forest",
+	Designation("NG"):   "National Grassland",
+	Designation("NLS"):  "National Lakeshore or Seashore",
+	Designation("NM"):   "National Monument or Landmark",
+	Designation("NP"):   "National Park",
+	Designation("NRA"):  "National Recreation Area",
+	Designation("NSBV"): "National Scenic, Botanical or Volcanic Area",
+	Designation("NT"):   "National Scenic or Historic Trail",
+	Designation("NWR"):  "National Wildlife Refuge",
+	Designation("OTHE"): "Other Easement",
+	Designation("PAGR"): "Private Agricultural",
+	Designation("PCON"): "Private Conservation",
+	Designation("PFOR"): "Private Forest Stewardship",
+	Designation("PHCA"): "Private Historic or Cultural",
+	Designation("POTH"): "Private Other or Unknown",
+	Designation("PREC"): "Private Recreation or Education",
+	Designation("PROC"): "Approved or Proclamation Boundary",
+	Designation("PUB"):  "National Public Lands",
 	Designation("RANE"): "Ranch Easement",
-	Designation("REA"):   "Research or Educational Area",
-	Designation("REC"):   "Recreation Management Area",
-	Designation("RECE"):  "Recreation or Education Easement",
-	Designation("RMA"):   "Resource Management Area",
-	Designation("RNA"):   "Research Natural Area",
-	Designation("SCA"):   "State Conservation Area",
-	Designation("SDA"):   "Special Designation Area",
-	Designation("SHCA"):  "State Historic or Cultural Area",
-	Designation("SOTH"):  "State Other or Unknown",
-	Designation("SP"):    "State Park",
-	Designation("SREC"):  "State Recreation Area",
-	Designation("SRMA"):  "State Resource Management Area",
-	Designation("SW"):    "State Wilderness",
+	Designation("REA"):  "Research or Educational Area",
+	Designation("REC"):  "Recreation Management Area",
+	Designation("RECE"): "Recreation or Education Easement",
+	Designation("RMA"):  "Resource Management Area",
+	Designation("RNA"):  "Research Natural Area",
+	Designation("SCA"):  "State Conservation Area",
+	Designation("SDA"):  "Special Designation Area",
+	Designation("SHCA"): "State Historic or Cultural Area",
+	Designation("SOTH"): "State Other or Unknown",
+	Designation("SP"):   "State Park",
+	Designation("SREC"): "State Recreation Area",
+	Designation("SRMA"): "State Resource Management Area",
+	Designation("SW"):   "State Wilderness",
 	//Designation("TRIBL"): "Native American Land",
-	Designation("WA"):    "Wilderness Area",
-	Designation("WPA"):   "Watershed Protection Area",
-	Designation("WSA"):   "Wilderness Study Area",
-	Designation("WSR"):   "Wild and Scenic River",
-	Designation("UNK"): "Unknown",
+	Designation("WA"):   "Wilderness Area",
+	Designation("WPA"):  "Watershed Protection Area",
+	Designation("WSA"):  "Wilderness Study Area",
+	Designation("WSR"):  "Wild and Scenic River",
+	Designation("UNK"):  "Unknown",
 	Designation("UNKE"): "Unknown Easement",
 }
 
@@ -133,7 +133,7 @@ var ManagerTypeDefinitions = map[ManagerType]string{
 type OwnerName string
 
 var OwnerNameDefinitions = map[OwnerName]string{
-	OwnerName("BLM"):   "Bureau of Land Management",
+	OwnerName("BLM"):  "Bureau of Land Management",
 	OwnerName("CITY"): "City Land",
 	OwnerName("CNTY"): "County Land",
 	OwnerName("DESG"): "Designation",
@@ -163,7 +163,7 @@ var OwnerNameDefinitions = map[OwnerName]string{
 
 type PublicAccess string
 
-const PublicAccessClosed = PublicAccess("XA");
+const PublicAccessClosed = PublicAccess("XA")
 const PublicAccessRestricted = PublicAccess("RA")
 const PublicAccessUnknown = PublicAccess("UK")
 
@@ -177,16 +177,16 @@ var PublicAccessDefinitions = map[PublicAccess]string{
 type IUCNCategory string
 
 var AreaIUCNCategoryDefinitions = map[IUCNCategory]string{
-	IUCNCategory("II"):  "II: National park",
-	IUCNCategory("III"): "III: Natural monument or feature",
-	IUCNCategory("IV"):  "IV: Habitat / species management",
-	IUCNCategory("Ia"):  "Ia: Strict nature reserves",
-	IUCNCategory("Ib"):  "Ib: Wilderness areas",
-	IUCNCategory("N/R"): "Not Reported",
-	IUCNCategory("V"):   "V: Protected landscape / seascape",
-	IUCNCategory("VI"):  "VI: Protected area with sustainable use of natural resources",
+	IUCNCategory("II"):                      "II: National park",
+	IUCNCategory("III"):                     "III: Natural monument or feature",
+	IUCNCategory("IV"):                      "IV: Habitat / species management",
+	IUCNCategory("Ia"):                      "Ia: Strict nature reserves",
+	IUCNCategory("Ib"):                      "Ib: Wilderness areas",
+	IUCNCategory("N/R"):                     "Not Reported",
+	IUCNCategory("V"):                       "V: Protected landscape / seascape",
+	IUCNCategory("VI"):                      "VI: Protected area with sustainable use of natural resources",
 	IUCNCategory("Other Conservation Area"): "Other Conservation Area",
-	IUCNCategory("Unassigned"): "Unassigned", // Looks like state parks in smaller states are generally unassigned, so let it pass.
+	IUCNCategory("Unassigned"):              "Unassigned", // Looks like state parks in smaller states are generally unassigned, so let it pass.
 
 }
 

@@ -41,7 +41,7 @@ func TestTaxonFetcher(t *testing.T) {
 	Convey("should fetch all species in subfamily Limenitidinae", t, func() {
 
 		f := fetcher{
-			Store: store.NewMockStore(t),
+			Store: store.NewTestTaxaStore(),
 			Clock: clockwork.NewFakeClock(),
 		}
 

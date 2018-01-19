@@ -1,14 +1,14 @@
 package terra
 
 import (
-	"sort"
 	"github.com/gonum/stat"
 	"github.com/montanaflynn/stats"
+	"sort"
 )
 
-func(Ω FeatureCollection) AreaStats() *BasicStats {
+func (Ω FeatureCollection) AreaStats() *BasicStats {
 	areas := []float64{}
-	for _, feature := range Ω.Features(){
+	for _, feature := range Ω.Features() {
 		areas = append(areas, feature.Area())
 	}
 	if len(areas) == 0 {
@@ -41,21 +41,21 @@ func(Ω FeatureCollection) AreaStats() *BasicStats {
 	}
 
 	return &BasicStats{
-		AboveZero: aboveZero,
-		Max: areas[len(areas)-1],
-		Min: areas[0],
-		Mean: mean,
+		AboveZero:         aboveZero,
+		Max:               areas[len(areas)-1],
+		Min:               areas[0],
+		Mean:              mean,
 		StandardDeviation: std,
-		Median: variance,
-		Mode: mode,
-		Count: float64(len(areas)),
-		Quantiles: quartiles,
+		Median:            variance,
+		Mode:              mode,
+		Count:             float64(len(areas)),
+		Quantiles:         quartiles,
 	}
 }
 
-type BasicStats struct{
-	Mean, Median, Max, Min, StandardDeviation, Variance, Count  float64
-	Quantiles stats.Quartiles
-	Mode []float64
-	AboveZero int
+type BasicStats struct {
+	Mean, Median, Max, Min, StandardDeviation, Variance, Count float64
+	Quantiles                                                  stats.Quartiles
+	Mode                                                       []float64
+	AboveZero                                                  int
 }

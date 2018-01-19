@@ -43,6 +43,10 @@ func BoolPtr(v bool) *bool {
 	return &v
 }
 
+func FloatPtr(v float64) *float64 {
+	return &v
+}
+
 func Contains(haystack []string, needle string) bool {
 	for _, str := range haystack {
 		if needle == str {

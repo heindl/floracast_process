@@ -6,9 +6,9 @@ import (
 	//"github.com/golang/geo/s1"
 	//"github.com/golang/geo/s2"
 	//"fmt"
-	"github.com/golang/geo/s2"
-	"github.com/golang/geo/s1"
 	"fmt"
+	"github.com/golang/geo/s1"
+	"github.com/golang/geo/s2"
 )
 
 func TestEcoRegionFetch(t *testing.T) {
@@ -32,7 +32,7 @@ func TestEcoRegionFetch(t *testing.T) {
 			}
 			return polygon
 		}
-		So(concentricLoopsPolygon(s2.PointFromLatLng(s2.LatLngFromDegrees(33.745252,-118.0801775)), 10, 10), ShouldBeNil)
+		So(concentricLoopsPolygon(s2.PointFromLatLng(s2.LatLngFromDegrees(33.745252, -118.0801775)), 10, 10), ShouldBeNil)
 	})
 
 	Convey("should parse geojson", t, func() {
@@ -443,11 +443,10 @@ func TestEcoRegionFetch(t *testing.T) {
 		_, err := multipolygon.ToGeoJSONFeature(nil)
 		So(err, ShouldBeNil)
 		//fmt.Println(string(f))
-		So(multipolygon.Contains(33.735760815044635,-118.06564807891844), ShouldBeFalse) // Within Hole
-		So(multipolygon.Contains(33.745252,-118.0801775), ShouldBeTrue)
-		So(multipolygon.Contains(33.7387304,-118.0735578), ShouldBeTrue)
-		So(multipolygon.Contains(33.8041577,-84.4721115), ShouldBeFalse) // Atlanta
-		So(multipolygon.Contains(33.7215987,-118.1046553), ShouldBeFalse) // In the Ocean.
+		So(multipolygon.Contains(33.735760815044635, -118.06564807891844), ShouldBeFalse) // Within Hole
+		So(multipolygon.Contains(33.745252, -118.0801775), ShouldBeTrue)
+		So(multipolygon.Contains(33.7387304, -118.0735578), ShouldBeTrue)
+		So(multipolygon.Contains(33.8041577, -84.4721115), ShouldBeFalse)  // Atlanta
+		So(multipolygon.Contains(33.7215987, -118.1046553), ShouldBeFalse) // In the Ocean.
 	})
 }
-

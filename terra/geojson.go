@@ -1,13 +1,13 @@
 package terra
 
 import (
-	"io/ioutil"
 	"bufio"
-	"os"
 	"github.com/buger/jsonparser"
-	"gopkg.in/tomb.v2"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/paulmach/go.geojson"
+	"gopkg.in/tomb.v2"
+	"io/ioutil"
+	"os"
 	"sync"
 )
 
@@ -36,7 +36,7 @@ func ReadFeatureCollectionFromGeoJSONFile(filepath string, property_filter func(
 	if err := fc.Append(fc_holder...); err != nil {
 		return nil, err
 	}
-	
+
 	return &fc, nil
 }
 
@@ -71,7 +71,7 @@ func ParseGeoJSONFeatureCollection(encodedFeatureCollection []byte, callback Geo
 		}
 		return nil
 	})
-	return tmb.Wait();
+	return tmb.Wait()
 }
 
 func ParseGeoJSONFeature(encoded_feature []byte, callback GeoJSONParsedCallback) error {

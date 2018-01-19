@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bitbucket.org/heindl/taxa/terra"
 	"flag"
 	"fmt"
-	"os"
-	"bitbucket.org/heindl/taxa/terra"
 	"github.com/buger/jsonparser"
 	"io/ioutil"
+	"os"
 )
+
 //
 //type CachedEcoRegion struct {
 //	Realm   string `json:"REALM"`
@@ -66,12 +67,18 @@ func main() {
 		panic(err)
 	}
 
+	fmt.Println("After Group and Condense", fc_id_condensed.Count())
+
 	b, err := fc_id_condensed.GeoJSON()
 	if err != nil {
 		panic(err)
 	}
 
-	if err := ioutil.WriteFile("./ecoregions.geojson", b, os.ModePerm); err != nil {
+	content := []byte("package ecoregions\nconst ecoregions_geojson=`")
+	content = append(content, b...)
+	content = append(content, []byte("`")...)
+
+	if err := ioutil.WriteFile("./geojson.go", content, os.ModePerm); err != nil {
 		panic(err)
 	}
 

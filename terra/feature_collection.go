@@ -5,11 +5,10 @@ import (
 	"github.com/paulmach/go.geojson"
 )
 
-
-type FeatureCollection struct{
-	area float64
+type FeatureCollection struct {
+	area      float64
 	polyLabel Point
-	features []*Feature
+	features  []*Feature
 }
 
 func (Ω *FeatureCollection) Count() int {
@@ -79,7 +78,7 @@ func (Ω *FeatureCollection) PolyLabel() Point {
 func (Ω *FeatureCollection) Area() float64 {
 	return Ω.area
 }
-func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bool, property_key string, ) *FeatureCollection {
+func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bool, property_key string) *FeatureCollection {
 	if property_key == "" {
 		return Ω
 	}
@@ -183,7 +182,7 @@ func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFun
 	}
 	f := Feature{
 		multiPolygon: multipolygon,
-		properties: properties,
+		properties:   properties,
 	}
 
 	f.Normalize()
@@ -191,17 +190,15 @@ func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFun
 	return &f
 }
 
-
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
-
 
 type FeatureCollections []*FeatureCollection
 
-func (Ω FeatureCollections) FilterByMinimumArea(minimum_area_kilometers float64) (FeatureCollections) {
+func (Ω FeatureCollections) FilterByMinimumArea(minimum_area_kilometers float64) FeatureCollections {
 	out := FeatureCollections{}
 	for _, ic := range Ω {
 		if ic.Area() < minimum_area_kilometers {
@@ -238,7 +235,7 @@ func (Ω FeatureCollections) DecimateClusters(minKm float64) FeatureCollections 
 	a := FeatureCollections{}
 	a = append(a, Ω...)
 	// Slow process. Would be more efficient to cluster. Could grab bounding box seperate into quadrants.
-	complete := false;
+	complete := false
 
 Restart:
 	for complete == false {
@@ -273,7 +270,5 @@ Restart:
 		complete = true
 	}
 
-
 	return a
 }
-

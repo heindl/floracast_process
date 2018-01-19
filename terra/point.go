@@ -1,10 +1,10 @@
 package terra
 
 import (
-	"github.com/golang/geo/s2"
-	"github.com/paulmach/go.geojson"
-	pmgeo "github.com/paulmach/go.geo"
 	"github.com/dropbox/godropbox/errors"
+	"github.com/golang/geo/s2"
+	pmgeo "github.com/paulmach/go.geo"
+	"github.com/paulmach/go.geojson"
 )
 
 type Point struct {
@@ -25,6 +25,16 @@ func (Ω Point) Empty() bool {
 
 func (Ω Point) Latitude() float64 {
 	return Ω.latlng.Lat.Degrees()
+}
+
+func (Ω Point) S2TokenArray() []string {
+	initial_cell_id := s2.CellIDFromLatLng(*Ω.latlng)
+	feature_array := []string{}
+	for i := 0; i < 10; i++ {
+		cell_id := initial_cell_id.Parent(i)
+		feature_array = append(feature_array, cell_id.ToToken())
+	}
+	return feature_array
 }
 
 func (Ω Point) Longitude() float64 {

@@ -1,16 +1,16 @@
 package terra
 
 import (
-	"github.com/dropbox/godropbox/errors"
-	"github.com/paulmach/go.geojson"
-	"github.com/mongodb/mongo-tools/common/json"
 	"github.com/buger/jsonparser"
+	"github.com/dropbox/godropbox/errors"
+	"github.com/mongodb/mongo-tools/common/json"
+	"github.com/paulmach/go.geojson"
 )
 
 type Feature struct {
-	polyLabel Point
-	area float64
-	properties []byte
+	polyLabel    Point
+	area         float64
+	properties   []byte
 	multiPolygon MultiPolygon
 }
 

@@ -4,7 +4,6 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"github.com/jonboulle/clockwork"
-	"github.com/paulmach/go.geojson"
 	"time"
 )
 
@@ -23,10 +22,8 @@ type TaxaStore interface {
 	UpsertOccurrence(context.Context, Occurrence) (isNewOccurrence bool, err error)
 	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
 	ReadProtectedAreas(cxt context.Context) ([]ProtectedArea, error)
-	ReadProtectedAreaByID(cxt context.Context, id string) (*ProtectedArea, error)
-	ReadProtectedAreaByLatLng(cxt context.Context, lat, lng float64) (*ProtectedArea, error)
-	SetProtectedArea(context.Context, ProtectedArea) error
-	SetProtectedAreaGeometry(ctx context.Context, areaID string, geoJSONGeometry geojson.Geometry) error
+	ReadProtectedArea(cxt context.Context, lat, lng float64) (*ProtectedArea, error)
+	SetProtectedAreas(context.Context, ...*ProtectedArea) error
 	SetPrediction(cxt context.Context, p Prediction) error
 	Close() error
 }
@@ -35,27 +32,50 @@ var _ TaxaStore = &store{}
 
 func NewTestTaxaStore() TaxaStore {
 
-	client, err := NewMockFirestore()
-	if err != nil {
-		return nil
+	s := store{
+		Clock: clockwork.NewFakeClockAt(time.Now()),
 	}
 
-	return TaxaStore(&store{clockwork.NewFakeClockAt(time.Now()), client})
+	var err error
+
+	s.FirestoreClient, err = NewMockFirestore()
+	if err != nil {
+		panic(err)
+	}
+
+	s.GeoFeaturesProcessor, err = NewGeoFeaturesProcessor()
+	if err != nil {
+		panic(err)
+	}
+
+	return TaxaStore(&s)
 }
 
 func NewTaxaStore() (TaxaStore, error) {
 
-	client, err := NewLiveFirestore()
+	s := store{
+		Clock: clockwork.NewRealClock(),
+	}
+
+	var err error
+
+	s.FirestoreClient, err = NewLiveFirestore()
 	if err != nil {
 		return nil, err
 	}
 
-	return TaxaStore(&store{clockwork.NewRealClock(), client}), nil
+	s.GeoFeaturesProcessor, err = NewGeoFeaturesProcessor()
+	if err != nil {
+		return nil, err
+	}
+
+	return TaxaStore(&s), nil
 }
 
 type store struct {
-	Clock           clockwork.Clock
-	FirestoreClient *firestore.Client
+	Clock                clockwork.Clock
+	FirestoreClient      *firestore.Client
+	GeoFeaturesProcessor *GeoFeaturesProcessor
 }
 
 func (Ω *store) Close() error {

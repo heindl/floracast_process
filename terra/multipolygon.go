@@ -1,10 +1,9 @@
 package terra
 
 import (
-	"github.com/golang/geo/s2"
 	"bytes"
+	"github.com/golang/geo/s2"
 )
-
 
 type MultiPolygon []*s2.Polygon
 
@@ -28,11 +27,15 @@ func (Ω MultiPolygon) Area() float64 {
 			}
 			// // Multiply by radius of earth (km) square
 			// (4π)r2
-			area += l.Area() * (6371 * 6371)
+			area += area_to_kilometers(l.Area())
 			break
 		}
 	}
 	return area
+}
+
+func area_to_kilometers(a float64) float64 {
+	return a * (6371 * 6371)
 }
 
 func (Ω MultiPolygon) Contains(lat, lng float64) bool {
@@ -57,7 +60,6 @@ func (Ω MultiPolygon) ReferencePoints() [][2]float64 {
 	}
 	return res
 }
-
 
 func (Ω MultiPolygon) LargestPolygon() *s2.Polygon {
 	maxArea := 0.0
@@ -158,7 +160,6 @@ func (Ω MultiPolygon) CentroidOfLargestPolygon() Point {
 	return coord
 }
 
-
 func (Ω MultiPolygon) PushPolygon(_p *s2.Polygon) MultiPolygon {
 	p := *_p
 	return append(Ω, &p)
@@ -211,7 +212,7 @@ func isPositivelyOriented(loop *s2.Loop) bool {
 		v1 := vertices[k]
 		v2 := vertices[i]
 		// Cross() -> x - y - z?
-		total += (v1.X * v2.Y - v2.X * v1.Y)
+		total += (v1.X*v2.Y - v2.X*v1.Y)
 		//total += points[i].Dot(points[k].Vector)
 		k = i
 	}

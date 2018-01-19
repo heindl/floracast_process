@@ -1,19 +1,20 @@
 package main
 
 import (
-	"flag"
-	"bitbucket.org/heindl/taxa/terra"
-	"sync"
 	"bitbucket.org/heindl/taxa/pad_us"
+	"bitbucket.org/heindl/taxa/terra"
+	"flag"
 	"fmt"
-	"strconv"
 	"github.com/elgs/gostrgen"
+	"io/ioutil"
+	"os"
+	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 )
 
 const LogStatus = 1
-
 
 var filteredNames = []string{
 	"golf", "soccer", "recreation", "athletic", "softball",
@@ -34,8 +35,8 @@ func main() {
 
 	processor := Processor{
 		OutputDirectory: *out,
-		Aggregated: terra.FeatureCollection{},
-		Stats: map[string]int{},
+		Aggregated:      terra.FeatureCollection{},
+		Stats:           map[string]int{},
 	}
 
 	if err := terra.ReadFeaturesFromGeoJSONFeatureCollectionFile(*in, processor.ReceiveFeature); err != nil {
@@ -43,7 +44,6 @@ func main() {
 	}
 
 	processor.Stats["Initial Filtered Total"] = processor.Aggregated.Count()
-
 
 	filtered_unit_names := processor.Aggregated.FilterByProperty(func(i interface{}) bool {
 		s := strings.ToLower(string(i.([]byte)))
@@ -79,7 +79,7 @@ func main() {
 		}
 	}
 
-	processor.Stats["After Centroid Distance Filter"] =  len(below_centroid_distance)
+	processor.Stats["After Centroid Distance Filter"] = len(below_centroid_distance)
 
 	minimum_area_filtered := below_centroid_distance.FilterByMinimumArea(0.50)
 
@@ -92,21 +92,18 @@ func main() {
 
 	processor.PrintStats()
 
-
 	for _, v := range decimated_cluster {
 
 		fname := fmt.Sprintf("%s/%.6f_%.6f.geojson", *out, v.PolyLabel().Latitude(), v.PolyLabel().Longitude())
 
-		//gj, err := v.GeoJSON()
-		//if err != nil {
-		//	panic(err)
-		//}
+		gj, err := v.GeoJSON()
+		if err != nil {
+			panic(err)
+		}
 
-		fmt.Println(fname)
-
-		//if err := ioutil.WriteFile(fname, gj, os.ModePerm); err != nil {
-		//	panic(err)
-		//}
+		if err := ioutil.WriteFile(fname, gj, os.ModePerm); err != nil {
+			panic(err)
+		}
 	}
 
 	//gj, err := decimated_cluster.PolyLabels().GeoJSON()
@@ -117,13 +114,13 @@ func main() {
 
 }
 
-func filter_exists(shouldExist bool) (func(interface{}) bool) {
+func filter_exists(shouldExist bool) func(interface{}) bool {
 	return func(i interface{}) bool {
 		s := string(i.([]byte))
 		//fmt.Println(s)
 		exists := (s != "" && s != "null" && s != "0")
 
-		if (shouldExist != exists) {
+		if shouldExist != exists {
 			fmt.Println(s, exists, shouldExist != exists)
 		}
 
@@ -139,16 +136,16 @@ type Processor struct {
 	sync.Mutex
 	OutputDirectory        string
 	PublicAccessClosed     int
-	Aggregated            terra.FeatureCollection
+	Aggregated             terra.FeatureCollection
 	PublicAccessRestricted int
-	GolfCourse int
+	GolfCourse             int
 	PublicAccessUnknown    int
 	UnassignedIUCNCategory int
 	Total                  int
 	EmptyAreas             int
-	LocalParks int
-	MarineProtectedArea int
-	Stats map[string]int
+	LocalParks             int
+	MarineProtectedArea    int
+	Stats                  map[string]int
 }
 
 func (Ω *Processor) PrintStats() {
@@ -234,11 +231,11 @@ func (Ω *Processor) ShouldSaveProtectedArea(feature *terra.Feature) bool {
 	}
 
 	if _, ok := pad_us.DesignationDefinitions[pa.Designation]; !ok {
-		if pa.Designation ==  pad_us.Designation("LP") {
+		if pa.Designation == pad_us.Designation("LP") {
 			Ω.LocalParks += 1
 			return false
 		}
-		if pa.Designation ==  pad_us.Designation("MPA") {
+		if pa.Designation == pad_us.Designation("MPA") {
 			Ω.MarineProtectedArea += 1
 			return false
 		}
@@ -256,11 +253,11 @@ func (Ω *Processor) GetID(nf *terra.Feature) string {
 	}
 
 	if pa.WDPACd != 0 {
-		return "wdpa_"+strconv.Itoa(int(pa.WDPACd))
+		return "wdpa_" + strconv.Itoa(int(pa.WDPACd))
 	}
 
 	if pa.SourcePAI != "" {
-		return "pai_"+pa.SourcePAI
+		return "pai_" + pa.SourcePAI
 	}
 
 	rand_id, err := gostrgen.RandGen(20, gostrgen.Lower|gostrgen.Digit, "", "")
