@@ -32,7 +32,7 @@ type Analyzer struct {
 
 type Catcher struct {
 	sync.Mutex
-	Predictions map[store.TaxonID]Values `json:",omitempty"`
+	Predictions map[store.INaturalistTaxonID]Values `json:",omitempty"`
 }
 
 type Values struct {
@@ -41,7 +41,7 @@ type Values struct {
 	BelowThreshold int `json:""`
 }
 
-func (Ω *Catcher) Catch(taxonID store.TaxonID, above, below int) {
+func (Ω *Catcher) Catch(taxonID store.INaturalistTaxonID, above, below int) {
 	Ω.Lock()
 	defer Ω.Unlock()
 	if _, ok := Ω.Predictions[taxonID]; !ok {
@@ -68,7 +68,7 @@ func main() {
 
 	f := Analyzer{
 		Limiter: make(chan struct{}, analyticsProcessLimit),
-		Catcher: &Catcher{Predictions: make(map[store.TaxonID]Values)},
+		Catcher: &Catcher{Predictions: make(map[store.INaturalistTaxonID]Values)},
 	}
 
 	for i := 0; i < analyticsProcessLimit; i++ {
@@ -170,7 +170,7 @@ func (Ω *Analyzer) CountOccurrences(cxt context.Context) error {
 func (Ω *Analyzer) PrintTaxa(cxt context.Context, taxa_ids string) error {
 
 	for _, _taxon_id := range strings.Split(taxa_ids, ",") {
-		taxon_id := store.TaxonID(_taxon_id)
+		taxon_id := store.INaturalistTaxonID(_taxon_id)
 		if !taxon_id.Valid() {
 			return errors.Newf("invalid taxon id[%s]", taxon_id)
 		}
@@ -285,13 +285,13 @@ func (Ω *Analyzer) FetchPredictionAnalysis(cxt context.Context, predictionsDire
 								continue
 							}
 							if line.Probabilities[i] >= threshold {
-								Ω.Catcher.Catch(store.TaxonID(line.Classes[i]), 1, 0)
+								Ω.Catcher.Catch(store.INaturalistTaxonID(line.Classes[i]), 1, 0)
 								//<- Ω.Limiter
 								//p := store.Prediction{
 								//	CreatedAt: utils.TimePtr(time.Now()),
 								//	Location: latlng.LatLng{latitude, longitude},
 								//	PredictionValue: line.Probabilities[i],
-								//	TaxonID: store.TaxonID(line.Classes[i]),
+								//	INaturalistTaxonID: store.INaturalistTaxonID(line.Classes[i]),
 								//	Date: utils.TimePtr(date),
 								//	FormattedDate: date.Format("20060102"),
 								//	Month: date.Month(),
@@ -303,7 +303,7 @@ func (Ω *Analyzer) FetchPredictionAnalysis(cxt context.Context, predictionsDire
 								//	return Ω.Store.SetPrediction(cxt, p)
 								//})
 							} else {
-								Ω.Catcher.Catch(store.TaxonID(line.Classes[i]), 0, 1)
+								Ω.Catcher.Catch(store.INaturalistTaxonID(line.Classes[i]), 0, 1)
 							}
 						}
 						return nil

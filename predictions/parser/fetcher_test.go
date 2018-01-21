@@ -38,7 +38,7 @@ func TestPredictionParser(t *testing.T) {
 		fetcher, err := NewGCSFetcher(cxt, "floracast-datamining", "")
 		So(err, ShouldBeNil)
 
-		files, err := fetcher.FetchLatestPredictionFileNames(cxt, store.TaxonID("58682"), "*")
+		files, err := fetcher.FetchLatestPredictionFileNames(cxt, store.INaturalistTaxonID("58682"), "*")
 		So(err, ShouldBeNil)
 		So(len(files), ShouldEqual, 1)
 
@@ -54,7 +54,7 @@ func TestPredictionParser(t *testing.T) {
 		//writer := TestWriter{}
 		//parser, err := NewPredictionParser(cxt, "floracast-datamining", &writer, "")
 		//So(err, ShouldBeNil)
-		////So(parser.FetchWritePredictions(cxt, store.TaxonID("58682"), ""), ShouldBeNil)
+		////So(parser.FetchWritePredictions(cxt, store.INaturalistTaxonID("58682"), ""), ShouldBeNil)
 		//writer.Close()
 
 	})
@@ -66,9 +66,9 @@ func TestPredictionParser(t *testing.T) {
 		//So(err, ShouldBeNil)
 		//parser, err := NewPredictionParser(cxt, "floracast-datamining", writer)
 		//So(err, ShouldBeNil)
-		////So(parser.FetchWritePredictions(cxt, store.TaxonID("58682"), ""), ShouldBeNil)
+		////So(parser.FetchWritePredictions(cxt, store.INaturalistTaxonID("58682"), ""), ShouldBeNil)
 		//
-		//taxa, err := writer.ReadTaxon(store.TaxonID("58682"), 38.6530169,-90.3835463, 2000)
+		//taxa, err := writer.ReadTaxon(store.INaturalistTaxonID("58682"), 38.6530169,-90.3835463, 2000)
 		//So(err, ShouldBeNil)
 		//fmt.Println(taxa)
 

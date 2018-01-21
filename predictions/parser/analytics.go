@@ -34,7 +34,7 @@ import (
 //					if _, ok := Ω.PredictionsOverTaxon[p.TaxonID]; !ok {
 //						Ω.PredictionsOverTaxon[p.TaxonID] = stats.Float64Data{}
 //					}
-//					Ω.PredictionsOverTaxon[p.TaxonID] = append(Ω.PredictionsOverTaxon[p.TaxonID], p.PredictionValue)
+//					Ω.PredictionsOverTaxon[p.INaturalistTaxonID] = append(Ω.PredictionsOverTaxon[p.INaturalistTaxonID], p.PredictionValue)
 //					if _, ok := Ω.PredictionsOverDay[p.FormattedDate]; !ok {
 //						Ω.PredictionsOverDay[p.FormattedDate] = stats.Float64Data{}
 //					}

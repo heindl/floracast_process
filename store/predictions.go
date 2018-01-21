@@ -11,16 +11,16 @@ import (
 type Prediction struct {
 	Location latlng.LatLng `datastore:",omitempty" json:",omitempty"`
 	// Date formatted "YYYYMMDD"
-	Date                  *time.Time `datastore:",omitempty" json:",omitempty"`
-	CreatedAt             *time.Time `datastore:",omitempty" json:",omitempty"`
-	FormattedDate         string     `datastore:",omitempty" json:",omitempty"`
-	Month                 time.Month `datastore:",omitempty" json:",omitempty"`
-	PredictionValue       float64    `datastore:",omitempty" json:",omitempty"`
-	ScaledPredictionValue float64    `datastore:",omitempty" json:",omitempty"`
-	ScarcityValue         float64    `datastore:",omitempty" json:""`
-	TaxonID               TaxonID    `datastore:",omitempty" json:",omitempty"`
-	WildernessAreaName    string     `datastore:",omitempty" json:",omitempty"`
-	WildernessAreaID      string     `datastore:",omitempty" json:""`
+	Date                  *time.Time         `datastore:",omitempty" json:",omitempty"`
+	CreatedAt             *time.Time         `datastore:",omitempty" json:",omitempty"`
+	FormattedDate         string             `datastore:",omitempty" json:",omitempty"`
+	Month                 time.Month         `datastore:",omitempty" json:",omitempty"`
+	PredictionValue       float64            `datastore:",omitempty" json:",omitempty"`
+	ScaledPredictionValue float64            `datastore:",omitempty" json:",omitempty"`
+	ScarcityValue         float64            `datastore:",omitempty" json:""`
+	TaxonID               INaturalistTaxonID `datastore:",omitempty" json:",omitempty"`
+	WildernessAreaName    string             `datastore:",omitempty" json:",omitempty"`
+	WildernessAreaID      string             `datastore:",omitempty" json:""`
 }
 
 func (Ω *store) PredictionDocumentID(p Prediction) (string, error) {

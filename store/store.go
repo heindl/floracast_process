@@ -11,16 +11,16 @@ type TaxaStore interface {
 	ReadTaxa(context.Context) (Taxa, error)
 	ReadSpecies(context.Context) (Taxa, error)
 	ReadTaxaFromCanonicalNames(context.Context, TaxonRank, ...CanonicalName) (Taxa, error)
-	ReadTaxon(context.Context, TaxonID) (*Taxon, error)
+	ReadTaxon(context.Context, INaturalistTaxonID) (*Taxon, error)
 	CreateTaxonIfNotExists(context.Context, Taxon) error
-	SetTaxonPhoto(context.Context, TaxonID, string) error
-	IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, ecoRegionKey string) error
+	SetTaxonPhoto(context.Context, INaturalistTaxonID, string) error
 	SetPhoto(context.Context, Photo) error
 	UpsertDataSource(context.Context, DataSource) error
+	GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID DataSourceID) (*time.Time, error)
 	UpdateDataSourceLastFetched(context.Context, DataSource) error
-	GetOccurrenceDataSources(context.Context, TaxonID) (DataSources, error)
+	GetOccurrenceDataSources(context.Context, INaturalistTaxonID) (DataSources, error)
 	UpsertOccurrence(context.Context, Occurrence) (isNewOccurrence bool, err error)
-	GetOccurrences(context.Context, TaxonID) (Occurrences, error)
+	GetOccurrences(context.Context, INaturalistTaxonID) (Occurrences, error)
 	ReadProtectedAreas(cxt context.Context) ([]ProtectedArea, error)
 	ReadProtectedArea(cxt context.Context, lat, lng float64) (*ProtectedArea, error)
 	SetProtectedAreas(context.Context, ...*ProtectedArea) error

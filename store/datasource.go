@@ -7,6 +7,7 @@ import (
 	"github.com/saleswise/errors/errors"
 	"strings"
 	"time"
+	"google.golang.org/api/iterator"
 )
 
 type DataSourceID string
@@ -14,12 +15,15 @@ type DataSourceID string
 const (
 	DataSourceIDGBIF        = DataSourceID("27")
 	DataSourceIDINaturalist = DataSourceID("F1")
+	DataSourceIDMushroomObserver = DataSourceID("1000")
 )
 
 func (Ω DataSourceID) Valid() bool {
 	_, ok := SchemeSourceIDMap[Ω]
 	return ok
 }
+
+// https://services.natureserve.org/idd/rest/ns/v1.1/globalSpecies/comprehensive?NSAccessKeyId=b2374ab2-275c-48eb-b3c1-8f7afe9af5c4&uid=ELEMENT_GLOBAL.2.121953
 
 var SchemeSourceIDMap = map[DataSourceID]string{
 	// Floracast
@@ -53,6 +57,7 @@ var SchemeSourceIDMap = map[DataSourceID]string{
 	DataSourceID("29"): "Esslinger&#39;s North American Lichens",
 	DataSourceID("30"): "Amphibian Species of the World 6.0",
 	DataSourceID("31"): "Esslinger&#39;s North American Lichens, Version 21",
+	DataSourceIDMushroomObserver: "mushroomobserver.org",
 }
 
 type DataSourceKind string
@@ -74,7 +79,7 @@ type DataSource struct {
 	SourceID DataSourceID   `firestore:",omitempty"`
 
 	TargetID      DataSourceTargetID `firestore:",omitempty"`
-	TaxonID       TaxonID            `firestore:",omitempty"`
+	TaxonID       INaturalistTaxonID `firestore:",omitempty"`
 	CreatedAt     *time.Time         `firestore:",omitempty"`
 	ModifiedAt    *time.Time         `firestore:",omitempty"`
 	LastFetchedAt *time.Time         `firestore:",omitempty"`
@@ -84,8 +89,9 @@ var DataSourceFieldsToMerge = []firestore.FieldPath{
 	firestore.FieldPath{"Kind"},
 	firestore.FieldPath{"SourceID"},
 	firestore.FieldPath{"TargetID"},
-	firestore.FieldPath{"TaxonID"},
+	firestore.FieldPath{"INaturalistTaxonID"},
 	firestore.FieldPath{"ModifiedAt"},
+	firestore.FieldPath{"CreatedAt"},
 }
 
 func (Ω *DataSource) Validate() error {
@@ -104,14 +110,42 @@ func (Ω *DataSource) Validate() error {
 
 	return nil
 }
+func (Ω *store) GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID DataSourceID) (*time.Time, error) {
+	iter := Ω.FirestoreClient.Collection(CollectionTypeDataSources).
+		Where("Kind", "==", kind).
+			Where("SourceID", "==", srcID).
+				OrderBy("CreatedAt", firestore.Desc).
+					Limit(1).
+						Documents(cxt)
 
-func (Ω *store) GetOccurrenceDataSources(context context.Context, taxonID TaxonID) (res DataSources, err error) {
+	for {
+		ref, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, errors.Wrap(err, "could no fetch latest source")
+		}
 
-	q := Ω.FirestoreClient.Collection("DataSources").
+		src := DataSource{}
+		if err := ref.DataTo(&src); err != nil {
+			return nil, errors.Wrap(err, "could not cast source")
+		}
+
+		return src.ModifiedAt, nil
+	}
+
+	return nil, nil
+}
+
+
+func (Ω *store) GetOccurrenceDataSources(context context.Context, taxonID INaturalistTaxonID) (res DataSources, err error) {
+
+	q := Ω.FirestoreClient.Collection(CollectionTypeDataSources).
 		Where("Kind", "==", DataSourceKindOccurrence)
 
 	if taxonID.Valid() {
-		q = q.Where("TaxonID", "==", taxonID)
+		q = q.Where("INaturalistTaxonID", "==", taxonID)
 	}
 
 	snaps, err := q.Documents(context).GetAll()
@@ -130,7 +164,7 @@ func (Ω *store) GetOccurrenceDataSources(context context.Context, taxonID Taxon
 	return
 }
 
-func (Ω *store) NewDataSourceDocumentRef(taxonID TaxonID, dataSourceID DataSourceID, targetID DataSourceTargetID, kind DataSourceKind) (*firestore.DocumentRef, error) {
+func (Ω *store) NewDataSourceDocumentRef(taxonID INaturalistTaxonID, dataSourceID DataSourceID, targetID DataSourceTargetID, kind DataSourceKind) (*firestore.DocumentRef, error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.New("invalid data source document reference id")

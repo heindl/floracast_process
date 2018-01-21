@@ -16,10 +16,10 @@ import (
 
 // ID is the iNaturalist taxon_id. In order to move quickly we'll be using their taxonomy
 // structure which is kept up to date by a network of volunteers using other sources.
-type TaxonID string
+type INaturalistTaxonID int64
 
-func (Ω TaxonID) Valid() bool {
-	return Ω != ""
+func (Ω INaturalistTaxonID) Valid() bool {
+	return Ω != 0
 }
 
 type TaxonRank string
@@ -92,73 +92,70 @@ const (
 )
 
 type Taxon struct {
-	CanonicalName    CanonicalName  `firestore:",omitempty"`
-	ID               TaxonID        `firestore:",omitempty"`
-	ParentID         TaxonID        `firestore:",omitempty"`
-	PhotoURL         string         `firestore:",omitempty"`
-	Rank             TaxonRank      `firestore:",omitempty"`
-	RankLevel        RankLevel      `firestore:",omitempty"`
-	CommonName       string         `firestore:",omitempty"`
-	ModifiedAt       time.Time      `firestore:",omitempty"`
-	CreatedAt        time.Time      `firestore:",omitempty"`
-	States           []State        `firestore:",omitempty"`
-	WikipediaSummary string         `firestore:",omitempty"`
-	EcoRegions       map[string]int `firestore:",omitempty"`
+	CanonicalName    CanonicalName      `firestore:",omitempty"`
+	ID               INaturalistTaxonID `firestore:",omitempty"`
+	ParentID         INaturalistTaxonID `firestore:",omitempty"`
+	PhotoURL         string             `firestore:",omitempty"`
+	Rank             TaxonRank          `firestore:",omitempty"`
+	RankLevel        RankLevel          `firestore:",omitempty"`
+	CommonName       string             `firestore:",omitempty"`
+	ModifiedAt       *time.Time          `firestore:",omitempty"`
+	CreatedAt        *time.Time          `firestore:",omitempty"`
+	WikipediaSummary string             `firestore:",omitempty"`
+	SynonymIDs map[INaturalistTaxonID]bool `firestore:",omitempty"`
+	SynonymNames map[string]bool `firestore:",omitempty"` // Designed for search, all lowercase
 }
 
-func (Ω Taxon) Combine(s *Taxon) *Taxon {
+//func (Ω Taxon) Combine(s *Taxon) *Taxon {
+//
+//	if s.CreatedAt.Before(Ω.CreatedAt) {
+//		Ω.CreatedAt = s.CreatedAt
+//	}
+//	if s.CanonicalName.Valid() {
+//		Ω.CanonicalName = s.CanonicalName
+//	}
+//
+//	if s.Rank.Valid() {
+//		Ω.Rank = s.Rank
+//	}
+//	if s.RankLevel != 0 {
+//		Ω.RankLevel = s.RankLevel
+//	}
+//	if s.CommonName == "" {
+//		Ω.CommonName = s.CommonName
+//	}
+//
+//	if s.WikipediaSummary != "" {
+//		Ω.WikipediaSummary = s.WikipediaSummary
+//	}
+//
+//	return &Ω
+//}
+//
+//type State struct {
+//	EstablishmentMeans string `datastore:",omitempty,noindex" bson:"establishmentMeans,omitempty" json:"establishmentMeans,omitempty"`
+//	Name               string `datastore:",omitempty" bson:"name,omitempty" json:"name,omitempty"`
+//}
 
-	if s.CreatedAt.Before(Ω.CreatedAt) {
-		Ω.CreatedAt = s.CreatedAt
-	}
-	if s.CanonicalName.Valid() {
-		Ω.CanonicalName = s.CanonicalName
-	}
-
-	if s.Rank.Valid() {
-		Ω.Rank = s.Rank
-	}
-	if s.RankLevel != 0 {
-		Ω.RankLevel = s.RankLevel
-	}
-	if s.CommonName == "" {
-		Ω.CommonName = s.CommonName
-	}
-	if len(s.States) > 0 {
-		Ω.States = s.States
-	}
-
-	if s.WikipediaSummary != "" {
-		Ω.WikipediaSummary = s.WikipediaSummary
-	}
-
-	return &Ω
-}
-
-type State struct {
-	EstablishmentMeans string `datastore:",omitempty,noindex" bson:"establishmentMeans,omitempty" json:"establishmentMeans,omitempty"`
-	Name               string `datastore:",omitempty" bson:"name,omitempty" json:"name,omitempty"`
-}
-
-type Taxa []Taxon
-
-func (Ω Taxa) RemoveDuplicates() (response Taxa) {
-	for _, t := range Ω {
-		if response.Find(t.ID) == nil {
-			response = append(response, t)
-		}
-	}
-	return
-}
-
-func (Ω Taxa) Find(k TaxonID) *Taxon {
-	for _, t := range Ω {
-		if t.ID == k {
-			return &t
-		}
-	}
-	return nil
-}
+type Taxa []*Taxon
+//
+//func (Ω Taxa) RemoveDuplicates() (response Taxa) {
+//	for _, t := range Ω {
+//		if response.Find(t.ID) == nil {
+//			response = append(response, t)
+//		}
+//	}
+//	return
+//}
+//
+//func (Ω Taxa) Find(k INaturalistTaxonID) *Taxon {
+//	for _, t := range Ω {
+//		if t.ID == k {
+//			return t
+//		}
+//	}
+//	return nil
+//}
 
 //func (Ω Taxa) AddToSet(s *Taxon) (Taxa, error) {
 //
@@ -179,9 +176,9 @@ func (Ω Taxa) Find(k TaxonID) *Taxon {
 //	return append(Ω, s), nil
 //}
 
-func (Ω Taxa) Index(id TaxonID) int {
+func (Ω Taxa) Index(id INaturalistTaxonID) int {
 	for i := range Ω {
-		if TaxonID(Ω[i].ID) == id {
+		if INaturalistTaxonID(Ω[i].ID) == id {
 			return i
 		}
 	}
@@ -235,7 +232,7 @@ func (Ω *store) CreateTaxonIfNotExists(cxt context.Context, txn Taxon) error {
 	return nil
 }
 
-func (Ω *store) SetTaxonPhoto(cxt context.Context, taxonID TaxonID, photoURL string) error {
+func (Ω *store) SetTaxonPhoto(cxt context.Context, taxonID INaturalistTaxonID, photoURL string) error {
 	if _, err := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(taxonID)).Set(cxt, map[string]interface{}{
 		"PhotoURL": photoURL,
 	}, firestore.Merge(firestore.FieldPath{"PhotoURL"})); err != nil {
@@ -262,13 +259,13 @@ func (Ω *store) ReadTaxaFromCanonicalNames(cxt context.Context, rank TaxonRank,
 		if err := doc.DataTo(&t); err != nil {
 			return nil, errors.Wrap(err, "could not type cast taxon")
 		}
-		res = append(res, t)
+		res = append(res, &t)
 	}
 	return
 
 }
 
-func (Ω *store) ReadTaxon(cxt context.Context, id TaxonID) (*Taxon, error) {
+func (Ω *store) ReadTaxon(cxt context.Context, id INaturalistTaxonID) (*Taxon, error) {
 
 	if !id.Valid() {
 		return nil, errors.New("invalid taxon id")
@@ -290,35 +287,35 @@ func (Ω *store) ReadTaxon(cxt context.Context, id TaxonID) (*Taxon, error) {
 // This is to be used to sort the taxa to include in each model for the eco region.
 // Formula: (OccurrenceCountForTaxonWithinEcoRegion / TotalOccurrenceCountForTaxon) / TotalEcoRegions
 // This should prioritize occurrences that only occur within that ecoregion.
-func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID TaxonID, ecoRegionKey string) error {
-
-	ref := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(taxonID))
-
-	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
-
-		doc, err := tx.Get(ref)
-		if err != nil {
-			return errors.Wrapf(err, "could not get taxon: %s", string(taxonID))
-		}
-
-		fieldPath := firestore.FieldPath{"EcoRegions", "_" + ecoRegionKey}
-
-		ecoRegionCount, err := doc.DataAtPath(fieldPath)
-		if err != nil && !strings.Contains(err.Error(), "no field") && !strings.Contains(err.Error(), `value for field "EcoRegions" is not a map`) {
-			return errors.Wrap(err, "could not find region count at field path")
-		}
-
-		newCount := int64(1)
-		if ecoRegionCount != nil {
-			newCount = ecoRegionCount.(int64) + 1
-		}
-		return tx.Update(ref, []firestore.Update{firestore.Update{FieldPath: fieldPath, Value: newCount}})
-	}); err != nil {
-		return errors.Wrap(err, "could not update occurrence")
-	}
-
-	return nil
-}
+//func (Ω *store) IncrementTaxonEcoRegion(cxt context.Context, taxonID INaturalistTaxonID, ecoRegionKey string) error {
+//
+//	ref := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Doc(string(taxonID))
+//
+//	if err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
+//
+//		doc, err := tx.Get(ref)
+//		if err != nil {
+//			return errors.Wrapf(err, "could not get taxon: %s", string(taxonID))
+//		}
+//
+//		fieldPath := firestore.FieldPath{"EcoRegions", "_" + ecoRegionKey}
+//
+//		ecoRegionCount, err := doc.DataAtPath(fieldPath)
+//		if err != nil && !strings.Contains(err.Error(), "no field") && !strings.Contains(err.Error(), `value for field "EcoRegions" is not a map`) {
+//			return errors.Wrap(err, "could not find region count at field path")
+//		}
+//
+//		newCount := int64(1)
+//		if ecoRegionCount != nil {
+//			newCount = ecoRegionCount.(int64) + 1
+//		}
+//		return tx.Update(ref, []firestore.Update{firestore.Update{FieldPath: fieldPath, Value: newCount}})
+//	}); err != nil {
+//		return errors.Wrap(err, "could not update occurrence")
+//	}
+//
+//	return nil
+//}
 
 func (Ω *store) ReadTaxa(cxt context.Context) (res Taxa, err error) {
 
@@ -332,7 +329,7 @@ func (Ω *store) ReadTaxa(cxt context.Context) (res Taxa, err error) {
 		if err := doc.DataTo(&t); err != nil {
 			return nil, errors.Wrap(err, "could not type cast taxon")
 		}
-		res = append(res, t)
+		res = append(res, &t)
 	}
 
 	return
@@ -356,7 +353,7 @@ func (Ω *store) ReadSpecies(cxt context.Context) (res Taxa, err error) {
 		if err := doc.DataTo(&t); err != nil {
 			return nil, errors.Wrap(err, "could not type cast taxon")
 		}
-		res = append(res, t)
+		res = append(res, &t)
 	}
 
 	return

@@ -21,11 +21,11 @@ type PredictionResult struct {
 	Latitude, Longitude float64
 	Date                string
 	Target, Random      float64
-	Taxon               store.TaxonID
+	Taxon               store.INaturalistTaxonID
 }
 
 type GCSFetcher interface {
-	FetchLatestPredictionFileNames(cxt context.Context, id store.TaxonID, date string) ([]string, error)
+	FetchLatestPredictionFileNames(cxt context.Context, id store.INaturalistTaxonID, date string) ([]string, error)
 	FetchPredictions(cxt context.Context, gcsFilePath string) ([]PredictionResult, error)
 }
 
@@ -49,10 +49,10 @@ type gcsFetcher struct {
 	Bucket    *storage.BucketHandle
 }
 
-func (Ω *gcsFetcher) FetchLatestPredictionFileNames(cxt context.Context, id store.TaxonID, date string) ([]string, error) {
+func (Ω *gcsFetcher) FetchLatestPredictionFileNames(cxt context.Context, id store.INaturalistTaxonID, date string) ([]string, error) {
 
 	if !id.Valid() {
-		return nil, errors.New("Invalid TaxonID")
+		return nil, errors.New("Invalid INaturalistTaxonID")
 	}
 
 	if len(date) != 8 && date != "*" {
@@ -67,7 +67,7 @@ func (Ω *gcsFetcher) FetchLatestPredictionFileNames(cxt context.Context, id sto
 
 }
 
-func (Ω *gcsFetcher) fetchLocalPredictionFileNames(cxt context.Context, id store.TaxonID, date string) ([]string, error) {
+func (Ω *gcsFetcher) fetchLocalPredictionFileNames(cxt context.Context, id store.INaturalistTaxonID, date string) ([]string, error) {
 
 	dates := []string{}
 	if date == "*" {
@@ -110,7 +110,7 @@ func (s FileNames) Less(i, j int) bool {
 	return s[i].Name() < s[i].Name()
 }
 
-func (Ω *gcsFetcher) fetchRemoteFileNames(cxt context.Context, id store.TaxonID, date string) ([]string, error) {
+func (Ω *gcsFetcher) fetchRemoteFileNames(cxt context.Context, id store.INaturalistTaxonID, date string) ([]string, error) {
 	prefix := path.Join(GCSPredictionsPath, string(id))
 	if date != "" {
 		prefix = path.Join(prefix, date)

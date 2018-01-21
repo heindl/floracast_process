@@ -15,15 +15,15 @@ import (
 type Occurrences []Occurrence
 
 type Occurrence struct {
-	TargetID      string        `firestore:",omitempty" json:",omitempty"`
-	TaxonID       TaxonID       `firestore:",omitempty" json:",omitempty"`
-	DataSourceID  DataSourceID  `firestore:",omitempty" json:",omitempty"`
-	OccurrenceID  string        `firestore:",omitempty" json:",omitempty"`
-	Location      latlng.LatLng `firestore:",omitempty" json:",omitempty"`
-	Date          *time.Time    `firestore:",omitempty" json:",omitempty"`
-	FormattedDate string        `firestore:",omitempty" json:",omitempty"`
-	Month         time.Month    `firestore:",omitempty" json:",omitempty"`
-	References    string        `firestore:",omitempty" json:",omitempty"`
+	TargetID      string             `firestore:",omitempty" json:",omitempty"`
+	TaxonID       INaturalistTaxonID `firestore:",omitempty" json:",omitempty"`
+	DataSourceID  DataSourceID       `firestore:",omitempty" json:",omitempty"`
+	OccurrenceID  string             `firestore:",omitempty" json:",omitempty"`
+	Location      latlng.LatLng      `firestore:",omitempty" json:",omitempty"`
+	Date          *time.Time         `firestore:",omitempty" json:",omitempty"`
+	FormattedDate string             `firestore:",omitempty" json:",omitempty"`
+	Month         time.Month         `firestore:",omitempty" json:",omitempty"`
+	References    string             `firestore:",omitempty" json:",omitempty"`
 	RecordedBy    string        `firestore:",omitempty" json:",omitempty"`
 	CreatedAt     *time.Time    `firestore:",omitempty" json:",omitempty"`
 	ModifiedAt    *time.Time    `firestore:",omitempty" json:",omitempty"`
@@ -39,7 +39,7 @@ func (Ω *Occurrence) mergeFields() []firestore.FieldPath {
 	// Required fields
 	fields := []firestore.FieldPath{
 		{"TargetID"},
-		{"TaxonID"},
+		{"INaturalistTaxonID"},
 		{"DataSourceID"},
 		{"OccurrenceID"},
 		{"Location"},
@@ -77,7 +77,7 @@ func (Ω *Occurrence) Validate() error {
 	return nil
 }
 
-func (Ω *store) NewOccurrenceDocumentRef(taxonID TaxonID, dataSourceID DataSourceID, targetID string) (*firestore.DocumentRef, error) {
+func (Ω *store) NewOccurrenceDocumentRef(taxonID INaturalistTaxonID, dataSourceID DataSourceID, targetID string) (*firestore.DocumentRef, error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.New("invalid data source document reference id")
@@ -157,14 +157,14 @@ func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) (isNewOccur
 //	return cells, nil
 //}
 
-func (Ω *store) GetOccurrences(cxt context.Context, taxonID TaxonID) (res Occurrences, err error) {
+func (Ω *store) GetOccurrences(cxt context.Context, taxonID INaturalistTaxonID) (res Occurrences, err error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.Newf("invalid taxon id [%s]", taxonID)
 	}
 
 	docs, err := Ω.FirestoreClient.Collection(CollectionTypeOccurrences).
-		Where("TaxonID", "==", taxonID).
+		Where("INaturalistTaxonID", "==", taxonID).
 		Documents(cxt).
 		GetAll()
 

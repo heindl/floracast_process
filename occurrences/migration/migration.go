@@ -50,7 +50,7 @@ func main() {
 	tmb.Go(func() error {
 		for _, _taxon := range taxa {
 			taxon := _taxon
-			if taxon.ID != store.TaxonID("58682") {
+			if taxon.ID != store.INaturalistTaxonID("58682") {
 				continue
 			}
 			tmb.Go(func() error {
@@ -62,7 +62,7 @@ func main() {
 					if _, err := ts.UpsertOccurrence(cxt, o); err != nil {
 						return err
 					}
-					//if err := ts.IncrementTaxonEcoRegion(cxt, o.TaxonID, o.EcoRegion); err != nil {
+					//if err := ts.IncrementTaxonEcoRegion(cxt, o.INaturalistTaxonID, o.EcoRegion); err != nil {
 					//	return err
 					//}
 				}

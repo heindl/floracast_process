@@ -95,10 +95,10 @@ func (Ω *occurrenceFetcher) FetchOccurrences(taxa_ids []string) error {
 		var err error
 		if len(taxa_ids) > 0 {
 			for _, taxon_id := range taxa_ids {
-				if !store.TaxonID(taxon_id).Valid() {
+				if !store.INaturalistTaxonID(taxon_id).Valid() {
 					return errors.Newf("invalid taxon id[%s]", taxon_id)
 				}
-				taxon, err := Ω.TaxaStore.ReadTaxon(cxt, store.TaxonID(taxon_id))
+				taxon, err := Ω.TaxaStore.ReadTaxon(cxt, store.INaturalistTaxonID(taxon_id))
 				if err != nil {
 					return err
 				}
@@ -141,7 +141,7 @@ func (Ω *occurrenceFetcher) FetchOccurrences(taxa_ids []string) error {
 							o := _o
 
 							// TODO: Note that there appears to be a problem
-							// with concurrent transactions on the same TaxonID field.
+							// with concurrent transactions on the same INaturalistTaxonID field.
 							// Therefore ignore concurrency for that taxon for now on the eco region update,
 							// which appears to repair it.
 							//<-Ω.Limiter

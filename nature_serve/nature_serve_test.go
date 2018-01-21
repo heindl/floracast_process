@@ -1,12 +1,9 @@
-package inaturalist
+package nature_serve
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/taxa/store"
-	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -14,15 +11,8 @@ func TestTaxonFetcher(t *testing.T) {
 	t.Parallel()
 
 	Convey("should fetch inaturalist", t, func() {
-		taxa, err := FetchTaxaAndChildren(context.Background(), store.INaturalistTaxonID(56830))
+		_, err := FetchTaxaFromSearch(context.Background(), "Morchella*")
 		So(err, ShouldBeNil)
-		for _, t := range taxa {
-			t.Ancestors = nil
-			t.Children = nil
-			t.TaxonPhotos = nil
-			fmt.Println(utils.JsonOrSpew(t))
-		}
-
 	})
 
 	//SkipConvey("should fetch inaturalist schemes", t, func() {

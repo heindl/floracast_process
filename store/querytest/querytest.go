@@ -23,7 +23,7 @@ func main() {
 	//	PredictionValue: 0.06885252892971039,
 	//	PercentileOverAllTaxonPredictions: 0.7,
 	//	PercentileOverAllTaxaPredictionsForDay: 0.6,
-	//	TaxonID: store.TaxonID("473935"),
+	//	INaturalistTaxonID: store.INaturalistTaxonID("473935"),
 	//}
 
 	o := store.Occurrence{
@@ -35,14 +35,14 @@ func main() {
 			Longitude: -75.097508,
 		},
 		Month:   time.August,
-		TaxonID: store.TaxonID("473935"),
+		TaxonID: store.INaturalistTaxonID("473935"),
 	}
 
 	if _, _, err := client.Collection("Occurrences").Add(context.Background(), o); err != nil {
 		panic(err)
 	}
 
-	//docs, err := client.Collection("Occurrences").Where("TaxonID", "==", "143393").
+	//docs, err := client.Collection("Occurrences").Where("INaturalistTaxonID", "==", "143393").
 	////Select("Location", ).
 	////docs, err := client.Collection("Occurrences").
 	////Where("S2CellIDs.1_10001", "==", true).

@@ -45,26 +45,26 @@ type predictionParser struct {
 	GCSFetcher            GCSFetcher
 }
 
-func taxonFromPredictionFilePath(p string) store.TaxonID {
+func taxonFromPredictionFilePath(p string) store.INaturalistTaxonID {
 	a := strings.Split(p, "/")
 	for i, v := range a {
 		if v == "predictions" {
-			return store.TaxonID(a[i+1])
+			return store.INaturalistTaxonID(a[i+1])
 		}
 	}
-	return store.TaxonID("")
+	return store.INaturalistTaxonID("")
 }
 
 type PredictionAggregator struct {
 	PredictionObjects       []*store.Prediction
-	PredictionList          map[store.TaxonID][]float64
-	TotalProtectedAreaCount map[store.TaxonID]float64
+	PredictionList          map[store.INaturalistTaxonID][]float64
+	TotalProtectedAreaCount map[store.INaturalistTaxonID]float64
 	sync.Mutex
 }
 
-func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.TaxonID]float64, error) {
+func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.INaturalistTaxonID]float64, error) {
 	taxaRatios := stats.Float64Data{}
-	taxaRatiosMap := map[store.TaxonID]float64{}
+	taxaRatiosMap := map[store.INaturalistTaxonID]float64{}
 	for taxon, predictionValues := range Ω.PredictionList {
 		totalTaxonPredictionCount := float64(len(predictionValues))
 		totalTaxonProtectedAreaCount := Ω.TotalProtectedAreaCount[taxon]
@@ -105,13 +105,13 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string,
 
 	aggr := PredictionAggregator{
 		PredictionObjects:       []*store.Prediction{},
-		PredictionList:          make(map[store.TaxonID][]float64),
-		TotalProtectedAreaCount: make(map[store.TaxonID]float64),
+		PredictionList:          make(map[store.INaturalistTaxonID][]float64),
+		TotalProtectedAreaCount: make(map[store.INaturalistTaxonID]float64),
 	}
 
 	gcsFilePaths := []string{}
 	for _, _taxonID := range taxa {
-		taxonID := store.TaxonID(_taxonID)
+		taxonID := store.INaturalistTaxonID(_taxonID)
 		aggr.PredictionList[taxonID] = []float64{}
 		aggr.TotalProtectedAreaCount[taxonID] = 0
 		gcsPaths, err := Ω.GCSFetcher.FetchLatestPredictionFileNames(cxt, taxonID, "*")

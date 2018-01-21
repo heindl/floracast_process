@@ -21,7 +21,7 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 		taxastore := store.NewTestTaxaStore()
 
-		ocs, err := taxastore.GetOccurrences(context.Background(), store.TaxonID(""))
+		ocs, err := taxastore.GetOccurrences(context.Background(), store.INaturalistTaxonID(""))
 		So(err, ShouldBeNil)
 
 		for _, o := range ocs {
@@ -43,9 +43,9 @@ func TestOccurrenceFetcher(t *testing.T) {
 		//So(err, ShouldBeNil)
 
 		//for _, t := range taxa {
-		list, err := taxastore.GetOccurrences(context.Background(), store.TaxonID(""))
+		list, err := taxastore.GetOccurrences(context.Background(), store.INaturalistTaxonID(""))
 		So(err, ShouldBeNil)
-		m := map[store.TaxonID]int{}
+		m := map[store.INaturalistTaxonID]int{}
 		for _, l := range list {
 			if _, ok := m[l.TaxonID]; !ok {
 				m[l.TaxonID] = 1
@@ -69,7 +69,7 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 		So(fetcher.FetchOccurrences(), ShouldBeNil)
 
-		ocs, err := taxastore.GetOccurrences(context.Background(), store.TaxonID("58583"))
+		ocs, err := taxastore.GetOccurrences(context.Background(), store.INaturalistTaxonID("58583"))
 		So(err, ShouldBeNil)
 
 		fmt.Println("occurrence_length", len(ocs))
