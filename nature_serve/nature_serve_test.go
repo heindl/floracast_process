@@ -4,15 +4,18 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"golang.org/x/net/context"
+	"fmt"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 func TestTaxonFetcher(t *testing.T) {
 
 	t.Parallel()
 
-	Convey("should fetch inaturalist", t, func() {
-		_, err := FetchTaxaFromSearch(context.Background(), "Morchella*")
+	Convey("should fetch natureserve", t, func() {
+		taxa, err := FetchTaxaFromSearch(context.Background(), "Morchella esculenta")
 		So(err, ShouldBeNil)
+		fmt.Println(utils.JsonOrSpew(taxa))
 	})
 
 	//SkipConvey("should fetch inaturalist schemes", t, func() {

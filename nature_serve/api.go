@@ -346,6 +346,7 @@ type FormattedFullCitation struct {
 
 type FormattedName struct {
 	I []*I `xml:"i,omitempty" json:"i,omitempty"`   // ZZmaxLength=0
+	Text string `xml:",chardata" json:",omitempty"`
 	XMLName  xml.Name `xml:"formattedName,omitempty" json:"formattedName,omitempty"`
 }
 
@@ -743,7 +744,6 @@ type ScientificName struct {
 }
 
 type SynonymName struct {
-	ConceptReference *ConceptReference `xml:"conceptReference,omitempty" json:"conceptReference,omitempty"`   // ZZmaxLength=0
 	FormattedName *FormattedName `xml:"formattedName,omitempty" json:"formattedName,omitempty"`   // ZZmaxLength=0
 	NomenclaturalAuthor *NomenclaturalAuthor `xml:"nomenclaturalAuthor,omitempty" json:"nomenclaturalAuthor,omitempty"`   // ZZmaxLength=0
 	UnformattedName *UnformattedName `xml:"unformattedName,omitempty" json:"unformattedName,omitempty"`   // ZZmaxLength=0

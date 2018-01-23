@@ -46,13 +46,13 @@ type Photos []*Photo
 //		if Ω[i].Key.ID != p.Key.ID || Ω[i].Key.Parent.Name != p.Key.Parent.Name {
 //			continue
 //		}
-//		Ω[i] = Ω[i].Combine(p)
+//		Ω[i] = Ω[i].PushSynonym(p)
 //		return Ω, nil
 //	}
 //	return append(Ω, p), nil
 //}
 
-//func (Ω Photo) Combine(p *Photo) *Photo {
+//func (Ω Photo) PushSynonym(p *Photo) *Photo {
 //	if p.URL != "" {
 //		Ω.URL = p.URL
 //	}

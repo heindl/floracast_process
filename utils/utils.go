@@ -47,6 +47,20 @@ func FloatPtr(v float64) *float64 {
 	return &v
 }
 
+func RemoveDuplicates(haystack []string) []string {
+
+	res := []string{}
+
+	for _, s := range haystack {
+		if Contains(res, s) {
+			continue
+		}
+		res = append(res, s)
+	}
+
+	return res
+}
+
 func Contains(haystack []string, needle string) bool {
 	for _, str := range haystack {
 		if needle == str {
@@ -104,9 +118,14 @@ func ContainsInt(haystack []int, needle int) bool {
 	return false
 }
 
-func AddStringToSet(haystack []string, needle string) []string {
-	if !Contains(haystack, needle) {
-		return append(haystack, needle)
+func AddStringToSet(haystack []string, needles ...string) []string {
+	for _, needle := range needles {
+		if needle == "" {
+			continue
+		}
+		if !Contains(haystack, needle) {
+			haystack = append(haystack, needle)
+		}
 	}
 	return haystack
 }

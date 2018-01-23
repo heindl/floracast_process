@@ -106,7 +106,7 @@ type Taxon struct {
 	SynonymNames map[string]bool `firestore:",omitempty"` // Designed for search, all lowercase
 }
 
-//func (Ω Taxon) Combine(s *Taxon) *Taxon {
+//func (Ω Taxon) PushSynonym(s *Taxon) *Taxon {
 //
 //	if s.CreatedAt.Before(Ω.CreatedAt) {
 //		Ω.CreatedAt = s.CreatedAt
@@ -170,7 +170,7 @@ type Taxa []*Taxon
 //		if Ω[i].Key.ID != s.Key.ID {
 //			continue
 //		}
-//		Ω[i] = Ω[i].Combine(s)
+//		Ω[i] = Ω[i].PushSynonym(s)
 //		return Ω, nil
 //	}
 //	return append(Ω, s), nil

@@ -84,7 +84,7 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			return err
 		}
 
-		// Combine features into single store ProtectedArea.
+		// PushSynonym features into single store ProtectedArea.
 
 		spa := store.ProtectedArea{
 			Area:      fc.Area(),

@@ -90,28 +90,40 @@ type INaturalistPhoto struct {
 	LargeURL           string        `json:"large_url"`
 }
 
-func (Ω INaturalistPhoto) ToStorePhoto(taxonID store.INaturalistTaxonID, sourceID store.DataSourceID) store.Photo {
-	return store.Photo{
-		ID:            strconv.Itoa(Ω.ID),
-		DataSourceID:  sourceID,
-		TaxonID:       taxonID,
-		PhotoType:     store.PhotoType(Ω.Type),
-		URL:           Ω.URL,
-		SquareURL:     Ω.SquareURL,
-		SmallURL:      Ω.SmallURL,
-		MediumURL:     Ω.MediumURL,
-		LargeURL:      Ω.LargeURL,
-		NativePhotoID: Ω.NativePageURL,
-		Attribution:   Ω.Attribution,
-		LicenseCode:   Ω.LicenseCode,
-		Flags:         Ω.Flags,
+//func (Ω INaturalistPhoto) ToStorePhoto(taxonID TaxonID, sourceID store.DataSourceID) store.Photo {
+//	return store.Photo{
+//		ID:            strconv.Itoa(Ω.ID),
+//		DataSourceID:  sourceID,
+//		TaxonID:       taxonID,
+//		PhotoType:     store.PhotoType(Ω.Type),
+//		URL:           Ω.URL,
+//		SquareURL:     Ω.SquareURL,
+//		SmallURL:      Ω.SmallURL,
+//		MediumURL:     Ω.MediumURL,
+//		LargeURL:      Ω.LargeURL,
+//		NativePhotoID: Ω.NativePageURL,
+//		Attribution:   Ω.Attribution,
+//		LicenseCode:   Ω.LicenseCode,
+//		Flags:         Ω.Flags,
+//	}
+//}
+
+func ParseStringIDs(ids ...string) []TaxonID {
+	res := []TaxonID{}
+	for _, id := range ids {
+		tID, err := strconv.Atoi(id)
+		if err != nil {
+			panic(err)
+		}
+		res = append(res, TaxonID(tID))
 	}
+	return res
 }
 
 type fetchOrchestrator struct {
 	Tmb tomb.Tomb
 	Limiter chan struct{}
-	Taxa map[store.INaturalistTaxonID]*INaturalistTaxon // Use map to avoid duplicates in recursive search.
+	Taxa map[TaxonID]*INaturalistTaxon // Use map to avoid duplicates in recursive search.
 	sync.Mutex
 }
 
@@ -119,7 +131,7 @@ func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INatu
 
 	orch := fetchOrchestrator{
 		Tmb: tomb.Tomb{},
-		Taxa: map[store.INaturalistTaxonID]*INaturalistTaxon{},
+		Taxa: map[TaxonID]*INaturalistTaxon{},
 	}
 
 	orch.Limiter = make(chan struct{}, 20)
@@ -147,11 +159,7 @@ func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INatu
 	return res, nil
 }
 
-func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID store.INaturalistTaxonID) error {
-
-	if !taxonID.Valid() {
-		return errors.New("invalid taxon id")
-	}
+func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID TaxonID) error {
 
 	// Check to see if we've already processed the full page
 	if _, ok := Ω.Taxa[taxonID]; ok {
@@ -186,7 +194,7 @@ func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID store.INatu
 	for _, _txn := range taxon.Children {
 		txn := _txn
 		Ω.Tmb.Go(func() error {
-			return Ω.fetchTaxon(cxt, store.INaturalistTaxonID(txn.ID))
+			return Ω.fetchTaxon(cxt, TaxonID(txn.ID))
 		})
 	}
 
@@ -198,7 +206,7 @@ func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID store.INatu
 		for _, _txnID := range taxon.CurrentSynonymousTaxonIds {
 			txnID := _txnID
 			Ω.Tmb.Go(func() error {
-				return Ω.fetchTaxon(cxt, store.INaturalistTaxonID(txnID))
+				return Ω.fetchTaxon(cxt, TaxonID(txnID))
 			})
 		}
 	}
@@ -248,7 +256,7 @@ type INaturalistTaxonScheme struct {
 
 var taxonSchemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
-func (Ω *fetchOrchestrator) fetchTaxonSchemes(taxonID store.INaturalistTaxonID) ([]INaturalistTaxonScheme, error) {
+func (Ω *fetchOrchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonScheme, error) {
 
 	<- Ω.Limiter
 	defer func() {

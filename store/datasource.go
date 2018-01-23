@@ -16,6 +16,7 @@ const (
 	DataSourceIDGBIF        = DataSourceID("27")
 	DataSourceIDINaturalist = DataSourceID("F1")
 	DataSourceIDMushroomObserver = DataSourceID("1000")
+	DataSourceNatureServe = DataSourceID("11")
 )
 
 func (Ω DataSourceID) Valid() bool {
@@ -34,7 +35,7 @@ var SchemeSourceIDMap = map[DataSourceID]string{
 	DataSourceID("2"):  "Amphibiaweb. 2012",
 	DataSourceID("5"):  "Amphibian Species of the World 5.5",
 	DataSourceID("17"): "New England Wild Flower Society's Flora Novae Angliae",
-	DataSourceID("11"): "NatureServe Explorer: An online encyclopedia of life. Version 7.1",
+	DataSourceNatureServe: "NatureServe Explorer: An online encyclopedia of life. Version 7.1",
 	DataSourceID("12"): "Calflora",
 	DataSourceID("13"): "Odonata Central",
 	DataSourceID("14"): "IUCN Red List of Threatened Species. Version 2012.2",
@@ -73,6 +74,27 @@ func (Ω DataSourceKind) Valid() bool {
 }
 
 type DataSourceTargetID string
+
+type DataSourceTargetIDs []DataSourceTargetID
+
+func (Ω DataSourceTargetIDs) AddToSet(ids ...DataSourceTargetID) DataSourceTargetIDs {
+	for _, id := range ids {
+		if Ω.Contains(id) {
+			continue
+		}
+		Ω = append(Ω, id)
+	}
+	return Ω
+}
+
+func (Ω DataSourceTargetIDs) Contains(id DataSourceTargetID) bool {
+	for i := range Ω {
+		if Ω[i] == id {
+			return true
+		}
+	}
+	return false
+}
 
 type DataSource struct {
 	Kind     DataSourceKind `firestore:",omitempty"`

@@ -7,7 +7,10 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 )
+
+
 
 func RequestJSON(url string, response interface{}) error {
 
@@ -47,6 +50,8 @@ func RequestXML(url string, response interface{}) error {
 	return nil
 }
 
+var totalRequests = 0
+
 
 func request(url string) ([]byte, error) {
 	client := pester.New()
@@ -54,6 +59,9 @@ func request(url string) ([]byte, error) {
 	client.MaxRetries = 5
 	client.Backoff = pester.ExponentialJitterBackoff
 	client.KeepLog = true
+
+	totalRequests += 1
+	fmt.Println(totalRequests, url)
 
 	resp, err := client.Get(url)
 	if err != nil {

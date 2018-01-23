@@ -4,7 +4,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/taxa/store"
 	"fmt"
 	"bitbucket.org/heindl/taxa/utils"
 )
@@ -14,7 +13,7 @@ func TestTaxonFetcher(t *testing.T) {
 	t.Parallel()
 
 	Convey("should fetch inaturalist", t, func() {
-		taxa, err := FetchTaxaAndChildren(context.Background(), store.INaturalistTaxonID(56830))
+		taxa, err := FetchTaxaAndChildren(context.Background(), TaxonID(56830))
 		So(err, ShouldBeNil)
 		for _, t := range taxa {
 			t.Ancestors = nil
@@ -22,7 +21,6 @@ func TestTaxonFetcher(t *testing.T) {
 			t.TaxonPhotos = nil
 			fmt.Println(utils.JsonOrSpew(t))
 		}
-
 	})
 
 	//SkipConvey("should fetch inaturalist schemes", t, func() {
