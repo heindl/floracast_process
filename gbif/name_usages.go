@@ -9,187 +9,32 @@ import (
 	"sync"
 	"github.com/dropbox/godropbox/errors"
 	"strings"
+	"bitbucket.org/heindl/taxa/taxa/name_usage"
+	"bitbucket.org/heindl/taxa/store"
 )
 
-type TaxonID int
-
-type TaxonIDs []TaxonID
-
-func (Ω TaxonIDs) IndexOf(id TaxonID) int {
-	for i := range Ω {
-		if Ω[i] == id {
-			return i
-		}
-	}
-	return -1
-}
-
-func (Ω TaxonIDs) AddToSet(id TaxonID) TaxonIDs {
-	if Ω.IndexOf(id) == -1 {
-		return append(Ω, id)
-	}
-	return Ω
-}
-
-type CanonicalNameUsages []CanonicalNameUsage
-
-func (Ω CanonicalNameUsages) IndexOfNames(qNames ...string) int {
-	for i := range Ω {
-		if utils.IntersectsStrings(append(Ω[i].Synonyms, Ω[i].CanonicalName), qNames) {
-			return i
-		}
-	}
-	return -1
-}
-
-func (Ω CanonicalNameUsages) Condense() (CanonicalNameUsages, error) {
-
-ResetLoop:
-		for {
-			changed := false
-			for i := range Ω {
-				for k := range Ω {
-					if k == i {
-						continue
-					}
-					if Ω[i].ShouldCombine(Ω[k]) {
-						changed = true
-						var err error
-						Ω[i], err = Ω[i].Combine(Ω[k])
-						if err != nil {
-							return nil, err
-						}
-						Ω = append(Ω[:k], Ω[k+1:]...)
-						continue ResetLoop
-					}
-				}
-			}
-			if !changed {
-				break
-			}
-		}
-
-	return Ω, nil
-}
-
-func (Ω CanonicalNameUsages) IndexOfID(id TaxonID) int {
-	for i := range Ω {
-		if _, ok := Ω[i].OccurrenceCount[id]; ok {
-			return i
-		}
-	}
-	return -1
-}
-
-type CanonicalNameUsage struct {
-	CanonicalName string `json:",omitempty"`
-	Synonyms []string `json:",omitempty"`
-	Ranks []string `json:",omitempty"`
-	OccurrenceCount map[TaxonID]int `firestore:",omitempty"`
-}
-
-func (a *CanonicalNameUsage) ShouldCombine(b CanonicalNameUsage) bool {
-	namesEqual := a.CanonicalName == b.CanonicalName && a.CanonicalName != ""
-	if namesEqual {
-		fmt.Println("should combine on names", a.CanonicalName, b.CanonicalName)
-		return true
-	}
-
-	sharesSynonyms := utils.IntersectsStrings(a.Synonyms, b.Synonyms)
-	if sharesSynonyms {
-		fmt.Println("should combine on synonyms", a.CanonicalName, b.CanonicalName)
-		return true
-	}
-
-	bNameIsSynonym := utils.ContainsString(a.Synonyms, b.CanonicalName)
-	aNameIsSynonym := utils.ContainsString(b.Synonyms, a.CanonicalName)
-	if bNameIsSynonym || aNameIsSynonym {
-		fmt.Println("should combine on one name is the synonym of the other", a.CanonicalName, b.CanonicalName)
-		return true
-	}
-	sharesTaxonID := false
-	for taxonID, _ := range a.OccurrenceCount {
-		if _, ok := b.OccurrenceCount[taxonID]; ok {
-			sharesTaxonID = true
-			break
-		}
-	}
-	if sharesTaxonID {
-		fmt.Println("should combine on sharedTaxonID", a.CanonicalName, b.CanonicalName)
-		return true
-	}
-
-	return false
-}
-
-func (a *CanonicalNameUsage) Combine(b CanonicalNameUsage) (CanonicalNameUsage, error) {
-	c := CanonicalNameUsage{}
-
-	bNameIsSynonym := utils.ContainsString(a.Synonyms, b.CanonicalName)
-	aNameIsSynonym := utils.ContainsString(b.Synonyms, a.CanonicalName)
-
-	if bNameIsSynonym && aNameIsSynonym {
-		return c, errors.Newf("What is the real name? %s, %s", a.CanonicalName, b.CanonicalName)
-	}
-
-	if bNameIsSynonym {
-		c.CanonicalName = a.CanonicalName
-	} else {
-		//} else if aNameIsSynonym {
-		c.CanonicalName = b.CanonicalName
-	}
-
-	c.Synonyms = utils.RemoveStringDuplicates(append(a.Synonyms, b.Synonyms...))
-	c.Ranks = utils.RemoveStringDuplicates(append(a.Ranks, b.Ranks...))
-
-	c.OccurrenceCount = b.OccurrenceCount
-	for taxonID, count := range a.OccurrenceCount {
-		if _, ok := c.OccurrenceCount[taxonID]; ok {
-			c.OccurrenceCount[taxonID] += count
-		} else {
-			c.OccurrenceCount[taxonID] = count
-		}
-	}
-
-	return c, nil
-}
-
-func (Ω *CanonicalNameUsage) Valid() bool {
-	if !utils.IntersectsStrings([]string{"species", "form", "subspecies", "variety"}, Ω.Ranks) {
-		return false
-	}
-	return true
-}
-
 type orchestrator struct {
-	Usages CanonicalNameUsages
+	Usages name_usage.CanonicalNameUsages
 	OccurrenceCount map[TaxonID]int
 	sync.Mutex
 	Context context.Context
 }
 
-func FetchNamesUsages(cxt context.Context, namesToMatch []string, externalKeyCombinations map[int][]string) (CanonicalNameUsages, error) {
+func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch store.DataSourceTargetIDs) (name_usage.CanonicalNameUsages, error) {
 
 	o := orchestrator{
-		Usages: CanonicalNameUsages{},
+		Usages: name_usage.CanonicalNameUsages{},
 		OccurrenceCount: map[TaxonID]int{},
 		Context: cxt,
 	}
 
-	// First let's get all the names together and unique.
-	names := utils.RemoveStringDuplicates(namesToMatch)
-	for _, rNames := range externalKeyCombinations {
-		names = utils.AddStringToSet(names, rNames...)
-	}
-	names = utils.StringsToLower(names...)
-
-	// Recursively fetch them all
+	// First match keys.
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _name := range names {
-			name := _name
+		for _, _key := range keysToMatch {
+			key := _key
 			tmb.Go(func() error {
-				return o.matchName(name)
+				return o.matchKey(TaxonIDFromTargetID(key))
 			})
 		}
 		return nil
@@ -198,44 +43,48 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, externalKeyCom
 		return nil, err
 	}
 
-	for taxonID, _ := range externalKeyCombinations {
-		if i := o.Usages.IndexOfID(TaxonID(taxonID)); i == -1 {
-			fmt.Println(fmt.Sprintf("Warning: non-existant taxon id [%d] from external key combination", taxonID))
-			if err := o.matchKey(TaxonID(taxonID)); err != nil && err != ErrUnsupported {
-				return nil, err
-			}
-		}
-	}
 
-	// Now we must ensure all external key combinations are accounted for.
-	for taxonID, names := range externalKeyCombinations {
-		i := o.Usages.IndexOfID(TaxonID(taxonID))
-		if i == -1 {
-			continue
-		}
-		for _, n := range names {
-			if o.Usages[i].CanonicalName != strings.ToLower(n) {
-				o.Usages[i].Synonyms = append(o.Usages[i].Synonyms, strings.ToLower(n))
-			}
-		}
-	}
+	// First let's get all the names together and unique.
+	names := utils.RemoveStringDuplicates(namesToMatch)
+	names = utils.StringsToLower(names...)
 
-	// Extricate all ids.
-	ids := TaxonIDs{}
-	for i := range o.Usages {
-		for taxonID, _ := range o.Usages[i].OccurrenceCount{
-			ids = ids.AddToSet(taxonID)
+	// Recursively fetch them all
+	tmb = tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _name := range names {
+			name := _name
+			tmb.Go(func() error {
+				n := strings.ToLower(name)
+				if i := o.Usages.FirstIndexOfName(n); i == -1 {
+					return o.matchName(name)
+				}
+				return nil
+			})
 		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
 	}
 
 	// Load cache with occurrence counts
 	tmb = tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _id := range ids {
+		for _, _id := range o.Usages.TargetIDs(store.DataSourceIDGBIF) {
 			id := _id
 			tmb.Go(func() error {
-				_, err := o.occurrenceCount(id)
-				return err
+				count, err := o.occurrenceCount(TaxonIDFromTargetID(id))
+				if err != nil {
+					return err
+				}
+				o.Lock()
+				defer o.Unlock()
+				for i := range o.Usages {
+					if o.Usages[i].SourceTargetOccurrenceCount.Contains(store.DataSourceIDGBIF, id) {
+						o.Usages[i].SourceTargetOccurrenceCount.Set(store.DataSourceIDGBIF, id, count)
+					}
+				}
+				return nil
 			})
 		}
 		return nil
@@ -244,11 +93,7 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, externalKeyCom
 		return nil, err
 	}
 
-	for i := range o.Usages {
-		for taxonID, _ := range o.Usages[i].OccurrenceCount{
-			o.Usages[i].OccurrenceCount[taxonID] = o.OccurrenceCount[taxonID]
-		}
-	}
+
 
 	return o.Usages.Condense()
 }
@@ -271,19 +116,19 @@ func (Ω *orchestrator) matchName(name string) error {
 		return Ω.matchKey(matchResult.UsageKey)
 	}
 
-	names, ranks, mapTaxonIDCounts, err := Ω.matchSynonyms(TaxonID(matchResult.UsageKey))
+	names, ranks, sourceTargetOccurrenceCount, err := Ω.matchSynonyms(matchResult.UsageKey)
 	if err != nil {
 		return err
 	}
 
-	canonicalNameUsage := CanonicalNameUsage{
+	canonicalNameUsage := name_usage.CanonicalNameUsage{
 		CanonicalName: strings.ToLower(matchResult.CanonicalName),
 		Synonyms: names,
 		Ranks: utils.AddStringToSet(ranks, strings.ToLower(matchResult.Rank)),
-		OccurrenceCount: mapTaxonIDCounts,
+		SourceTargetOccurrenceCount: sourceTargetOccurrenceCount,
 	}
+	canonicalNameUsage.SourceTargetOccurrenceCount.Set(store.DataSourceIDGBIF, matchResult.UsageKey.TargetID(), 0)
 
-	canonicalNameUsage.OccurrenceCount[TaxonID(matchResult.UsageKey)] = 0
 
 	Ω.Lock()
 	defer Ω.Unlock()
@@ -319,14 +164,13 @@ func (Ω *orchestrator) matchKey(usageKey TaxonID) error {
 		return err
 	}
 
-	canonicalNameUsage := CanonicalNameUsage{
+	canonicalNameUsage := name_usage.CanonicalNameUsage{
 		CanonicalName: strings.ToLower(nameUsage.CanonicalName),
 		Synonyms: names,
 		Ranks: utils.AddStringToSet(ranks, strings.ToLower(nameUsage.Rank)),
-		OccurrenceCount: mapTaxonIDCounts,
+		SourceTargetOccurrenceCount: mapTaxonIDCounts,
 	}
-
-	canonicalNameUsage.OccurrenceCount[key] = 0
+	canonicalNameUsage.SourceTargetOccurrenceCount.Set(store.DataSourceIDGBIF, key.TargetID(), 0)
 
 	Ω.Lock()
 	defer Ω.Unlock()
@@ -372,7 +216,7 @@ type MatchResult struct {
 
 
 
-func (Ω *orchestrator) matchSynonyms(id TaxonID) (names, ranks []string, counts map[TaxonID]int, err error) {
+func (Ω *orchestrator) matchSynonyms(id TaxonID) (names, ranks []string, counts name_usage.SourceTargetOccurrenceCount, err error) {
 
 	synonymUsages, err := fetchNameUsages(fmt.Sprintf( "http://api.gbif.org/v1/species/%d/synonyms?", id))
 	if err != nil {
@@ -380,7 +224,7 @@ func (Ω *orchestrator) matchSynonyms(id TaxonID) (names, ranks []string, counts
 	}
 
 	ranks = []string{}
-	counts = map[TaxonID]int{}
+	counts = name_usage.SourceTargetOccurrenceCount{}
 	names = []string{}
 
 	for _, synonym := range synonymUsages {
@@ -390,25 +234,28 @@ func (Ω *orchestrator) matchSynonyms(id TaxonID) (names, ranks []string, counts
 			continue
 		}
 
-		if synonym.TaxonomicStatus != "SYNONYM" && synonym.TaxonomicStatus != "HETEROTYPIC_SYNONYM" || !synonym.Synonym {
+		acceptedTaxonomicStatuses := []string{"SYNONYM", "HETEROTYPIC_SYNONYM", "HOMOTYPIC_SYNONYM"}
+
+		if !utils.ContainsString(acceptedTaxonomicStatuses, synonym.TaxonomicStatus) || !synonym.Synonym {
 			fmt.Println(fmt.Sprintf("Warning: usage [%d] is not a synonym [%s], so skipping", synonym.Key, synonym.TaxonomicStatus))
 			continue
 		}
 
 		if strings.IndexFunc(synonym.CanonicalName, func(r rune) bool {
-			return (r < 'A' || r > 'z') && r != ' '
+			return (r < 'A' || r > 'z') && r != ' ' && r != '-'
 		}) != -1 {
 			fmt.Println(fmt.Sprintf("Warning: name [%s] contains non letter, so skipping", synonym.CanonicalName))
 			continue
 		}
 
 		names = utils.AddStringToSet(names, strings.ToLower(synonym.CanonicalName))
-		if _, ok := counts[TaxonID(synonym.Key)]; ok {
-			return nil, nil, nil, errors.Newf("Unexpected: have multiple taxonIDs[%d] within synonyms[%d]", synonym.Key, id)
-		} else {
-			counts[TaxonID(synonym.Key)] = 0;
-		}
 		ranks = utils.AddStringToSet(ranks, strings.ToLower(synonym.Rank))
+		if counts.Contains(store.DataSourceIDGBIF, synonym.Key.TargetID()) {
+			return nil, nil, nil, errors.Newf("Unexpected: have multiple taxonIDs[%d] within synonyms[%d]", synonym.Key, id)
+		}
+
+		counts.Set(store.DataSourceIDGBIF, synonym.Key.TargetID(), 0)
+
 	}
 
 	return names, ranks, counts, nil

@@ -75,6 +75,13 @@ type DataSourceTargetID string
 
 type DataSourceTargetIDs []DataSourceTargetID
 
+func (Ω DataSourceTargetIDs) Strings() (res []string) {
+	for _, id := range Ω {
+		res = append(res, string(id))
+	}
+	return
+}
+
 func (Ω DataSourceTargetIDs) AddToSet(ids ...DataSourceTargetID) DataSourceTargetIDs {
 	for _, id := range ids {
 		if Ω.Contains(id) {

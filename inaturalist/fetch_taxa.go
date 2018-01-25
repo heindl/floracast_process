@@ -22,8 +22,6 @@ type page struct {
 	PerPage      int `json:"per_page"`
 }
 
-type TaxonID int64
-
 
 type INaturalistTaxon struct {
 	CompleteSpeciesCount      int `json:"complete_species_count"`

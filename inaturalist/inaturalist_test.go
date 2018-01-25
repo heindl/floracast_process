@@ -13,14 +13,11 @@ func TestTaxonFetcher(t *testing.T) {
 	t.Parallel()
 
 	Convey("should fetch inaturalist", t, func() {
-		taxa, err := FetchTaxaAndChildren(context.Background(), TaxonID(56830))
+
+		usages, err := FetchNameUsages(context.Background(), 56830)
 		So(err, ShouldBeNil)
-		for _, t := range taxa {
-			t.Ancestors = nil
-			t.Children = nil
-			t.TaxonPhotos = nil
-			fmt.Println(utils.JsonOrSpew(t))
-		}
+		fmt.Println(utils.JsonOrSpew(usages))
+
 	})
 
 	//SkipConvey("should fetch inaturalist schemes", t, func() {
