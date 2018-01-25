@@ -10,6 +10,7 @@ import (
 	"bitbucket.org/heindl/taxa/gbif"
 	"bitbucket.org/heindl/taxa/nature_serve"
 	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 // This function is intended to be a process of building a store taxon representation based on several
@@ -63,41 +64,23 @@ func fetchTaxaSources(cxt context.Context, taxonIDs ...inaturalist.TaxonID) (Can
 		return nil, err
 	}
 
-	sources := CanonicalNameSources{}
-
-	for _, inaturalistTaxon := range inaturalistTaxa {
-
-		id := store.DataSourceTargetID(strconv.Itoa(int(inaturalistTaxon.ID)))
-
-		// TODO: Currently no way to handle synonym, but also no synonyms coming from inaturalist.
-		sources = append(sources, CanonicalNameSource{
-			CanonicalName: strings.ToLower(inaturalistTaxon.Name),
-			SourceMap: SourceMap{store.DataSourceIDINaturalist: []store.DataSourceTargetID{id}},
-			Ranks: []string{strings.ToLower(inaturalistTaxon.Rank)},
-		})
-
-		for _, scheme := range inaturalistTaxon.TaxonSchemes {
-			if scheme.DataSourceID == store.DataSourceIDGBIF {
-				gbifKey, err := strconv.Atoi(string(scheme.TargetID))
-				if err != nil {
-					return nil, errors.Wrapf(err, "could not parse target id [%s]", scheme.TargetID)
-				}
-				gbifNameUsages, err := gbif.MatchKey(cxt, gbifKey)
-				if err != nil {
-					return nil, err
-				}
-				sources = append(sources, parseGBIFTaxa(gbifNameUsages...)...)
-			}
-			if scheme.DataSourceID == store.DataSourceNatureServe {
-				natureServeTxn, err := nature_serve.FetchTaxaWithUID(cxt, string(scheme.TargetID))
-				if err != nil {
-					return nil, err
-				}
-				sources = append(sources, parseNatureServeTaxa(natureServeTxn...)...)
-			}
-		}
-
+	sources, gbifKeyMap, err := parseINaturalistTaxa(cxt, inaturalistTaxa...)
+	if err != nil {
+		return nil, err
 	}
+
+	//fmt.Println(utils.JsonOrSpew(sources))
+	//fmt.Println("m := map[int][]string{")
+	//for k, names := range gbifKeyMap {
+	//	fmt.Println(fmt.Sprintf(`%d: []string{`, k))
+	//	for _, n := range names {
+	//		fmt.Println(fmt.Sprintf(`"%s",`, n))
+	//	}
+	//	fmt.Println(`},`)
+	//}
+	//fmt.Println("}")
+	//
+	//return nil, nil
 
 	natureServeTaxa, err := nature_serve.FetchTaxaFromSearch(cxt, sources.Names()...)
 	if err != nil {
@@ -105,38 +88,72 @@ func fetchTaxaSources(cxt context.Context, taxonIDs ...inaturalist.TaxonID) (Can
 	}
 	sources = append(sources, parseNatureServeTaxa(natureServeTaxa...)...)
 
-	gbifUsages, err := gbif.MatchNames(cxt, sources.Names()...)
+	gbifUsages, err := gbif.FetchNamesUsages(cxt, sources.Names(), gbifKeyMap)
 	if err != nil {
 		return nil, err
 	}
-	sources = append(sources, parseGBIFTaxa(gbifUsages...)...)
+	sources = append(sources, parseGBIFTaxa(gbifUsages)...)
 
 
 	return sources, nil
 
 }
 
-func parseGBIFTaxa(taxa ...*gbif.CanonicalNameUsage) CanonicalNameSources {
+func parseINaturalistTaxa(cxt context.Context, taxa ...*inaturalist.INaturalistTaxon) (CanonicalNameSources, map[int][]string, error) {
+
+	sources := CanonicalNameSources{}
+
+	gbifKeyMap := map[int][]string{}
+
+	for _, inaturalistTaxon := range taxa {
+
+		id := store.DataSourceTargetID(strconv.Itoa(int(inaturalistTaxon.ID)))
+
+		// TODO: Currently no way to handle synonym, but also no synonyms coming from inaturalist.
+		sources = append(sources, CanonicalNameSource{
+			CanonicalName:     strings.ToLower(inaturalistTaxon.Name),
+			SourceOccurrences: SourceOccurrenceCount{store.DataSourceIDINaturalist: map[store.DataSourceTargetID]int{id: inaturalistTaxon.ObservationsCount}},
+			Ranks:             []string{strings.ToLower(inaturalistTaxon.Rank)},
+		})
+
+		for _, scheme := range inaturalistTaxon.TaxonSchemes {
+			if scheme.DataSourceID == store.DataSourceIDGBIF {
+				gbifKey, err := strconv.Atoi(string(scheme.TargetID))
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "could not parse target id [%s]", scheme.TargetID)
+				}
+				if _, ok := gbifKeyMap[gbifKey]; !ok {
+					gbifKeyMap[gbifKey] = []string{}
+				}
+				gbifKeyMap[gbifKey] = append(gbifKeyMap[gbifKey], inaturalistTaxon.Name)
+			}
+			if scheme.DataSourceID == store.DataSourceNatureServe {
+				natureServeTxn, err := nature_serve.FetchTaxonWithUID(cxt, string(scheme.TargetID), inaturalistTaxon.Name)
+				if err != nil {
+					return nil, nil, err
+				}
+				sources = append(sources, parseNatureServeTaxa(natureServeTxn)...)
+			}
+		}
+	}
+
+	return sources, gbifKeyMap, nil
+}
+
+func parseGBIFTaxa(usages gbif.CanonicalNameUsages) CanonicalNameSources {
 	srcs := CanonicalNameSources{}
 
-	for _, txn := range taxa {
+	for _, txn := range usages {
+		occurrences := map[store.DataSourceTargetID]int{}
+		for id, count := range txn.OccurrenceCount {
+			occurrences[store.DataSourceTargetID(strconv.Itoa(int(id)))] = count
+		}
 
 		src := CanonicalNameSource{
-			CanonicalName: strings.ToLower(txn.Name),
-			SourceMap: SourceMap{store.DataSourceIDGBIF: []store.DataSourceTargetID{txn.TargetID}},
-			Ranks: []string{"species"},
-		}
-
-		if txn.SynonymOf != "" {
-			src.SynonymFor = append(src.SynonymFor, txn.SynonymOf)
-		}
-
-		for _, nsSynonym := range txn.Synonyms {
-			src.Synonyms = append(src.Synonyms, strings.ToLower(nsSynonym.Name))
-			src.SourceMap[store.DataSourceIDGBIF] = append(
-				src.SourceMap[store.DataSourceIDGBIF],
-				nsSynonym.TargetID,
-			)
+			CanonicalName:     strings.ToLower(txn.CanonicalName),
+			SourceOccurrences: SourceOccurrenceCount{store.DataSourceIDGBIF: occurrences},
+			Ranks:             txn.Ranks,
+			Synonyms: txn.Synonyms,
 		}
 
 		srcs = append(srcs, src)
@@ -153,16 +170,16 @@ func parseNatureServeTaxa(taxa ...*nature_serve.Taxon) CanonicalNameSources {
 
 		src := CanonicalNameSource{
 			CanonicalName: strings.ToLower(txn.ScientificName.Name),
-			SourceMap: SourceMap{store.DataSourceNatureServe: []store.DataSourceTargetID{
-				store.DataSourceTargetID(txn.ID),
+			SourceOccurrences: SourceOccurrenceCount{store.DataSourceNatureServe: map[store.DataSourceTargetID]int{
+				store.DataSourceTargetID(txn.ID): 0,
 			}},
 			Ranks: []string{"species"},
 		}
 
 		for _, nsSynonym := range txn.Synonyms {
-			src.Synonyms = append(src.Synonyms, strings.ToLower(nsSynonym.Name))
-			//src.SourceMap[store.DataSourceNatureServe] = append(
-			//	src.SourceMap[store.DataSourceNatureServe],
+			src.Synonyms = utils.AddStringToSet(src.Synonyms, strings.ToLower(nsSynonym.Name))
+			//src.SourceOccurrenceCount[store.DataSourceNatureServe] = append(
+			//	src.SourceOccurrenceCount[store.DataSourceNatureServe],
 			//	store.DataSourceTargetID(nsSynonym.ConceptReferenceCode),
 			//)
 		}

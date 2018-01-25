@@ -13,7 +13,7 @@ func TestTaxonFetcher(t *testing.T) {
 	t.Parallel()
 
 	Convey("should fetch natureserve", t, func() {
-		taxa, err := FetchTaxaFromSearch(context.Background(), "Morchella esculenta")
+		taxa, err := FetchTaxaFromSearch(context.Background(), "morchella deliciosa")
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(taxa))
 	})

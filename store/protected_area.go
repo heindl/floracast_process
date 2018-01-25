@@ -199,7 +199,7 @@ func (Ω *store) SetProtectedAreas(cxt context.Context, areas ...*ProtectedArea)
 	//ticker := backoff.NewTicker(bkf)
 	//for _ = range ticker.C {
 	//	_, err := Ω.FirestoreClient.Collection(CollectionTypeProtectedAreas).Doc(string(wa.ID)).Set(cxt, wa)
-	//	if err != nil && strings.Contains(err.Error(), "Internal error encountered") {
+	//	if err != nil && strings.ContainsString(err.Error(), "Internal error encountered") {
 	//		fmt.Println("Internal error encountered", err)
 	//		continue
 	//	}

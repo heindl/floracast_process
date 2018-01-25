@@ -57,7 +57,7 @@ func ensureIndex(tx *buntdb.Tx, taxon, date string) (string, error) {
 		return "", err
 	}
 
-	if !utils.Contains(indexes, index) {
+	if !utils.ContainsString(indexes, index) {
 		pattern := index + ":*:pos"
 		if err := tx.CreateSpatialIndex(index, pattern, buntdb.IndexRect); err != nil {
 			return "", err

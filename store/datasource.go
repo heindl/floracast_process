@@ -14,8 +14,8 @@ type DataSourceID string
 
 const (
 	DataSourceIDGBIF        = DataSourceID("27")
-	DataSourceIDINaturalist = DataSourceID("F1")
-	DataSourceIDMushroomObserver = DataSourceID("1000")
+	DataSourceIDINaturalist = DataSourceID("INAT")
+	DataSourceIDMushroomObserver = DataSourceID("MUOB")
 	DataSourceNatureServe = DataSourceID("11")
 )
 
@@ -23,8 +23,6 @@ func (Ω DataSourceID) Valid() bool {
 	_, ok := SchemeSourceIDMap[Ω]
 	return ok
 }
-
-// https://services.natureserve.org/idd/rest/ns/v1.1/globalSpecies/comprehensive?NSAccessKeyId=b2374ab2-275c-48eb-b3c1-8f7afe9af5c4&uid=ELEMENT_GLOBAL.2.121953
 
 var SchemeSourceIDMap = map[DataSourceID]string{
 	// Floracast
@@ -58,7 +56,7 @@ var SchemeSourceIDMap = map[DataSourceID]string{
 	DataSourceID("29"): "Esslinger&#39;s North American Lichens",
 	DataSourceID("30"): "Amphibian Species of the World 6.0",
 	DataSourceID("31"): "Esslinger&#39;s North American Lichens, Version 21",
-	DataSourceIDMushroomObserver: "mushroomobserver.org",
+	DataSourceIDMushroomObserver: "MushroomObserver.org",
 }
 
 type DataSourceKind string
@@ -94,6 +92,15 @@ func (Ω DataSourceTargetIDs) Contains(id DataSourceTargetID) bool {
 		}
 	}
 	return false
+}
+
+type OccurrenceSource struct {
+	SourceID DataSourceID   `firestore:",omitempty"`
+	TargetID      DataSourceTargetID `firestore:",omitempty"`
+	CanonicalName       string `firestore:",omitempty"`
+	CreatedAt     *time.Time         `firestore:",omitempty"`
+	ModifiedAt    *time.Time         `firestore:",omitempty"`
+	LastFetchedAt *time.Time         `firestore:",omitempty"`
 }
 
 type DataSource struct {

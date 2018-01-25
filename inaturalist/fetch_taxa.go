@@ -120,18 +120,20 @@ func ParseStringIDs(ids ...string) []TaxonID {
 	return res
 }
 
-type fetchOrchestrator struct {
+type orchestrator struct {
 	Tmb tomb.Tomb
 	Limiter chan struct{}
 	Taxa map[TaxonID]*INaturalistTaxon // Use map to avoid duplicates in recursive search.
+	Schemes map[TaxonID][]INaturalistTaxonScheme
 	sync.Mutex
 }
 
 func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INaturalistTaxon, error) {
 
-	orch := fetchOrchestrator{
+	orch := orchestrator{
 		Tmb: tomb.Tomb{},
 		Taxa: map[TaxonID]*INaturalistTaxon{},
+		Schemes: map[TaxonID][]INaturalistTaxonScheme{},
 	}
 
 	orch.Limiter = make(chan struct{}, 20)
@@ -142,7 +144,7 @@ func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INatu
 	orch.Tmb.Go(func() error {
 		for _, t := range parent_taxa {
 			orch.Tmb.Go(func() error {
-				return orch.fetchTaxon(cxt, t);
+				return orch.fetchTaxonAndChildren(t);
 			})
 		}
 		return nil
@@ -159,12 +161,18 @@ func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INatu
 	return res, nil
 }
 
-func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID TaxonID) error {
+func (Ω *orchestrator) fetchTaxonAndChildren(taxonID TaxonID) error {
 
 	// Check to see if we've already processed the full page
 	if _, ok := Ω.Taxa[taxonID]; ok {
 		return nil
 	}
+	//} else {
+		// Stop another process from doing it.
+	//	Ω.Lock()
+	//	Ω.Taxa[taxonID] = &INaturalistTaxon{}
+	//	Ω.Unlock()
+	//}
 
 	var response struct {
 		page
@@ -173,12 +181,12 @@ func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID TaxonID) er
 
 	url := fmt.Sprintf("http://api.inaturalist.org/v1/taxa/%d", taxonID)
 
-	<- Ω.Limiter
+	//<- Ω.Limiter
 	if err := utils.RequestJSON(url, &response); err != nil {
-		Ω.Limiter <- struct{}{}
+		//Ω.Limiter <- struct{}{}
 		return err
 	}
-	Ω.Limiter <- struct{}{}
+	//Ω.Limiter <- struct{}{}
 
 	if response.TotalResults == 0 {
 		return errors.Newf("no taxon returned from ID: %s", taxonID)
@@ -194,8 +202,12 @@ func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID TaxonID) er
 	for _, _txn := range taxon.Children {
 		txn := _txn
 		Ω.Tmb.Go(func() error {
-			return Ω.fetchTaxon(cxt, TaxonID(txn.ID))
+			return Ω.parseTaxon(txn, false)
 		})
+	}
+
+	if err := Ω.parseTaxon(taxon, true); err != nil {
+		return err
 	}
 
 	// Fetch synonyms? Maybe be good to have a source connection for each of them,
@@ -203,12 +215,7 @@ func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID TaxonID) er
 	if len(taxon.CurrentSynonymousTaxonIds) > 0 {
 		fmt.Println("Have Synonymous Taxon Ids", taxonID, taxon.CurrentSynonymousTaxonIds)
 		panic("ANOMOLY DETECTED")
-		for _, _txnID := range taxon.CurrentSynonymousTaxonIds {
-			txnID := _txnID
-			Ω.Tmb.Go(func() error {
-				return Ω.fetchTaxon(cxt, TaxonID(txnID))
-			})
-		}
+		return errors.Newf("Sanity check failed. Have synonymous taxon ids from taxon[%s] with no way to handle.", taxonID)
 	}
 
 	//for _, _txn := range taxon.Ancestors{
@@ -217,26 +224,35 @@ func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID TaxonID) er
 	//		return Ω.fetchTaxon(cxt, store.INaturalistTaxonID(txn.ID))
 	//	})
 	//}
+	return nil
 
-	rank := store.RankLevel(taxon.RankLevel)
+}
+
+func (Ω *orchestrator) parseTaxon(txn INaturalistTaxon, isFromFullPageRequest bool) error {
+	rank := store.RankLevel(txn.RankLevel)
 
 	// Exit early if not a species.
 	if rank != store.RankLevelSpecies && rank != store.RankLevelSubSpecies {
+		// Fetch children if this was the child of another request. Otherwise we're safe stopping with species.
+		if !isFromFullPageRequest {
+			return Ω.fetchTaxonAndChildren(txn.ID)
+		}
+		// We expect children to be parsed in the caller of this function.
 		return nil
 	}
 
-	if taxon.Extinct {
+	if txn.Extinct {
 		return nil
 	}
 
-	if !taxon.IsActive {
+	if !txn.IsActive {
 		return nil
 	}
 
 	// Fetch Schemes
-	if taxon.TaxonSchemesCount > 0 {
+	if txn.TaxonSchemesCount > 0 {
 		var err error
-		taxon.TaxonSchemes, err = Ω.fetchTaxonSchemes(taxonID)
+		txn.TaxonSchemes, err = Ω.fetchTaxonSchemes(txn.ID)
 		if err != nil {
 			return err
 		}
@@ -244,7 +260,7 @@ func (Ω *fetchOrchestrator) fetchTaxon(cxt context.Context, taxonID TaxonID) er
 
 	Ω.Lock()
 	defer Ω.Unlock()
-	Ω.Taxa[taxonID] = &taxon
+	Ω.Taxa[txn.ID] = &txn
 
 	return nil
 }
@@ -256,7 +272,11 @@ type INaturalistTaxonScheme struct {
 
 var taxonSchemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
-func (Ω *fetchOrchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonScheme, error) {
+func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonScheme, error) {
+
+	if s, ok := Ω.Schemes[taxonID]; ok {
+		return s, nil
+	}
 
 	<- Ω.Limiter
 	defer func() {
@@ -292,6 +312,11 @@ func (Ω *fetchOrchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTa
 			TargetID: targetID,
 		})
 	})
+
+	Ω.Lock()
+	defer Ω.Unlock()
+
+	Ω.Schemes[taxonID] = res
 
 	return res, nil
 

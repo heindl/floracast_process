@@ -10,6 +10,7 @@ import (
 	"strings"
 	"github.com/kennygrant/sanitize"
 	url2 "net/url"
+	"github.com/dropbox/godropbox/errors"
 )
 
 var natureServeAPIKey = os.Getenv("FLORACAST_NATURESERVE_API_KEY")
@@ -72,10 +73,22 @@ func searchName(cxt context.Context, name string) ([]*Taxon, error) {
 		uids = append(uids, sr.GlobalSpeciesUid.Text)
 	}
 
-	uids = utils.RemoveDuplicates(uids)
+	uids = utils.RemoveStringDuplicates(uids)
 
 	return FetchTaxaWithUID(cxt, uids...)
 
+}
+
+func FetchTaxonWithUID(cxt context.Context, uid string, referencedCanonicalName string) (*Taxon, error) {
+	taxa, err := FetchTaxaWithUID(cxt, uid)
+	if err != nil {
+		return nil, err
+	}
+	txn := taxa[0]
+	if !utils.ContainsString(txn.Names(), referencedCanonicalName) {
+		return nil, errors.Newf("Expected nature serve taxon [%s] to contain reference canonical name [%s]", uid, referencedCanonicalName)
+	}
+	return txn, nil
 }
 
 func FetchTaxaWithUID(cxt context.Context, uids ...string) ([]*Taxon, error) {
@@ -122,6 +135,14 @@ type Taxon struct {
 	ScientificName *TaxonScientificName `json:",omitempty"`
 	Synonyms []*TaxonScientificName `json:",omitempty"`
 	CommonNames []*TaxonCommonName `json:",omitempty"`
+}
+
+func (Ω *Taxon) Names() []string {
+	res := []string{strings.ToLower(Ω.ScientificName.Name)}
+	for _, synonym := range Ω.Synonyms {
+		res = append(res, strings.ToLower(synonym.Name))
+	}
+	return res
 }
 
 type TaxonScientificName struct {

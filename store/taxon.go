@@ -139,7 +139,7 @@ type Taxon struct {
 
 type Taxa []*Taxon
 //
-//func (Ω Taxa) RemoveDuplicates() (response Taxa) {
+//func (Ω Taxa) RemoveStringDuplicates() (response Taxa) {
 //	for _, t := range Ω {
 //		if response.Find(t.ID) == nil {
 //			response = append(response, t)
@@ -301,7 +301,7 @@ func (Ω *store) ReadTaxon(cxt context.Context, id INaturalistTaxonID) (*Taxon, 
 //		fieldPath := firestore.FieldPath{"EcoRegions", "_" + ecoRegionKey}
 //
 //		ecoRegionCount, err := doc.DataAtPath(fieldPath)
-//		if err != nil && !strings.Contains(err.Error(), "no field") && !strings.Contains(err.Error(), `value for field "EcoRegions" is not a map`) {
+//		if err != nil && !strings.ContainsString(err.Error(), "no field") && !strings.ContainsString(err.Error(), `value for field "EcoRegions" is not a map`) {
 //			return errors.Wrap(err, "could not find region count at field path")
 //		}
 //

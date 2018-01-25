@@ -291,7 +291,7 @@ package inaturalist
 //
 //	taxonID := store.INaturalistTaxonID(strconv.Itoa(int(txn.ID)))
 //
-//	if utils.Contains(Ω.ProcessedTaxa, string(taxonID)) {
+//	if utils.ContainsString(Ω.ProcessedTaxa, string(taxonID)) {
 //		return taxonID, nil
 //	}
 //

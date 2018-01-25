@@ -47,12 +47,12 @@ func FloatPtr(v float64) *float64 {
 	return &v
 }
 
-func RemoveDuplicates(haystack []string) []string {
+func RemoveStringDuplicates(haystack []string) []string {
 
 	res := []string{}
 
 	for _, s := range haystack {
-		if Contains(res, s) {
+		if ContainsString(res, s) {
 			continue
 		}
 		res = append(res, s)
@@ -61,9 +61,27 @@ func RemoveDuplicates(haystack []string) []string {
 	return res
 }
 
-func Contains(haystack []string, needle string) bool {
+func IndexOfString(haystack []string, needle string) int {
+	for i := range haystack {
+		if needle == haystack[i] {
+			return i
+		}
+	}
+	return -1
+}
+
+func ContainsString(haystack []string, needle string) bool {
 	for _, str := range haystack {
 		if needle == str {
+			return true
+		}
+	}
+	return false
+}
+
+func IntersectsStrings(a []string, b []string) bool {
+	for _, s := range a {
+		if ContainsString(b, s) {
 			return true
 		}
 	}
@@ -118,12 +136,20 @@ func ContainsInt(haystack []int, needle int) bool {
 	return false
 }
 
+func StringsToLower(a ...string) []string {
+	res := []string{}
+	for _, s := range a {
+		res = append(res, strings.ToLower(s))
+	}
+	return res
+}
+
 func AddStringToSet(haystack []string, needles ...string) []string {
 	for _, needle := range needles {
 		if needle == "" {
 			continue
 		}
-		if !Contains(haystack, needle) {
+		if !ContainsString(haystack, needle) {
 			haystack = append(haystack, needle)
 		}
 	}
