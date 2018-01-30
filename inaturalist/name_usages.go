@@ -28,7 +28,7 @@ func FetchNameUsages(cxt context.Context, ids ...int) (name_usage.CanonicalNameU
 			Ranks:             []string{strings.ToLower(inaturalistTaxon.Rank)},
 		}
 
-		usage.SourceTargetOccurrenceCount.Set(store.DataSourceIDINaturalist, inaturalistTaxon.ID.TargetID(), inaturalistTaxon.ObservationsCount)
+		usage.SourceTargetOccurrenceCount.Set(store.DataSourceTypeINaturalist, inaturalistTaxon.ID.TargetID(), inaturalistTaxon.ObservationsCount)
 		for _, scheme := range inaturalistTaxon.TaxonSchemes {
 			usage.SourceTargetOccurrenceCount.Set(scheme.DataSourceID, scheme.TargetID, 0)
 		}

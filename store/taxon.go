@@ -2,7 +2,7 @@ package store
 
 import (
 	"cloud.google.com/go/firestore"
-	"github.com/saleswise/errors/errors"
+	"github.com/dropbox/godropbox/errors"
 	"golang.org/x/net/context"
 	"strings"
 	"time"
@@ -185,10 +185,32 @@ func (Ω Taxa) Index(id INaturalistTaxonID) int {
 	return -1
 }
 
-// The canonical name is the scientific name of the species, which can cover multiple subspecies.
+// The canonical name is the scientific name of the species, subspecies, variety, etc. Anything under Genus.
 type CanonicalName string
 
 type CanonicalNames []CanonicalName
+
+func NewCanonicalName(name string) (*CanonicalName, error) {
+	cn := CanonicalName(name)
+	if err := cn.Validate(); err != nil {
+		return nil, err
+	}
+	return &cn, nil
+}
+
+func (Ω CanonicalName) Validate() error {
+
+	fields := strings.Fields(string(Ω))
+	if len(fields) == 0 {
+		return errors.New("Invalid CanonicalName: Empty")
+	}
+
+	if len(fields) == 1 {
+		return errors.Newf("Invalid CanonicalName: One one name, which likely means you tried to use a Genus or above [%s]", Ω)
+	}
+
+	return nil
+}
 
 func (list CanonicalNames) AddToSet(s CanonicalName) CanonicalNames {
 	for _, l := range list {
@@ -197,10 +219,6 @@ func (list CanonicalNames) AddToSet(s CanonicalName) CanonicalNames {
 		}
 	}
 	return append(list, s)
-}
-
-func (Ω CanonicalName) Valid() bool {
-	return Ω != ""
 }
 
 func (Ω *store) CreateTaxonIfNotExists(cxt context.Context, txn Taxon) error {

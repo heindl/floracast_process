@@ -3,10 +3,10 @@ package aggregate_usages
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/taxa/inaturalist"
 	"context"
 	"fmt"
 	"encoding/json"
+	"bitbucket.org/heindl/taxa/taxa/name_usage"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -15,10 +15,21 @@ func TestTaxonFetcher(t *testing.T) {
 
 	Convey("should generate a list of sources", t, func() {
 
-		srcs, err := AggregateNameUsages(context.Background(), 47348)
+		srcs, err := AggregateNameUsages(context.Background(), 47348, 56830, 48701)
 		So(err, ShouldBeNil)
 		////
-		marshalledSources, err := json.Marshal(srcs)
+
+
+		sufficient := name_usage.CanonicalNameUsages{}
+		for _, src := range srcs {
+			if src.OccurrenceCount() < 100 {
+				continue
+			}
+			sufficient = append(sufficient, src)
+		}
+
+
+		marshalledSources, err := json.Marshal(sufficient)
 		if err != nil {
 			panic(err)
 		}

@@ -235,9 +235,9 @@ func (Ω *occurrenceFetcher) fetchSourceData(src store.DataSource) (store.Occurr
 	return res, nil
 }
 
-func newfetcher(sourceID store.DataSourceID, targetID store.DataSourceTargetID) (Fetcher, error) {
+func newfetcher(sourceID store.DataSourceType, targetID store.DataSourceTargetID) (Fetcher, error) {
 	switch sourceID {
-	case store.DataSourceIDGBIF:
+	case store.DataSourceTypeGBIF:
 		i, err := strconv.Atoi(string(targetID))
 		if err != nil {
 			return nil, errors.Wrap(err, "could not cast targetID as string")

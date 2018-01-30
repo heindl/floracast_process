@@ -2,7 +2,7 @@ package name_usage
 
 import "bitbucket.org/heindl/taxa/store"
 
-type SourceTargetOccurrenceCount map[store.DataSourceID]map[store.DataSourceTargetID]int
+type SourceTargetOccurrenceCount map[store.DataSourceType]map[store.DataSourceTargetID]int
 
 type CanonicalNameUsage struct {
 	CanonicalName               string                                                  `json:",omitempty"`
@@ -24,7 +24,7 @@ func (a SourceTargetOccurrenceCount) Intersects(b SourceTargetOccurrenceCount) b
 	return false
 }
 
-func (Ω SourceTargetOccurrenceCount) Contains(srcType store.DataSourceID, targetId store.DataSourceTargetID) bool {
+func (Ω SourceTargetOccurrenceCount) Contains(srcType store.DataSourceType, targetId store.DataSourceTargetID) bool {
 	if _, ok := Ω[srcType]; !ok {
 		return false
 	}
@@ -36,7 +36,25 @@ func (Ω SourceTargetOccurrenceCount) Contains(srcType store.DataSourceID, targe
 	return true
 }
 
-func (Ω SourceTargetOccurrenceCount) TargetIDs(srcType store.DataSourceID) store.DataSourceTargetIDs {
+func (Ω SourceTargetOccurrenceCount) TargetIDCount() int {
+	total := 0
+	for _, counts := range Ω {
+		total += len(counts)
+	}
+	return total
+}
+
+func (Ω SourceTargetOccurrenceCount) TotalOccurrenceCount() int {
+	total := 0
+	for _, counts := range Ω {
+		for _, count := range counts {
+			total += count
+		}
+	}
+	return total
+}
+
+func (Ω SourceTargetOccurrenceCount) TargetIDs(srcType store.DataSourceType) store.DataSourceTargetIDs {
 
 	res := store.DataSourceTargetIDs{}
 	if _, ok := Ω[srcType]; !ok {
@@ -50,7 +68,7 @@ func (Ω SourceTargetOccurrenceCount) TargetIDs(srcType store.DataSourceID) stor
 	return res
 }
 
-func (Ω SourceTargetOccurrenceCount) Add(srcType store.DataSourceID, targetId store.DataSourceTargetID, count int) {
+func (Ω SourceTargetOccurrenceCount) Add(srcType store.DataSourceType, targetId store.DataSourceTargetID, count int) {
 
 	if _, ok := Ω[srcType]; !ok {
 		Ω[srcType] = map[store.DataSourceTargetID]int{}
@@ -65,7 +83,7 @@ func (Ω SourceTargetOccurrenceCount) Add(srcType store.DataSourceID, targetId s
 	}
 }
 
-func (Ω SourceTargetOccurrenceCount) Set(srcType store.DataSourceID, targetId store.DataSourceTargetID, count int) {
+func (Ω SourceTargetOccurrenceCount) Set(srcType store.DataSourceType, targetId store.DataSourceTargetID, count int) {
 
 	if _, ok := Ω[srcType]; !ok {
 		Ω[srcType] = map[store.DataSourceTargetID]int{}

@@ -8,55 +8,56 @@ import (
 	"strings"
 	"time"
 	"google.golang.org/api/iterator"
+	"strconv"
 )
 
-type DataSourceID string
+type DataSourceType string
 
 const (
-	DataSourceIDGBIF        = DataSourceID("27")
-	DataSourceIDINaturalist = DataSourceID("INAT")
-	DataSourceIDMushroomObserver = DataSourceID("MUOB")
-	DataSourceNatureServe = DataSourceID("11")
+	DataSourceTypeGBIF             = DataSourceType("27")
+	DataSourceTypeINaturalist      = DataSourceType("INAT")
+	DataSourceTypeMushroomObserver = DataSourceType("MUOB")
+	DataSourceTypeNatureServe      = DataSourceType("11")
 )
 
-func (Ω DataSourceID) Valid() bool {
+func (Ω DataSourceType) Valid() bool {
 	_, ok := SchemeSourceIDMap[Ω]
 	return ok
 }
 
-var SchemeSourceIDMap = map[DataSourceID]string{
+var SchemeSourceIDMap = map[DataSourceType]string{
 	// Floracast
-	DataSourceIDINaturalist: "iNaturalist",
+	DataSourceTypeINaturalist: "iNaturalist",
 	// INaturalist
-	DataSourceID("1"):  "IUCN Red List of Threatened Species. Version 2012.1",
-	DataSourceID("3"):  "Amphibian Species of the World 5.6",
-	DataSourceID("2"):  "Amphibiaweb. 2012",
-	DataSourceID("5"):  "Amphibian Species of the World 5.5",
-	DataSourceID("17"): "New England Wild Flower Society's Flora Novae Angliae",
-	DataSourceNatureServe: "NatureServe Explorer: An online encyclopedia of life. Version 7.1",
-	DataSourceID("12"): "Calflora",
-	DataSourceID("13"): "Odonata Central",
-	DataSourceID("14"): "IUCN Red List of Threatened Species. Version 2012.2",
-	DataSourceID("10"): "eBird/Clements Checklist 6.7",
-	DataSourceID("15"): "CONABIO",
-	DataSourceID("6"):  "The Reptile Database",
-	DataSourceID("16"): "Afribats",
-	DataSourceID("18"): "Norma 059, 2010",
-	DataSourceID("4"):  "Draft IUCN/SSC, 2013.1",
-	DataSourceID("19"): "Draft IUCN/SSC Amphibian Specialist Group, 2011",
-	DataSourceID("20"): "eBird/Clements Checklist 6.8",
-	DataSourceID("21"): "IUCN Red List of Threatened Species. Version 2013.2",
-	DataSourceID("22"): "eBird/Clements Checklist 6.9",
-	DataSourceID("23"): "NatureWatch NZ",
-	DataSourceID("24"): "The world spider catalog, version 15.5",
-	DataSourceID("25"): "Carabidae of the World",
-	DataSourceID("26"): "IUCN Red List of Threatened Species. Version 2014.3",
-	DataSourceIDGBIF:   "GBIF",
-	DataSourceID("28"): "NPSpecies",
-	DataSourceID("29"): "Esslinger&#39;s North American Lichens",
-	DataSourceID("30"): "Amphibian Species of the World 6.0",
-	DataSourceID("31"): "Esslinger&#39;s North American Lichens, Version 21",
-	DataSourceIDMushroomObserver: "MushroomObserver.org",
+	DataSourceType("1"):       "IUCN Red List of Threatened Species. Version 2012.1",
+	DataSourceType("3"):       "Amphibian Species of the World 5.6",
+	DataSourceType("2"):       "Amphibiaweb. 2012",
+	DataSourceType("5"):       "Amphibian Species of the World 5.5",
+	DataSourceType("17"):      "New England Wild Flower Society's Flora Novae Angliae",
+	DataSourceTypeNatureServe: "NatureServe Explorer: An online encyclopedia of life. Version 7.1",
+	DataSourceType("12"):      "Calflora",
+	DataSourceType("13"):      "Odonata Central",
+	DataSourceType("14"):      "IUCN Red List of Threatened Species. Version 2012.2",
+	DataSourceType("10"):      "eBird/Clements Checklist 6.7",
+	DataSourceType("15"):      "CONABIO",
+	DataSourceType("6"):       "The Reptile Database",
+	DataSourceType("16"):      "Afribats",
+	DataSourceType("18"):      "Norma 059, 2010",
+	DataSourceType("4"):          "Draft IUCN/SSC, 2013.1",
+	DataSourceType("19"):         "Draft IUCN/SSC Amphibian Specialist Group, 2011",
+	DataSourceType("20"):         "eBird/Clements Checklist 6.8",
+	DataSourceType("21"):         "IUCN Red List of Threatened Species. Version 2013.2",
+	DataSourceType("22"):         "eBird/Clements Checklist 6.9",
+	DataSourceType("23"):         "NatureWatch NZ",
+	DataSourceType("24"):           "The world spider catalog, version 15.5",
+	DataSourceType("25"):           "Carabidae of the World",
+	DataSourceType("26"):           "IUCN Red List of Threatened Species. Version 2014.3",
+	DataSourceTypeGBIF:             "GBIF",
+	DataSourceType("28"):           "NPSpecies",
+	DataSourceType("29"):           "Esslinger&#39;s North American Lichens",
+	DataSourceType("30"):           "Amphibian Species of the World 6.0",
+	DataSourceType("31"):           "Esslinger&#39;s North American Lichens, Version 21",
+	DataSourceTypeMushroomObserver: "MushroomObserver.org",
 }
 
 type DataSourceKind string
@@ -72,6 +73,18 @@ func (Ω DataSourceKind) Valid() bool {
 }
 
 type DataSourceTargetID string
+
+func (Ω DataSourceTargetID) Valid() bool {
+	return string(Ω) != ""
+}
+
+func NewDataSourceTargetIDFromInt(i int) (*DataSourceTargetID, error) {
+	if i == 0 {
+		return nil, errors.New("Invalid DataSourceTargetID: Received zero.")
+	}
+	id := DataSourceTargetID(strconv.Itoa(i))
+	return &id, nil
+}
 
 type DataSourceTargetIDs []DataSourceTargetID
 
@@ -102,9 +115,9 @@ func (Ω DataSourceTargetIDs) Contains(id DataSourceTargetID) bool {
 }
 
 type OccurrenceSource struct {
-	SourceID DataSourceID   `firestore:",omitempty"`
+	SourceID      DataSourceType     `firestore:",omitempty"`
 	TargetID      DataSourceTargetID `firestore:",omitempty"`
-	CanonicalName       string `firestore:",omitempty"`
+	CanonicalName string             `firestore:",omitempty"`
 	CreatedAt     *time.Time         `firestore:",omitempty"`
 	ModifiedAt    *time.Time         `firestore:",omitempty"`
 	LastFetchedAt *time.Time         `firestore:",omitempty"`
@@ -112,7 +125,7 @@ type OccurrenceSource struct {
 
 type DataSource struct {
 	Kind     DataSourceKind `firestore:",omitempty"`
-	SourceID DataSourceID   `firestore:",omitempty"`
+	SourceID DataSourceType `firestore:",omitempty"`
 
 	TargetID      DataSourceTargetID `firestore:",omitempty"`
 	TaxonID       INaturalistTaxonID `firestore:",omitempty"`
@@ -146,7 +159,7 @@ func (Ω *DataSource) Validate() error {
 
 	return nil
 }
-func (Ω *store) GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID DataSourceID) (*time.Time, error) {
+func (Ω *store) GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID DataSourceType) (*time.Time, error) {
 	iter := Ω.FirestoreClient.Collection(CollectionTypeDataSources).
 		Where("Kind", "==", kind).
 			Where("SourceID", "==", srcID).
@@ -200,7 +213,7 @@ func (Ω *store) GetOccurrenceDataSources(context context.Context, taxonID INatu
 	return
 }
 
-func (Ω *store) NewDataSourceDocumentRef(taxonID INaturalistTaxonID, dataSourceID DataSourceID, targetID DataSourceTargetID, kind DataSourceKind) (*firestore.DocumentRef, error) {
+func (Ω *store) NewDataSourceDocumentRef(taxonID INaturalistTaxonID, dataSourceID DataSourceType, targetID DataSourceTargetID, kind DataSourceKind) (*firestore.DocumentRef, error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.New("invalid data source document reference id")

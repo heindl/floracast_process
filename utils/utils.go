@@ -71,12 +71,7 @@ func IndexOfString(haystack []string, needle string) int {
 }
 
 func ContainsString(haystack []string, needle string) bool {
-	for _, str := range haystack {
-		if needle == str {
-			return true
-		}
-	}
-	return false
+	return IndexOfString(haystack, needle) != -1
 }
 
 func IntersectsStrings(a []string, b []string) bool {

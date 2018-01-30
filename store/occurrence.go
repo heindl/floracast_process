@@ -17,7 +17,7 @@ type Occurrences []Occurrence
 type Occurrence struct {
 	TargetID      string             `firestore:",omitempty" json:",omitempty"`
 	TaxonID       INaturalistTaxonID `firestore:",omitempty" json:",omitempty"`
-	DataSourceID  DataSourceID       `firestore:",omitempty" json:",omitempty"`
+	DataSourceID  DataSourceType     `firestore:",omitempty" json:",omitempty"`
 	OccurrenceID  string             `firestore:",omitempty" json:",omitempty"`
 	Location      latlng.LatLng      `firestore:",omitempty" json:",omitempty"`
 	Date          *time.Time         `firestore:",omitempty" json:",omitempty"`
@@ -77,7 +77,7 @@ func (Ω *Occurrence) Validate() error {
 	return nil
 }
 
-func (Ω *store) NewOccurrenceDocumentRef(taxonID INaturalistTaxonID, dataSourceID DataSourceID, targetID string) (*firestore.DocumentRef, error) {
+func (Ω *store) NewOccurrenceDocumentRef(taxonID INaturalistTaxonID, dataSourceID DataSourceType, targetID string) (*firestore.DocumentRef, error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.New("invalid data source document reference id")

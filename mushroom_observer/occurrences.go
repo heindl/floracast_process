@@ -1,6 +1,9 @@
-package main
+package mushroom_observer
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func FetchOccurrences() error {
 
@@ -22,4 +25,6 @@ func FetchOccurrences() error {
 	path := "http://mushroomobserver.org/api/observations?" + fmt.Sprintf(strings.Join(parameters, "&"), startDateStr, endDateStr)
 
 	fmt.Println(path)
+
+	return nil
 }

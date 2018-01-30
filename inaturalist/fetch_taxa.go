@@ -88,10 +88,10 @@ type INaturalistPhoto struct {
 	LargeURL           string        `json:"large_url"`
 }
 
-//func (Ω INaturalistPhoto) ToStorePhoto(taxonID TaxonID, sourceID store.DataSourceID) store.Photo {
+//func (Ω INaturalistPhoto) ToStorePhoto(taxonID TaxonID, sourceID store.DataSourceType) store.Photo {
 //	return store.Photo{
 //		ID:            strconv.Itoa(Ω.ID),
-//		DataSourceID:  sourceID,
+//		DataSourceType:  sourceID,
 //		TaxonID:       taxonID,
 //		PhotoType:     store.PhotoType(Ω.Type),
 //		URL:           Ω.URL,
@@ -140,9 +140,10 @@ func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INatu
 	}
 
 	orch.Tmb.Go(func() error {
-		for _, t := range parent_taxa {
+		for _, _taxon := range parent_taxa {
+			taxon := _taxon
 			orch.Tmb.Go(func() error {
-				return orch.fetchTaxonAndChildren(t);
+				return orch.fetchTaxonAndChildren(taxon);
 			})
 		}
 		return nil
@@ -264,7 +265,7 @@ func (Ω *orchestrator) parseTaxon(txn INaturalistTaxon, isFromFullPageRequest b
 }
 
 type INaturalistTaxonScheme struct {
-	DataSourceID store.DataSourceID
+	DataSourceID store.DataSourceType
 	TargetID store.DataSourceTargetID
 }
 
@@ -296,7 +297,7 @@ func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonSc
 	res := []INaturalistTaxonScheme{}
 	doc.Find(`a[href*="/taxon_schemes/"]`).Each(func(i int, s *goquery.Selection) {
 		v, _ := s.Attr("href")
-		originID := store.DataSourceID(strings.TrimLeft(v, "/taxon_schemes/"))
+		originID := store.DataSourceType(strings.TrimLeft(v, "/taxon_schemes/"))
 		if string(originID) == "" {
 			return
 		}

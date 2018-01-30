@@ -34,7 +34,10 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch st
 		for _, _key := range keysToMatch {
 			key := _key
 			tmb.Go(func() error {
-				return o.matchKey(TaxonIDFromTargetID(key))
+				if err := o.matchKey(TaxonIDFromTargetID(key)); err != nil && err != ErrUnsupported {
+					return err
+				}
+				return nil
 			})
 		}
 		return nil
@@ -67,10 +70,16 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch st
 		return nil, err
 	}
 
+	var err error
+	o.Usages, err = o.Usages.Condense()
+	if err != nil {
+		return nil, err
+	}
+
 	// Load cache with occurrence counts
 	tmb = tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _id := range o.Usages.TargetIDs(store.DataSourceIDGBIF) {
+		for _, _id := range o.Usages.TargetIDs(store.DataSourceTypeGBIF) {
 			id := _id
 			tmb.Go(func() error {
 				count, err := o.occurrenceCount(TaxonIDFromTargetID(id))
@@ -80,8 +89,8 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch st
 				o.Lock()
 				defer o.Unlock()
 				for i := range o.Usages {
-					if o.Usages[i].SourceTargetOccurrenceCount.Contains(store.DataSourceIDGBIF, id) {
-						o.Usages[i].SourceTargetOccurrenceCount.Set(store.DataSourceIDGBIF, id, count)
+					if o.Usages[i].SourceTargetOccurrenceCount.Contains(store.DataSourceTypeGBIF, id) {
+						o.Usages[i].SourceTargetOccurrenceCount.Set(store.DataSourceTypeGBIF, id, count)
 					}
 				}
 				return nil
@@ -93,9 +102,7 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch st
 		return nil, err
 	}
 
-
-
-	return o.Usages.Condense()
+	return o.Usages, nil
 }
 
 func (Ω *orchestrator) matchName(name string) error {
@@ -127,7 +134,7 @@ func (Ω *orchestrator) matchName(name string) error {
 		Ranks: utils.AddStringToSet(ranks, strings.ToLower(matchResult.Rank)),
 		SourceTargetOccurrenceCount: sourceTargetOccurrenceCount,
 	}
-	canonicalNameUsage.SourceTargetOccurrenceCount.Set(store.DataSourceIDGBIF, matchResult.UsageKey.TargetID(), 0)
+	canonicalNameUsage.SourceTargetOccurrenceCount.Set(store.DataSourceTypeGBIF, matchResult.UsageKey.TargetID(), 0)
 
 
 	Ω.Lock()
@@ -170,7 +177,7 @@ func (Ω *orchestrator) matchKey(usageKey TaxonID) error {
 		Ranks: utils.AddStringToSet(ranks, strings.ToLower(nameUsage.Rank)),
 		SourceTargetOccurrenceCount: mapTaxonIDCounts,
 	}
-	canonicalNameUsage.SourceTargetOccurrenceCount.Set(store.DataSourceIDGBIF, key.TargetID(), 0)
+	canonicalNameUsage.SourceTargetOccurrenceCount.Set(store.DataSourceTypeGBIF, key.TargetID(), 0)
 
 	Ω.Lock()
 	defer Ω.Unlock()
@@ -250,11 +257,11 @@ func (Ω *orchestrator) matchSynonyms(id TaxonID) (names, ranks []string, counts
 
 		names = utils.AddStringToSet(names, strings.ToLower(synonym.CanonicalName))
 		ranks = utils.AddStringToSet(ranks, strings.ToLower(synonym.Rank))
-		if counts.Contains(store.DataSourceIDGBIF, synonym.Key.TargetID()) {
+		if counts.Contains(store.DataSourceTypeGBIF, synonym.Key.TargetID()) {
 			return nil, nil, nil, errors.Newf("Unexpected: have multiple taxonIDs[%d] within synonyms[%d]", synonym.Key, id)
 		}
 
-		counts.Set(store.DataSourceIDGBIF, synonym.Key.TargetID(), 0)
+		counts.Set(store.DataSourceTypeGBIF, synonym.Key.TargetID(), 0)
 
 	}
 

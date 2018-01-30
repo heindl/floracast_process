@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"fmt"
 	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/taxa/store"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -18,6 +19,9 @@ func TestTaxonFetcher(t *testing.T) {
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(usages))
 
+		fmt.Println(utils.JsonOrSpew(usages.Names()))
+		fmt.Println(utils.JsonOrSpew(usages.TargetIDs(store.DataSourceTypeGBIF)))
+
 	})
 
 	//SkipConvey("should fetch inaturalist schemes", t, func() {
@@ -25,11 +29,11 @@ func TestTaxonFetcher(t *testing.T) {
 	//	srcs, err := f.fetchDataSources(store.INaturalistTaxonID("58583"), store.CanonicalName("Limenitis arthemis ssp. arthemis"), true)
 	//	So(err, ShouldBeNil)
 	//	So(len(srcs), ShouldEqual, 3)
-	//	So(srcs[0].SourceID, ShouldEqual, store.DataSourceID("11"))
+	//	So(srcs[0].SourceID, ShouldEqual, store.DataSourceType("11"))
 	//	So(srcs[0].Kind, ShouldEqual, store.DataSourceKindDescription)
-	//	So(srcs[1].SourceID, ShouldEqual, store.DataSourceID("27"))
+	//	So(srcs[1].SourceID, ShouldEqual, store.DataSourceType("27"))
 	//	So(srcs[1].Kind, ShouldEqual, store.DataSourceKindOccurrence)
-	//	So(srcs[2].SourceID, ShouldEqual, store.DataSourceID("27"))
+	//	So(srcs[2].SourceID, ShouldEqual, store.DataSourceType("27"))
 	//	So(srcs[2].Kind, ShouldEqual, store.DataSourceKindPhoto)
 	//})
 	//

@@ -47,14 +47,14 @@ func AggregateNameUsages(cxt context.Context, inaturalistTaxonIDs ...int) (name_
 		return nil, err
 	}
 
-	gbifUsages, err := gbif.FetchNamesUsages(cxt, inaturalistUsages.Names(), inaturalistUsages.TargetIDs(store.DataSourceIDGBIF))
+	gbifUsages, err := gbif.FetchNamesUsages(cxt, inaturalistUsages.Names(), inaturalistUsages.TargetIDs(store.DataSourceTypeGBIF))
 	if err != nil {
 		return nil, err
 	}
 
 	aggregate := append(inaturalistUsages, gbifUsages...)
 
-	natureServeUsages, err := nature_serve.FetchNameUsages(cxt, aggregate.Names(), aggregate.TargetIDs(store.DataSourceNatureServe))
+	natureServeUsages, err := nature_serve.FetchNameUsages(cxt, aggregate.Names(), aggregate.TargetIDs(store.DataSourceTypeNatureServe))
 	if err != nil {
 		return nil, err
 	}

@@ -29,7 +29,7 @@ func main() {
 	o := store.Occurrence{
 		FormattedDate: "20170806",
 		TargetID:      "473935",
-		DataSourceID:  store.DataSourceIDGBIF,
+		DataSourceID:  store.DataSourceTypeGBIF,
 		Location: latlng.LatLng{
 			Latitude:  43.788655,
 			Longitude: -75.097508,

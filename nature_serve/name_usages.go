@@ -31,7 +31,7 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs store.DataSo
 			SourceTargetOccurrenceCount: name_usage.SourceTargetOccurrenceCount{},
 			Ranks: []string{"species"},
 		}
-		src.SourceTargetOccurrenceCount.Set(store.DataSourceNatureServe, store.DataSourceTargetID(txn.ID), 0)
+		src.SourceTargetOccurrenceCount.Set(store.DataSourceTypeNatureServe, store.DataSourceTargetID(txn.ID), 0)
 
 		// TODO: Why wouldn't these synonyms have an id attached to them. Should investigate when time.
 		for _, nsSynonym := range txn.Synonyms {
