@@ -1,6 +1,5 @@
 package mushroom_observer
 
-
 import (
 	"fmt"
 	"strings"
@@ -15,7 +14,6 @@ import (
 	"gopkg.in/tomb.v2"
 	"sync"
 )
-
 
 type MushroomObserverQueryResult struct {
 	Version         float64   `json:"version"`

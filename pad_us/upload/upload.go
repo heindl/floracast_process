@@ -84,12 +84,12 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			return err
 		}
 
-		// PushSynonym features into single store ProtectedArea.
-
-		spa := store.ProtectedArea{
-			Area:      fc.Area(),
-			PolyLabel: fc.PolyLabel().AsArray(),
-		}
+		gProtectionLevel := store.ProtectionLevelUnknown
+		gAccessLevel := store.AccessLevelUnknown
+		gName := ""
+		gState := ""
+		gDesignation := ""
+		gOwner := ""
 
 		for _, feature := range fc.Features() {
 			pa := pad_us.ProtectedArea{}
@@ -100,11 +100,9 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			if err != nil {
 				return err
 			}
-			if spa.ProtectionLevel == nil || store.ProtectionLevel(gsc-1) < *spa.ProtectionLevel {
-				pl := store.ProtectionLevel(gsc - 1)
-				spa.ProtectionLevel = &pl
+			if store.ProtectionLevel(gsc-1) < gProtectionLevel {
+				gProtectionLevel = store.ProtectionLevel(gsc-1)
 			}
-
 			access := store.AccessLevelUnknown
 			switch string(pa.Access) {
 			case "OA":
@@ -117,21 +115,29 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 				access = store.AccessLevelClosed
 			}
 
-			if spa.AccessLevel == nil || access < *spa.AccessLevel {
-				spa.AccessLevel = &access
+			if gAccessLevel == store.AccessLevelUnknown && access != gAccessLevel || access < gAccessLevel {
+				gAccessLevel = access
 			}
 
-			name, err := Ω.EscapeAreaName(parse_string_value(spa.Name, pa.UnitNm))
+			name, err := Ω.EscapeAreaName(parse_string_value(gName, pa.UnitNm))
 			if err != nil {
 				return err
 			}
-			spa.Name = Ω.FormatAreaName(name)
+			gName = Ω.FormatAreaName(name)
 
-			spa.State = pa.StateNm
+			gState = pa.StateNm
 
-			spa.Designation = parse_string_value(spa.Designation, pa.DDesTp)
-			spa.Owner = parse_string_value(spa.Owner, pa.DOwnName)
+			gDesignation = parse_string_value(gDesignation, pa.DDesTp)
+			gOwner = parse_string_value(gOwner, pa.DOwnName)
 		}
+
+		spa, err := store.NewProtectedArea(gName, gState, gProtectionLevel, gAccessLevel, fc.PolyLabel().Latitude(), fc.PolyLabel().Longitude())
+		if err != nil {
+			return err
+		}
+
+		spa.SetDesignation(gDesignation)
+		spa.SetOwner(gOwner)
 
 		Ω.Lock()
 		defer Ω.Unlock()

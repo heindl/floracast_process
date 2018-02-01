@@ -3,7 +3,6 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/kpawlik/geojson"
 	"io/ioutil"
@@ -11,8 +10,6 @@ import (
 	"strings"
 	"time"
 )
-
-var NorthAmericaBBOX = [2][2]float64{{-169.433594, 13.267549}, {-49.902344, 57.906568}}
 
 var EPSILON float64 = 0.00001
 
@@ -149,12 +146,6 @@ func AddStringToSet(haystack []string, needles ...string) []string {
 		}
 	}
 	return haystack
-}
-
-func ContainsError(e error, d error) bool {
-	fmt.Println("d", d.Error())
-	fmt.Println("e", e.Error())
-	return strings.Contains(d.Error(), e.Error())
 }
 
 func GeoJsonPoint(longitude float64, latitude float64) geojson.Point {

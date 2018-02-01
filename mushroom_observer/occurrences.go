@@ -3,9 +3,13 @@ package mushroom_observer
 import (
 	"fmt"
 	"strings"
+	"bitbucket.org/heindl/taxa/occurrences"
+	"context"
+	"bitbucket.org/heindl/taxa/store"
+	"time"
 )
 
-func FetchOccurrences() error {
+func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (occurrences.Occurrences, error) {
 
 	// Get last fetched time.
 	startDateStr := "20180101"
@@ -22,9 +26,10 @@ func FetchOccurrences() error {
 		"west=-178.2",
 		"south=6.6",
 	}
-	path := "http://mushroomobserver.org/api/observations?" + fmt.Sprintf(strings.Join(parameters, "&"), startDateStr, endDateStr)
+	url := "http://mushroomobserver.org/api/observations?" + fmt.Sprintf(strings.Join(parameters, "&"), startDateStr, endDateStr)
 
-	fmt.Println(path)
 
-	return nil
+	fmt.Println(url)
+
+	return nil, nil
 }
