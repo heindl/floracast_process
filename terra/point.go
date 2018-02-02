@@ -16,8 +16,8 @@ func NewPoint(lat, lng float64) Point {
 	return Point{&ll}
 }
 
-func (Ω Point) Empty() bool {
-	if Ω.latlng == nil || Ω.Latitude() == 0 {
+func (Ω Point) IsZero() bool {
+	if Ω.latlng == nil || Ω.Latitude() == 0 || Ω.Longitude() == 0 {
 		return true
 	}
 	return false

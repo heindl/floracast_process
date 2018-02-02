@@ -107,8 +107,8 @@ package inaturalist
 //		for _, _taxon := range response.Results {
 //			taxon := _taxon
 //			// No opt if there are no observations. Likely irrelevant to the project for now because it is to rare or difficult to find.
-//			//if taxon.INaturalistTaxon.ObservationsCount == 0 {
-//			//	fmt.Printf("Zero observations for taxon %s [%d].", taxon.INaturalistTaxon.Name, taxon.INaturalistTaxon.ID)
+//			//if taxon.Taxon.ObservationsCount == 0 {
+//			//	fmt.Printf("Zero observations for taxon %s [%d].", taxon.Taxon.Name, taxon.Taxon.ID)
 //			//	continue
 //			//}
 //			<-limiter

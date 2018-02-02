@@ -23,7 +23,7 @@ type page struct {
 }
 
 
-type INaturalistTaxon struct {
+type Taxon struct {
 	CompleteSpeciesCount      int `json:"complete_species_count"`
 	Extinct                   bool        `json:"extinct"`
 	ObservationsCount         int         `json:"observations_count"`
@@ -34,25 +34,25 @@ type INaturalistTaxon struct {
 	CurrentSynonymousTaxonIds []TaxonID `json:"current_synonymous_taxon_ids"`
 	IconicTaxonID             TaxonID         `json:"iconic_taxon_id"`
 	TaxonPhotos       []struct {
-		Photo INaturalistPhoto            `json:"photo"`
-		Taxon INaturalistTaxon `json:"taxon"`
+		Photo INaturalistPhoto `json:"photo"`
+		Taxon Taxon            `json:"taxon"`
 	} `json:"taxon_photos"`
-	RankLevel           store.RankLevel                `json:"rank_level"`
-	TaxonChangesCount   int                `json:"taxon_changes_count"`
-	AtlasID             int                `json:"atlas_id"`
-	ParentID            TaxonID                `json:"parent_id"`
-	Name                string             `json:"name"`
-	Rank                string             `json:"rank"`
-	ID                  TaxonID              `json:"id"`
-	DefaultPhoto        INaturalistPhoto              `json:"default_photo"`
-	AncestorIds         []TaxonID              `json:"ancestor_ids"`
-	IconicTaxonName     string             `json:"iconic_taxon_name"`
-	PreferredCommonName string             `json:"preferred_common_name"`
-	Ancestors           []INaturalistTaxon `json:"ancestors"`
-	Children            []INaturalistTaxon `json:"children"`
-	WikipediaSummary   string    `json:"wikipedia_summary"`
-	MinSpeciesAncestry string    `json:"min_species_ancestry"`
-	CreatedAt          time.Time `json:"created_at"`
+	RankLevel           store.RankLevel       `json:"rank_level"`
+	TaxonChangesCount   int                   `json:"taxon_changes_count"`
+	AtlasID             int                   `json:"atlas_id"`
+	ParentID            TaxonID               `json:"parent_id"`
+	Name                string                `json:"name"`
+	Rank                string                `json:"rank"`
+	ID                  TaxonID               `json:"id"`
+	DefaultPhoto        INaturalistPhoto      `json:"default_photo"`
+	AncestorIds         []TaxonID             `json:"ancestor_ids"`
+	IconicTaxonName     string                `json:"iconic_taxon_name"`
+	PreferredCommonName string                `json:"preferred_common_name"`
+	Ancestors           []Taxon               `json:"ancestors"`
+	Children            []Taxon               `json:"children"`
+	WikipediaSummary   string                 `json:"wikipedia_summary"`
+	MinSpeciesAncestry string                 `json:"min_species_ancestry"`
+	CreatedAt          time.Time              `json:"created_at"`
 	ConservationStatuses []ConservationStatus `json:"conservation_statuses"`
 	TaxonSchemes []INaturalistTaxonScheme
 }
@@ -121,16 +121,16 @@ func ParseStringIDs(ids ...string) []TaxonID {
 type orchestrator struct {
 	Tmb tomb.Tomb
 	Limiter chan struct{}
-	Taxa map[TaxonID]*INaturalistTaxon // Use map to avoid duplicates in recursive search.
+	Taxa map[TaxonID]*Taxon // Use map to avoid duplicates in recursive search.
 	Schemes map[TaxonID][]INaturalistTaxonScheme
 	sync.Mutex
 }
 
-func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INaturalistTaxon, error) {
+func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*Taxon, error) {
 
 	orch := orchestrator{
 		Tmb: tomb.Tomb{},
-		Taxa: map[TaxonID]*INaturalistTaxon{},
+		Taxa: map[TaxonID]*Taxon{},
 		Schemes: map[TaxonID][]INaturalistTaxonScheme{},
 	}
 
@@ -153,7 +153,7 @@ func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*INatu
 		return nil, err
 	}
 
-	res := []*INaturalistTaxon{}
+	res := []*Taxon{}
 	for _, v := range orch.Taxa {
 		res = append(res, v)
 	}
@@ -169,13 +169,13 @@ func (Ω *orchestrator) fetchTaxonAndChildren(taxonID TaxonID) error {
 	//} else {
 		// Stop another process from doing it.
 	//	Ω.Lock()
-	//	Ω.Taxa[taxonID] = &INaturalistTaxon{}
+	//	Ω.Taxa[taxonID] = &Taxon{}
 	//	Ω.Unlock()
 	//}
 
 	var response struct {
 		page
-		Results []INaturalistTaxon `json:"results"`
+		Results []Taxon `json:"results"`
 	}
 
 	url := fmt.Sprintf("http://api.inaturalist.org/v1/taxa/%d", taxonID)
@@ -227,7 +227,7 @@ func (Ω *orchestrator) fetchTaxonAndChildren(taxonID TaxonID) error {
 
 }
 
-func (Ω *orchestrator) parseTaxon(txn INaturalistTaxon, isFromFullPageRequest bool) error {
+func (Ω *orchestrator) parseTaxon(txn Taxon, isFromFullPageRequest bool) error {
 	rank := store.RankLevel(txn.RankLevel)
 
 	// Exit early if not a species.

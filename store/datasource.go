@@ -78,6 +78,14 @@ func (Ω DataSourceTargetID) Valid() bool {
 	return string(Ω) != ""
 }
 
+func (Ω DataSourceTargetID) ToInt() (int, error) {
+	i, err := strconv.Atoi(string(Ω))
+	if err != nil {
+		return 0, errors.Wrap(err, "Could not cast TargetID as int")
+	}
+	return i, nil
+}
+
 func NewDataSourceTargetIDFromInt(i int) (*DataSourceTargetID, error) {
 	if i == 0 {
 		return nil, errors.New("Invalid DataSourceTargetID: Received zero.")

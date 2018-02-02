@@ -202,7 +202,7 @@ func (Ω CanonicalName) Validate() error {
 
 	fields := strings.Fields(string(Ω))
 	if len(fields) == 0 {
-		return errors.New("Invalid CanonicalName: Empty")
+		return errors.New("Invalid CanonicalName: IsZero")
 	}
 
 	if len(fields) == 1 {

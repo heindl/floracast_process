@@ -10,9 +10,10 @@ import (
 	"time"
 	"bitbucket.org/heindl/taxa/store"
 	"bitbucket.org/heindl/taxa/geofeatures"
-	"github.com/bradfitz/latlong"
 	"go.uber.org/ratelimit"
 	"gopkg.in/tomb.v2"
+	"strconv"
+	"sync"
 )
 
 type OccurrenceFetcherInterface interface {
@@ -49,6 +50,16 @@ type Occurrence struct {
 	*geofeatures.GeoFeatureSet
 	fsDocumentReference *firestore.DocumentRef
 	fsTimeLocationQuery firestore.Query
+}
+
+func (Ω *Occurrence) locationKey() (string, error) {
+	if Ω == nil || Ω.GeoFeatureSet == nil {
+		return "", errors.New("Nil Occurrence")
+	}
+	if Ω.GeoFeatureSet == nil {
+		return "", errors.New("Nil FeatureSet")
+	}
+	return Ω.GeoFeatureSet.CoordinateKey() + Ω.formattedDate, nil
 }
 
 const keySourceType = "SourceType"
@@ -115,53 +126,104 @@ func fromMap(m map[string]interface{}) (*Occurrence, error) {
 
 var ErrInvalidDate = errors.New("Invalid Date")
 
-func (Ω *Occurrence) SetGeospatial(lat, lng float64, date time.Time) error {
+func (Ω *Occurrence) SetGeospatial(lat, lng float64, date string, coordinatesEstimated bool) error {
 
 	var err error
 	// GeoFeatureSet placeholder should validate for decimal places.
-	Ω.GeoFeatureSet, err = geofeatures.NewGeoFeatureSet(lat, lng)
+	Ω.GeoFeatureSet, err = geofeatures.NewGeoFeatureSet(lat, lng, coordinatesEstimated)
 	if err != nil {
 		return err
 	}
 
-	if date.Year() < 1960 {
-		return errors.Wrapf(ErrInvalidDate, "Year must be after 1960 [%s]", date)
+	if len(date) != 8 {
+		return errors.Wrapf(ErrInvalidDate, "Date [%s] must be in format YYYYMMDD", date)
 	}
 
+	intDate, err := strconv.Atoi(date)
+	if err != nil || intDate == 0 {
+		return errors.Wrapf(ErrInvalidDate, "Date [%s] must be in format YYYYMMDD", date)
+	}
+
+	if intDate < 19600101 {
+		return errors.Wrapf(ErrInvalidDate, "Date [%s] must be after 1960", date)
+	}
+
+	// TODO: Reconsider the time zone of each source.
 	// Not going to store time because it's useless for the date model.
 	// But do need to cast time to the local for that coordinate, to be certain we have the correct day.
-	if Ω.Lat() == 0 || Ω.Lng() == 0 {
-		return errors.New("Could not calculate timezone because occurrence location is invalid")
-	}
-	tz, err := time.LoadLocation(latlong.LookupZoneName(Ω.Lat(), Ω.Lng()))
-	if err != nil {
-		return errors.Wrap(err, "could not load location")
-	}
+	//if Ω.Lat() == 0 || Ω.Lng() == 0 {
+	//	return errors.New("Could not calculate timezone because occurrence location is invalid")
+	//}
+	//tz, err := time.LoadLocation(latlong.LookupZoneName(Ω.Lat(), Ω.Lng()))
+	//if err != nil {
+	//	return errors.Wrap(err, "could not load location")
+	//}
+	//
+	//loc := date.Location().String()
+	//
+	//if tz.String() != loc && (loc != "" && loc != "Local") {
+	//	return errors.Newf("Locations [%s, %s] are not equal: %s", tz.String(), date.Location().String(), date)
+	//}
 
-	loc := date.Location().String()
-
-	if tz.String() != loc && (loc != "" && loc != "Local") {
-		return errors.Newf("Locations [%s, %s] are not equal: %s", tz.String(), date.Location().String(), date)
-	}
-
-	Ω.formattedDate = date.Format("20060102")
+	Ω.formattedDate = date
 
 	return nil
 }
 
-type Occurrences []*Occurrence
+type Occurrences struct {
+	collisions int
+	sync.Mutex
+	list []*Occurrence
+}
+
+func (Ω *Occurrences) Add(b *Occurrence) error {
+
+	bKey, err := b.locationKey()
+	if err != nil {
+		return err
+	}
+
+	Ω.Lock()
+	defer Ω.Unlock()
+
+	if Ω.list == nil {
+		Ω.list = []*Occurrence{}
+	}
+
+	for _, a := range Ω.list {
+		aKey, err := a.locationKey()
+		if err != nil {
+			return err
+		}
+		if aKey != bKey {
+			continue
+		}
+		Ω.collisions += 1
+		fmt.Println("Warning: Collision")
+		fmt.Println("Keys", aKey, bKey)
+		fmt.Println("SourceTypes", a.sourceType, b.sourceType)
+		fmt.Println("TargetIDs", a.targetID, b.targetID)
+		return nil
+	}
+
+	Ω.list = append(Ω.list, b)
+
+	return nil
+
+
+}
 
 
 // TODO: Should periodically check all occurrences for consistency.
 
-func (Ω Occurrences) UpsertOccurrences(cxt context.Context, firestoreClient *firestore.Client) error {
+func (Ω Occurrences) Upsert(cxt context.Context, firestoreClient *firestore.Client) error {
 
 	col := firestoreClient.Collection(store.CollectionTypeOccurrences)
 	limiter := ratelimit.New(100)
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _o := range Ω {
+		for _, _o := range Ω.list {
 			o := _o
 			limiter.Take()
 			tmb.Go(func() error{

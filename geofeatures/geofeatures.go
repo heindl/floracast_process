@@ -32,6 +32,7 @@ import (
 type GeoFeatureSet struct {
 	lat  float64
 	lng float64
+	coordinatesEstimated bool
 	biome     ecoregions.Biome
 	ecoNum    ecoregions.EcoNum
 	s2Tokens  []string // Ordered from 0 to 10.
@@ -49,6 +50,7 @@ func (Ω GeoFeatureSet) Lng() float64 {
 const keyCoordinate = "CoordinateKey"
 const keyLatitude = "Latitude"
 const keyLongitude = "Longitude"
+const keyCoordinatesEstimated = "CoordinatesEstimated"
 const keyBiome = "Biome"
 const keyEcoNum = "EcoNum"
 const keyS2Tokens = "S2Tokens"
@@ -68,6 +70,7 @@ func NewGeoFeatureSetFromMap(m map[string]interface{}) (*GeoFeatureSet, error) {
 	gs := GeoFeatureSet{
 		lat: m[keyLatitude].(float64),
 		lng: m[keyLongitude].(float64),
+		coordinatesEstimated: m[keyCoordinatesEstimated].(bool),
 		biome: m[keyBiome].(ecoregions.Biome),
 		ecoNum: m[keyEcoNum].(ecoregions.EcoNum),
 		s2Tokens: m[keyS2Tokens].([]string),
@@ -117,14 +120,14 @@ func validateCoordinates(lat, lng float64) error {
 	return nil
 }
 
-func NewGeoFeatureSet(lat, lng float64) (*GeoFeatureSet, error) {
+func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureSet, error) {
 	if err := validateCoordinates(lat, lng); err != nil {
 		return nil, err
 	}
 	if err := liveProcessor.queueElevation(lat, lng); err != nil {
 		return nil, err
 	}
-	return &GeoFeatureSet{lat: lat, lng: lng}, nil
+	return &GeoFeatureSet{lat: lat, lng: lng, coordinatesEstimated: coordinatesEstimated}, nil
 }
 
 func (Ω GeoFeatureSet) ToMap() (map[string]interface{}, error) {
@@ -152,6 +155,7 @@ func (Ω GeoFeatureSet) ToMap() (map[string]interface{}, error) {
 	return map[string]interface{}{
 		keyLatitude:    Ω.lat,
 		keyLongitude:   Ω.lng,
+		keyCoordinatesEstimated: Ω.coordinatesEstimated,
 		keyBiome:       ecoID.Biome(),
 		keyEcoNum:      ecoID.EcoNum(),
 		keyS2Tokens:    terra.NewPoint(Ω.lat, Ω.lng).S2TokenArray(),

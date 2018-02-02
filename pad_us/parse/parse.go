@@ -159,7 +159,7 @@ func (Ω *Processor) PrintStats() {
 	fmt.Println("PublicAccessRestricted", Ω.PublicAccessRestricted)
 	fmt.Println("PublicAccessUnknown", Ω.PublicAccessUnknown)
 	fmt.Println("GolfCourse", Ω.GolfCourse)
-	fmt.Println("Empty Areas", Ω.EmptyAreas)
+	fmt.Println("IsZero Areas", Ω.EmptyAreas)
 	fmt.Println("UnassignedIUCNCategory", Ω.UnassignedIUCNCategory)
 	fmt.Println("MarineProtectedArea", Ω.MarineProtectedArea)
 	fmt.Println("LocalParks", Ω.LocalParks)
