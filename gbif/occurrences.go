@@ -1,7 +1,7 @@
 package gbif
 
 import (
-	ogbif "github.com/heindl/gbif"
+	"bitbucket.org/heindl/taxa/gbif/api"
 	"bitbucket.org/heindl/taxa/store"
 	"time"
 	"bitbucket.org/heindl/taxa/occurrences"
@@ -12,7 +12,7 @@ import (
 	"bitbucket.org/heindl/taxa/geofeatures"
 )
 
-func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (occurrences.Occurrences, error) {
+func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (*occurrences.Occurrences, error) {
 
 	taxonID := TaxonIDFromTargetID(targetID)
 
@@ -25,7 +25,7 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 		lastInterpreted = since.Format("20060102")
 	}
 
-	apiList, err := ogbif.Occurrences(ogbif.OccurrenceSearchQuery{
+	apiList, err := api.Occurrences(api.OccurrenceSearchQuery{
 		TaxonKey: int(taxonID),
 		LastInterpreted: lastInterpreted,
 	})
@@ -67,39 +67,42 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, o)
+
+		if err := res.Add(o); err != nil {
+			return nil, err
+		}
 	}
 
-	return res, nil
+	return &res, nil
 
 }
 
-func coordinateIssueIsUnacceptable(issues ogbif.OccurrenceIssues) bool {
+func coordinateIssueIsUnacceptable(issues api.OccurrenceIssues) bool {
 
-	if issues.HasIssue(ogbif.OCCURRENCE_ISSUE_GEODETIC_DATUM_INVALID) &&
-		!issues.HasIssue(ogbif.OCCURRENCE_ISSUE_GEODETIC_DATUM_ASSUMED_WGS84) {
+	if issues.HasIssue(api.OCCURRENCE_ISSUE_GEODETIC_DATUM_INVALID) &&
+		!issues.HasIssue(api.OCCURRENCE_ISSUE_GEODETIC_DATUM_ASSUMED_WGS84) {
 		return true
 	}
-	return issues.Intersects(ogbif.OccurrenceIssues{
-		ogbif.OCCURRENCE_ISSUE_BASIS_OF_RECORD_INVALID,
-		ogbif.OCCURRENCE_ISSUE_COORDINATE_INVALID,
-		ogbif.OCCURRENCE_ISSUE_COORDINATE_OUT_OF_RANGE,
-		ogbif.OCCURRENCE_ISSUE_COORDINATE_REPROJECTION_FAILED,
-		ogbif.OCCURRENCE_ISSUE_ZERO_COORDINATE,
-		ogbif.OCCURRENCE_ISSUE_RECORDED_DATE_INVALID,
-		ogbif.OCCURRENCE_ISSUE_RECORDED_DATE_UNLIKELY,
+	return issues.Intersects(api.OccurrenceIssues{
+		api.OCCURRENCE_ISSUE_BASIS_OF_RECORD_INVALID,
+		api.OCCURRENCE_ISSUE_COORDINATE_INVALID,
+		api.OCCURRENCE_ISSUE_COORDINATE_OUT_OF_RANGE,
+		api.OCCURRENCE_ISSUE_COORDINATE_REPROJECTION_FAILED,
+		api.OCCURRENCE_ISSUE_ZERO_COORDINATE,
+		api.OCCURRENCE_ISSUE_RECORDED_DATE_INVALID,
+		api.OCCURRENCE_ISSUE_RECORDED_DATE_UNLIKELY,
 		//ogbif.OCCURRENCE_ISSUE_COORDINATE_PRECISION_INVALID,
 		//ogbif.OCCURRENCE_ISSUE_COORDINATE_UNCERTAINTY_METERS_INVALID,
-		ogbif.OCCURRENCE_ISSUE_COORDINATE_REPROJECTION_SUSPICIOUS,
+		api.OCCURRENCE_ISSUE_COORDINATE_REPROJECTION_SUSPICIOUS,
 	})
 }
 
-func coordinateIssueIsUncertain(issues ogbif.OccurrenceIssues) bool {
-	return issues.Intersects(ogbif.OccurrenceIssues{
-		ogbif.OCCURRENCE_ISSUE_PRESUMED_SWAPPED_COORDINATE,
-		ogbif.OCCURRENCE_ISSUE_PRESUMED_NEGATED_LATITUDE,
-		ogbif.OCCURRENCE_ISSUE_PRESUMED_NEGATED_LONGITUDE,
-		ogbif.OCCURRENCE_ISSUE_INTERPRETATION_ERROR,
+func coordinateIssueIsUncertain(issues api.OccurrenceIssues) bool {
+	return issues.Intersects(api.OccurrenceIssues{
+		api.OCCURRENCE_ISSUE_PRESUMED_SWAPPED_COORDINATE,
+		api.OCCURRENCE_ISSUE_PRESUMED_NEGATED_LATITUDE,
+		api.OCCURRENCE_ISSUE_PRESUMED_NEGATED_LONGITUDE,
+		api.OCCURRENCE_ISSUE_INTERPRETATION_ERROR,
 	})
 
 }

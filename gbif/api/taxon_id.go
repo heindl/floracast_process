@@ -1,4 +1,4 @@
-package gbif
+package api
 
 import (
 	"strconv"
@@ -9,14 +9,6 @@ type TaxonID int
 
 func (Ω TaxonID) Valid() bool {
 	return Ω != 0
-}
-
-func TaxonIDFromTargetID(id store.DataSourceTargetID) TaxonID {
-	i, err := strconv.Atoi(string(id))
-	if err != nil {
-		return TaxonID(0)
-	}
-	return TaxonID(i)
 }
 
 func (Ω TaxonID) TargetID() store.DataSourceTargetID {

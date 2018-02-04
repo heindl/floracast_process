@@ -195,10 +195,10 @@ package inaturalist
 //	LargeURL           string        `json:"large_url"`
 //}
 //
-//func (Ω Photo) Format(taxonID store.INaturalistTaxonID, sourceID store.DataSourceID) store.Photo {
+//func (Ω Photo) Format(taxonID store.INaturalistTaxonID, sourceID store.DataSourceType) store.Photo {
 //	return store.Photo{
 //		ID:            strconv.Itoa(Ω.ID),
-//		DataSourceID:  sourceID,
+//		DataSourceType:  sourceID,
 //		TaxonID:       taxonID,
 //		PhotoType:     store.PhotoType(Ω.Type),
 //		URL:           Ω.URL,
@@ -400,12 +400,12 @@ package inaturalist
 //	res := []store.DataSource{}
 //	// Find the review items
 //	pairs := []struct {
-//		OriginID store.DataSourceID
+//		OriginID store.DataSourceType
 //		TargetID store.DataSourceTargetID
 //	}{}
 //	doc.Find(`a[href*="/taxon_schemes/"]`).Each(func(i int, s *goquery.Selection) {
 //		v, _ := s.Attr("href")
-//		originID := store.DataSourceID(strings.TrimLeft(v, "/taxon_schemes/"))
+//		originID := store.DataSourceType(strings.TrimLeft(v, "/taxon_schemes/"))
 //		if string(originID) == "" {
 //			return
 //		}
@@ -415,7 +415,7 @@ package inaturalist
 //		}
 //		targetID := store.DataSourceTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
 //		pairs = append(pairs, struct {
-//			OriginID store.DataSourceID
+//			OriginID store.DataSourceType
 //			TargetID store.DataSourceTargetID
 //		}{originID, targetID})
 //	})

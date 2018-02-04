@@ -265,8 +265,8 @@ func (Ω *orchestrator) parseTaxon(txn Taxon, isFromFullPageRequest bool) error 
 }
 
 type INaturalistTaxonScheme struct {
-	DataSourceID store.DataSourceType
-	TargetID store.DataSourceTargetID
+	DataSourceType store.DataSourceType
+	TargetID       store.DataSourceTargetID
 }
 
 var taxonSchemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
@@ -307,8 +307,8 @@ func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonSc
 		}
 		targetID := store.DataSourceTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
 		res = append(res, INaturalistTaxonScheme {
-			DataSourceID: originID,
-			TargetID: targetID,
+			DataSourceType: originID,
+			TargetID:       targetID,
 		})
 	})
 

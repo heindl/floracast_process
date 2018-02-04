@@ -176,7 +176,15 @@ type Occurrences struct {
 	list []*Occurrence
 }
 
+func (Ω *Occurrences) Count() int {
+	return len(Ω.list)
+}
+
 func (Ω *Occurrences) Add(b *Occurrence) error {
+
+	if b == nil {
+		return nil
+	}
 
 	bKey, err := b.locationKey()
 	if err != nil {
@@ -329,7 +337,7 @@ func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) err
 //
 //	isNewOccurrence = false
 //
-//	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceID, o.TargetID)
+//	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceType, o.TargetID)
 //	if err != nil {
 //		return false, err
 //	}

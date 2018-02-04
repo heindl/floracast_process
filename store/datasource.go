@@ -86,12 +86,15 @@ func (Ω DataSourceTargetID) ToInt() (int, error) {
 	return i, nil
 }
 
-func NewDataSourceTargetIDFromInt(i int) (*DataSourceTargetID, error) {
+func NewDataSourceTargetIDFromInt(i int) (DataSourceTargetID, error) {
 	if i == 0 {
-		return nil, errors.New("Invalid DataSourceTargetID: Received zero.")
+		return DataSourceTargetID(""), errors.New("Invalid DataSourceTargetID: Received zero.")
 	}
 	id := DataSourceTargetID(strconv.Itoa(i))
-	return &id, nil
+	if !id.Valid() {
+		return DataSourceTargetID(""), errors.New("Invalid DataSourceTargetID")
+	}
+	return id, nil
 }
 
 type DataSourceTargetIDs []DataSourceTargetID

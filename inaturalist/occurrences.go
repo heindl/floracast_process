@@ -184,7 +184,7 @@ type Identification struct {
 	Taxon                      Taxon       `json:"taxon"`
 }
 
-func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (occurrences.Occurrences, error) {
+func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (*occurrences.Occurrences, error) {
 
 	taxonID := TaxonIDFromTargetID(targetID)
 
@@ -267,7 +267,9 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 			if err != nil {
 				return nil, err
 			}
-			output = append(output, newOccurrence)
+			if err := output.Add(newOccurrence); err != nil {
+				return nil, err
+			}
 		}
 
 		if (response.Page * response.PerPage) < response.TotalResults {
@@ -278,7 +280,5 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 		break
 	}
 
-	return output, nil
-
-
+	return &output, nil
 }

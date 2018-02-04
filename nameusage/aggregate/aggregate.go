@@ -1,4 +1,4 @@
-package aggregate_usages
+package aggregate
 
 import (
 	"bitbucket.org/heindl/taxa/inaturalist"
@@ -35,12 +35,12 @@ import (
 // Could actually be done in the occurrence fetch step: https://www.inaturalist.org/taxon_changes
 
 
-func AggregateNameUsages(cxt context.Context, inaturalistTaxonIDs ...int) (name_usage.CanonicalNameUsages, error) {
+func AggregateNameUsages(cxt context.Context, inaturalistTaxonIDs ...int) (name_usage.AggregateNameUsages, error) {
 
 	// Start with GBIF because the hiearchy is simple. The occurrence sources for the gbif will be searched externally.
 	// Note also that Inaturalist appears to try to avoid synonyms: https://www.inaturalist.org/taxon_changes
 	// Which means that try to combine them and ignore synonyms, though they appear to still show known synonyms like Morchella Conica.
-	// We need synonyms because other archives do not appear to divide them. Occurrences are still stored within the synonym.
+	// We need synonyms because other archives do not appear to divide them. OccurrenceCount are still stored within the synonym.
 
 	inaturalistUsages, err := inaturalist.FetchNameUsages(cxt, inaturalistTaxonIDs...)
 	if err != nil {

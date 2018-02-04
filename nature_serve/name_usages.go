@@ -8,7 +8,7 @@ import (
 	"bitbucket.org/heindl/taxa/utils"
 )
 
-func FetchNameUsages(cxt context.Context, names []string, targetIDs store.DataSourceTargetIDs) (name_usage.CanonicalNameUsages, error) {
+func FetchNameUsages(cxt context.Context, names []string, targetIDs store.DataSourceTargetIDs) (name_usage.AggregateNameUsages, error) {
 
 	nameTaxa, err := FetchTaxaFromSearch(cxt, names...)
 	if err != nil {
@@ -22,13 +22,13 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs store.DataSo
 
 	taxa := append(nameTaxa, uidTaxa...)
 
-	res := name_usage.CanonicalNameUsages{}
+	res := name_usage.AggregateNameUsages{}
 
 	for _, txn := range taxa {
 
 		src := name_usage.CanonicalNameUsage{
 			CanonicalName: strings.ToLower(txn.ScientificName.Name),
-			SourceTargetOccurrenceCount: name_usage.SourceTargetOccurrenceCount{},
+			SourceTargetOccurrenceCount: name_usage.sourceTargetOccurrenceCount{},
 			Ranks: []string{"species"},
 		}
 		src.SourceTargetOccurrenceCount.Set(store.DataSourceTypeNatureServe, store.DataSourceTargetID(txn.ID), 0)

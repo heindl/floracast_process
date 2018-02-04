@@ -1,4 +1,4 @@
-package aggregate_usages
+package aggregate
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -20,7 +20,7 @@ func TestTaxonFetcher(t *testing.T) {
 		////
 
 
-		sufficient := name_usage.CanonicalNameUsages{}
+		sufficient := name_usage.AggregateNameUsages{}
 		for _, src := range srcs {
 			if src.OccurrenceCount() < 100 {
 				continue
@@ -46,7 +46,7 @@ func TestTaxonFetcher(t *testing.T) {
 		//	fmt.Println(src.CanonicalName)
 		//	fmt.Println(strings.Join(src.Synonyms, ", "))
 		//	fmt.Println(src.SynonymFor)
-		//	for k, v := range src.SourceTargetOccurrenceCount {
+		//	for k, v := range src.sourceTargetOccurrenceCount {
 		//		fmt.Println(k, ":", len(v))
 		//	}
 		//	fmt.Println("-------------------")

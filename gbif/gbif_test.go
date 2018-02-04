@@ -13,10 +13,10 @@ func TestTaxonFetcher(t *testing.T) {
 
 	t.Parallel()
 
-	Convey("should fetch occurrences", t, func() {
+	SkipConvey("should fetch occurrences", t, func() {
 		res, err := FetchOccurrences(context.Background(), store.DataSourceTargetID("8229116"), nil)
 		So(err, ShouldBeNil)
-		fmt.Println("Result", len(res))
+		fmt.Println("Result", res.Count())
 
 	})
 
@@ -26,7 +26,7 @@ func TestTaxonFetcher(t *testing.T) {
 		fmt.Println(utils.JsonOrSpew(taxa))
 	})
 
-	SkipConvey("should fetch gbif name usages from keys", t, func() {
+	Convey("should fetch gbif name usages from keys", t, func() {
 
 		names := []string {
 			"morchella brunnea",
@@ -83,6 +83,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 		taxa, err := FetchNamesUsages(context.Background(), names, ids)
 		So(err, ShouldBeNil)
-		fmt.Println(utils.JsonOrSpew(taxa))
+		fmt.Println("Result", taxa.Count(), utils.JsonOrSpew(taxa.NameStrings()))
+
 	})
 }

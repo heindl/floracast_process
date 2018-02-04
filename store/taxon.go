@@ -192,13 +192,13 @@ type CanonicalNames []CanonicalName
 
 func NewCanonicalName(name string) (*CanonicalName, error) {
 	cn := CanonicalName(name)
-	if err := cn.Validate(); err != nil {
+	if err := cn.validate(); err != nil {
 		return nil, err
 	}
 	return &cn, nil
 }
 
-func (Ω CanonicalName) Validate() error {
+func (Ω CanonicalName) validate() error {
 
 	fields := strings.Fields(string(Ω))
 	if len(fields) == 0 {

@@ -124,7 +124,7 @@ package nature_serve
 //	EcologyAndLifeHistory *EcologyAndLifeHistory `xml:"http://services.natureserve.org/docs/schemas/biodiversityDataFlow/1 ecologyAndLifeHistory,omitempty" json:"ecologyAndLifeHistory,omitempty"`   // ZZmaxLength=0
 //	License *License `xml:"http://services.natureserve.org/docs/schemas/biodiversityDataFlow/1 license,omitempty" json:"license,omitempty"`   // ZZmaxLength=0
 //	NatureServeExplorerURI *NatureServeExplorerURI `xml:"http://services.natureserve.org/docs/schemas/biodiversityDataFlow/1 natureServeExplorerURI,omitempty" json:"natureServeExplorerURI,omitempty"`   // ZZmaxLength=0
-//	References *References `xml:"http://services.natureserve.org/docs/schemas/biodiversityDataFlow/1 references,omitempty" json:"references,omitempty"`   // ZZmaxLength=0
+//	ReferenceCount *ReferenceCount `xml:"http://services.natureserve.org/docs/schemas/biodiversityDataFlow/1 references,omitempty" json:"references,omitempty"`   // ZZmaxLength=0
 //	XMLName  xml.Name `xml:"http://services.natureserve.org/docs/schemas/biodiversityDataFlow/1 globalSpecies,omitempty" json:"globalSpecies,omitempty"`
 //}
 //

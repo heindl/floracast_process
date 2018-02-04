@@ -2,7 +2,7 @@ package store
 
 const (
 	CollectionTypeDataSources    = "DataSources"
-	CollectionTypeOccurrences    = "Occurrences"
+	CollectionTypeOccurrences    = "OccurrenceCount"
 	CollectionTypeTaxa           = "Taxa"
 	CollectionTypePhotos         = "Photos"
 	CollectionTypeProtectedAreas = "ProtectedAreas"

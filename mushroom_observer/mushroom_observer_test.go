@@ -27,11 +27,11 @@ func TestTaxonFetcher(t *testing.T) {
 
 		res, err := FetchOccurrences(context.Background(), store.DataSourceTargetID("404"), nil)
 		So(err, ShouldBeNil)
-		So(len(res), ShouldEqual, 5)
+		So(res.Count(), ShouldEqual, 5)
 
 		res, err = FetchOccurrences(context.Background(), store.DataSourceTargetID("404"), utils.TimePtr(time.Date(2009, time.January, 1, 0,  0, 0, 0, time.UTC)))
 		So(err, ShouldBeNil)
-		So(len(res), ShouldEqual, 4)
+		So(res.Count(), ShouldEqual, 4)
 
 	})
 }

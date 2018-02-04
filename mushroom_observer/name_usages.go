@@ -13,6 +13,7 @@ import (
 	"bitbucket.org/heindl/taxa/store"
 	"gopkg.in/tomb.v2"
 	"sync"
+	"context"
 )
 
 type MushroomObserverQueryResult struct {
@@ -26,7 +27,7 @@ type MushroomObserverQueryResult struct {
 	RunTime float64 `json:"run_time"`
 }
 
-func MatchCanonicalNames(names ...string) ([]*name_usage.NameUsageSource, error) {
+func MatchCanonicalNames(cxt context.Context, names ...string) ([]*name_usage.NameUsageSource, error) {
 
 	//TODO: If names are three, consider adding var. "Cantharellus cibarius var. cibarius"
 	// Only if missing in parent.
@@ -72,7 +73,7 @@ func MatchCanonicalNames(names ...string) ([]*name_usage.NameUsageSource, error)
 				}
 
 				for _, r := range queryResult.Results {
-					usage, err := parseTaxonResult(r)
+					usage, err := parseTaxonResult(cxt, r)
 					if err != nil {
 						return err
 					}
@@ -118,7 +119,7 @@ type MushroomObserverTaxonResult struct {
 	//Parents       []interface{} `json:"parents"`
 }
 
-func parseTaxonResult(r *MushroomObserverTaxonResult) (*name_usage.NameUsageSource, error) {
+func parseTaxonResult(cxt context.Context, r *MushroomObserverTaxonResult) (*name_usage.NameUsageSource, error) {
 
 	targetID, err := store.NewDataSourceTargetIDFromInt(r.ID)
 	if err != nil {
@@ -130,6 +131,20 @@ func parseTaxonResult(r *MushroomObserverTaxonResult) (*name_usage.NameUsageSour
 		return nil, err
 	}
 
-	return name_usage.NewNameUsageSource(store.DataSourceTypeMushroomObserver, *targetID, *cn, false)
+	src, err := name_usage.NewNameUsageSource(store.DataSourceTypeMushroomObserver, targetID, *cn, false)
+	if err != nil {
+		return nil, err
+	}
+
+	o, err := FetchOccurrences(cxt, targetID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := src.SetOccurrenceCount(o.Count()); err != nil {
+		return nil, err
+	}
+
+	return src, nil
 }
 

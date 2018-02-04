@@ -25,15 +25,15 @@ func TestTaxonFetcher(t *testing.T) {
 
 	})
 
-	Convey("should fetch occurrences", t, func() {
+	SkipConvey("should fetch occurrences", t, func() {
 
 		occurrences, err := FetchOccurrences(context.Background(), store.DataSourceTargetID("58682"), utils.TimePtr(time.Now().Add(time.Hour * 24 * 60 * -1)))
 		So(err, ShouldBeNil)
-		So(len(occurrences), ShouldEqual, 24)
+		So(occurrences.Count(), ShouldEqual, 24)
 
 		occurrences, err = FetchOccurrences(context.Background(), store.DataSourceTargetID("58682"), nil)
 		So(err, ShouldBeNil)
-		So(len(occurrences), ShouldEqual, 100)
+		So(occurrences.Count(), ShouldEqual, 100)
 
 	})
 

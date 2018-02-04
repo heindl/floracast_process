@@ -11,6 +11,17 @@ type Point struct {
 	latlng *s2.LatLng
 }
 
+
+
+var EPSILON float64 = 0.00001
+
+func CoordinatesEqual(a, b float64) bool {
+	if (a-b) < EPSILON && (b-a) < EPSILON {
+		return true
+	}
+	return false
+}
+
 func NewPoint(lat, lng float64) Point {
 	ll := s2.LatLngFromDegrees(lat, lng)
 	return Point{&ll}
