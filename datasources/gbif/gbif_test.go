@@ -6,7 +6,7 @@ import (
 	"golang.org/x/net/context"
 	"fmt"
 	"bitbucket.org/heindl/taxa/utils"
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/taxa/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -14,7 +14,7 @@ func TestTaxonFetcher(t *testing.T) {
 	t.Parallel()
 
 	SkipConvey("should fetch occurrences", t, func() {
-		res, err := FetchOccurrences(context.Background(), store.DataSourceTargetID("8229116"), nil)
+		res, err := FetchOccurrences(context.Background(), datasources.DataSourceTargetID("8229116"), nil)
 		So(err, ShouldBeNil)
 		fmt.Println("Result", res.Count())
 
@@ -59,7 +59,7 @@ func TestTaxonFetcher(t *testing.T) {
 			"morchella rufobrunnea",
 		}
 
-		ids := store.DataSourceTargetIDs{"2594601",
+		ids := datasources.DataSourceTargetIDs{"2594601",
 			"3495681",
 			"2594630",
 			"3495624",
@@ -83,7 +83,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 		taxa, err := FetchNamesUsages(context.Background(), names, ids)
 		So(err, ShouldBeNil)
-		fmt.Println("Result", taxa.Count(), utils.JsonOrSpew(taxa.NameStrings()))
+		fmt.Println("Result", taxa.Count(), utils.JsonOrSpew(taxa.CanonicalNames().Strings()))
 
 	})
 }

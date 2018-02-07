@@ -1,4 +1,4 @@
-package nature_serve
+package natureserve
 
 import (
 	"context"
@@ -26,11 +26,15 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 	locker := sync.Mutex{}
 	taxa := []*Taxon{}
 
+	limit := utils.NewLimiter(10)
+
 	tmb := tomb.Tomb{}
 	tmb.Go(func()error {
 		for _, _name := range names {
 			name := _name
+			done := limit.Go()
 			tmb.Go(func() error {
+				defer done()
 				local_taxa, err := searchName(cxt, name)
 				if err != nil {
 					return err
@@ -52,6 +56,7 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 }
 
 func searchName(cxt context.Context, name string) ([]*Taxon, error) {
+
 	url := fmt.Sprintf(
 		"https://services.natureserve.org/idd/rest/ns/v1/globalSpecies/list/nameSearch?&NSAccessKeyId=%s&name=%s",
 		natureServeAPIKey,
@@ -75,6 +80,10 @@ func searchName(cxt context.Context, name string) ([]*Taxon, error) {
 
 	uids = utils.RemoveStringDuplicates(uids)
 
+	if len(uids) == 0 {
+		return nil, nil
+	}
+
 	return FetchTaxaWithUID(cxt, uids...)
 
 }
@@ -85,7 +94,7 @@ func FetchTaxonWithUID(cxt context.Context, uid string, referencedCanonicalName 
 		return nil, err
 	}
 	txn := taxa[0]
-	if !utils.ContainsString(txn.Names(), referencedCanonicalName) {
+	if !utils.ContainsString(txn.ScientificNameStrings(), referencedCanonicalName) {
 		return nil, errors.Newf("Expected nature serve taxon [%s] to contain reference canonical name [%s]", uid, referencedCanonicalName)
 	}
 	return txn, nil
@@ -137,13 +146,16 @@ type Taxon struct {
 	CommonNames []*TaxonCommonName `json:",omitempty"`
 }
 
-func (Ω *Taxon) Names() []string {
+func (Ω *Taxon) ScientificNameStrings() []string {
 	res := []string{strings.ToLower(Ω.ScientificName.Name)}
 	for _, synonym := range Ω.Synonyms {
 		res = append(res, strings.ToLower(synonym.Name))
 	}
 	return res
 }
+
+// TODO: Convert CommonName to struct with language field.
+
 
 type TaxonScientificName struct {
 	Name string `json:",omitempty"`
@@ -169,7 +181,7 @@ type TaxonCommonName struct {
 func parseGlobalSpecies(species *GlobalSpecies) (*Taxon, error) {
 	
 	if species.Classification == nil {
-		fmt.Println("Invalid or missing classification", species.Attruid)
+		fmt.Println(fmt.Sprintf("Warning: Invalid/missing NatureServe species [%s]", species.Attruid))
 		return nil, nil
 	}
 

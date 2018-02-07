@@ -5,7 +5,6 @@ import (
 	"os"
 	"github.com/saleswise/errors/errors"
 	"fmt"
-	"bitbucket.org/heindl/taxa/nameusage"
 )
 
 

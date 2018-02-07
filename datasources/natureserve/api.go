@@ -1,4 +1,4 @@
-package nature_serve
+package natureserve
 
 import "encoding/xml"
 

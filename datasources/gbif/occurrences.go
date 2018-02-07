@@ -1,8 +1,7 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/taxa/gbif/api"
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/taxa/datasources/gbif/api"
 	"time"
 	"bitbucket.org/heindl/taxa/occurrences"
 	"github.com/dropbox/godropbox/errors"
@@ -10,14 +9,14 @@ import (
 	"bitbucket.org/heindl/taxa/utils"
 	"context"
 	"bitbucket.org/heindl/taxa/geofeatures"
+	"bitbucket.org/heindl/taxa/datasources"
 )
 
-func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (*occurrences.Occurrences, error) {
+func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTargetID, since *time.Time) (*occurrences.OccurrenceAggregation, error) {
 
-	taxonID := TaxonIDFromTargetID(targetID)
-
-	if !taxonID.Valid() {
-		return nil, errors.New("Invalid TaxonID")
+	taxonID, err := TaxonIDFromTargetID(targetID)
+	if err != nil {
+		return nil, err
 	}
 
 	lastInterpreted := ""
@@ -33,9 +32,7 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 		return nil, errors.Wrapf(err, "Could not fetch occurrences [%d] from the gbif", taxonID)
 	}
 
-	res := occurrences.Occurrences{}
-
-	fmt.Println("TOTAL OCCURRENCE LENGTH", len(apiList))
+	res := occurrences.OccurrenceAggregation{}
 
 	for _, gbifO := range apiList {
 
@@ -44,12 +41,16 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 			continue
 		}
 
+		if gbifO.Issues.HasIssue(api.OCCURRENCE_ISSUE_PRESUMED_SWAPPED_COORDINATE) {
+			fmt.Println("WARNING:", api.OCCURRENCE_ISSUE_PRESUMED_SWAPPED_COORDINATE, fmt.Sprintf("Latitude/Longitude [%f, %f]", gbifO.DecimalLatitude, gbifO.DecimalLongitude))
+			continue
+			}
+
 		if coordinateIssueIsUncertain(gbifO.Issues) {
-			fmt.Println("coordinateIssueIsUncertain", utils.JsonOrSpew(gbifO))
 			continue
 		}
 
-		o, err := occurrences.NewOccurrence(store.DataSourceTypeGBIF, targetID, gbifO.GbifID)
+		o, err := occurrences.NewOccurrence(datasources.DataSourceTypeGBIF, targetID, gbifO.GbifID)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +69,7 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 			return nil, err
 		}
 
-		if err := res.Add(o); err != nil {
+		if err := res.AddOccurrence(o); err != nil && !utils.ContainsError(err, occurrences.ErrCollision) {
 			return nil, err
 		}
 	}
@@ -99,7 +100,6 @@ func coordinateIssueIsUnacceptable(issues api.OccurrenceIssues) bool {
 
 func coordinateIssueIsUncertain(issues api.OccurrenceIssues) bool {
 	return issues.Intersects(api.OccurrenceIssues{
-		api.OCCURRENCE_ISSUE_PRESUMED_SWAPPED_COORDINATE,
 		api.OCCURRENCE_ISSUE_PRESUMED_NEGATED_LATITUDE,
 		api.OCCURRENCE_ISSUE_PRESUMED_NEGATED_LONGITUDE,
 		api.OCCURRENCE_ISSUE_INTERPRETATION_ERROR,

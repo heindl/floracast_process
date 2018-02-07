@@ -7,9 +7,10 @@ import (
 	"time"
 	"bitbucket.org/heindl/taxa/utils"
 	"strconv"
-	"bitbucket.org/heindl/taxa/store"
 	"bitbucket.org/heindl/taxa/geofeatures"
 	"context"
+	"bitbucket.org/heindl/taxa/datasources"
+	"strings"
 )
 
 type Occurrence struct {
@@ -184,7 +185,8 @@ type Identification struct {
 	Taxon                      Taxon       `json:"taxon"`
 }
 
-func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (*occurrences.Occurrences, error) {
+var throttle = time.Tick(time.Second / 20)
+func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTargetID, since *time.Time) (*occurrences.OccurrenceAggregation, error) {
 
 	taxonID := TaxonIDFromTargetID(targetID)
 
@@ -192,7 +194,7 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 		return nil, errors.New("Invalid TaxonID")
 	}
 
-	output := occurrences.Occurrences{}
+	output := occurrences.OccurrenceAggregation{}
 
 	page := 1
 
@@ -212,11 +214,11 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 			u += fmt.Sprintf("&updated_since=%s", since.Format("2006-01-02"))
 		}
 
+		<-throttle
+
 		if err := utils.RequestJSON(u, &response); err != nil {
 			return nil, err
 		}
-
-		fmt.Println(response.TotalResults, response.Page, response.PerPage, u)
 
 		for _, inatOccurrence := range response.Results {
 
@@ -235,7 +237,8 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 
 			// Covered in query, but just to be safe ...
 			if inatOccurrence.Taxon.ID != taxonID {
-				fmt.Println("mismatched taxon id", inatOccurrence.Taxon.ID, taxonID)
+				// Ignore descendents
+				//fmt.Println("mismatched taxon id", inatOccurrence.Taxon.ID, taxonID)
 				continue
 			}
 
@@ -252,12 +255,14 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 				return nil, errors.Wrap(err, "Could not parse latitude from INaturalist occurrence")
 			}
 
-			newOccurrence, err := occurrences.NewOccurrence(store.DataSourceTypeINaturalist, taxonID.TargetID(), strconv.Itoa(inatOccurrence.ID))
+			date := strings.Replace(inatOccurrence.ObservedOnDetails.Date, "-", "", -1)
+
+			newOccurrence, err := occurrences.NewOccurrence(datasources.DataSourceTypeINaturalist, taxonID.TargetID(), strconv.Itoa(inatOccurrence.ID))
 			if err != nil {
 				return nil, err
 			}
 
-			err = newOccurrence.SetGeospatial(lat, lng, inatOccurrence.ObservedOnDetails.Date, false)
+			err = newOccurrence.SetGeospatial(lat, lng, date, false)
 			if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidCoordinate) {
 				continue
 			}
@@ -267,7 +272,8 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 			if err != nil {
 				return nil, err
 			}
-			if err := output.Add(newOccurrence); err != nil {
+
+			if err := output.AddOccurrence(newOccurrence); err != nil && !utils.ContainsError(err, occurrences.ErrCollision) {
 				return nil, err
 			}
 		}

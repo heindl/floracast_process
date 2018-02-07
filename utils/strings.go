@@ -3,7 +3,17 @@ package utils
 
 import (
 	"strings"
+	"unicode/utf8"
+	"unicode"
 )
+
+func CapitalizeString(s string) string {
+		if s == "" {
+			return ""
+		}
+		r, n := utf8.DecodeRuneInString(s)
+		return string(unicode.ToUpper(r)) + s[n:]
+}
 
 func RemoveStringDuplicates(haystack []string) []string {
 

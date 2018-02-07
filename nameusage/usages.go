@@ -3,7 +3,9 @@ package nameusage
 import (
 	"sync"
 	"encoding/json"
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/taxa/datasources"
+	"gopkg.in/tomb.v2"
+	"context"
 )
 
 type AggregateNameUsages struct {
@@ -21,10 +23,42 @@ func (Ω *AggregateNameUsages) Count() int {
 	return len(Ω.list)
 }
 
-func (Ω *AggregateNameUsages) NameStrings() []string {
-	res := []string{}
+type ForEachModifierFunction func(ctx context.Context, usage *CanonicalNameUsage) error
+
+func (Ω *AggregateNameUsages) ForEach(ctx context.Context, modify ForEachModifierFunction) error {
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _i := range Ω.list {
+			i := _i
+			tmb.Go(func() error {
+				return modify(ctx, Ω.list[i])
+			})
+		}
+		return nil
+	})
+	return tmb.Wait()
+}
+
+
+type ShouldFilterUsageFunction func(usage *CanonicalNameUsage) bool
+
+func (Ω *AggregateNameUsages) Filter(shouldFilter ShouldFilterUsageFunction) (*AggregateNameUsages, error) {
+	res := AggregateNameUsages{}
+	for _, u := range Ω.list {
+		if shouldFilter(u) {
+			continue
+		}
+		if err := res.AddUsages(u); err != nil {
+			return nil, err
+		}
+	}
+	return &res, nil
+}
+
+func (Ω *AggregateNameUsages) CanonicalNames() CanonicalNames {
+	res := CanonicalNames{}
 	for _, l := range Ω.list {
-		res = append(res, l.canonicalName.name)
+		res = res.AddToSet(l.ScientificNames()...)
 	}
 	return res
 }
@@ -36,27 +70,16 @@ func (Ω *AggregateNameUsages) MarshalJSON() ([]byte, error) {
 	return json.Marshal(Ω.list)
 }
 
-func (Ω *AggregateNameUsages) Add(usage *CanonicalNameUsage) error {
+func (Ω *AggregateNameUsages) CombineWith(usage *AggregateNameUsages) error {
+	return Ω.AddUsages(usage.list...)
+
+}
+
+func (Ω *AggregateNameUsages) AddUsages(usages ...*CanonicalNameUsage) error {
 	Ω.Lock()
 	defer Ω.Unlock()
 
-	//foundCanonicalName := false
-	//for i := range Ω.list {
-	//	if Ω.list[i].canonicalName.Equals(usage.canonicalName) {
-	//		foundCanonicalName = true
-	//		var err error
-	//		Ω.list[i], err = Ω.list[i].combine(usage)
-	//		if err != nil {
-	//			return err
-	//		}
-	//	}
-	//}
-
-	//if !foundCanonicalName {
-	Ω.list = append(Ω.list, usage)
-	//}
-
-	//sort.Sort(Ω.list)
+	Ω.list = append(Ω.list, usages...)
 
 ResetLoop:
 	for {
@@ -87,8 +110,8 @@ ResetLoop:
 }
 
 
-func (Ω *AggregateNameUsages) TargetIDs(srcType store.DataSourceType) store.DataSourceTargetIDs {
-	res := store.DataSourceTargetIDs{}
+func (Ω *AggregateNameUsages) TargetIDs(srcType datasources.DataSourceType) datasources.DataSourceTargetIDs {
+	res := datasources.DataSourceTargetIDs{}
 	for i := range Ω.list {
 		res = res.AddToSet(Ω.list[i].sources.targetIDs(srcType)...)
 	}
@@ -104,7 +127,7 @@ func (Ω AggregateNameUsages) FirstIndexOfName(name *CanonicalName) int {
 	return -1
 }
 
-func (Ω AggregateNameUsages) FirstIndexOfID(src store.DataSourceType, id store.DataSourceTargetID) int {
+func (Ω AggregateNameUsages) FirstIndexOfID(src datasources.DataSourceType, id datasources.DataSourceTargetID) int {
 	for i := range Ω.list {
 		if _, hasType := Ω.list[i].sources[src]; hasType {
 			if _, hasTarget := Ω.list[i].sources[src][id]; hasTarget {

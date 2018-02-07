@@ -14,17 +14,16 @@ import (
 	"gopkg.in/tomb.v2"
 	"strconv"
 	"sync"
+	"bitbucket.org/heindl/taxa/datasources"
+	"encoding/json"
 )
 
-type OccurrenceFetcherInterface interface {
-	FetchOccurrences(targetID store.DataSourceTargetID, since *time.Time) (Occurrences, error)
-}
 
-func NewOccurrence(srcType store.DataSourceType, targetID store.DataSourceTargetID, occurrenceID string) (*Occurrence, error) {
+func NewOccurrence(srcType datasources.DataSourceType, targetID datasources.DataSourceTargetID, occurrenceID string) (*Occurrence, error) {
 	if !srcType.Valid() {
 		return nil, errors.Newf("Invalid source type [%s]", srcType)
 	}
-	if !targetID.Valid() {
+	if !targetID.Valid(srcType) {
 		return nil, errors.Newf("Invalid target id [%s]", targetID)
 	}
 	if occurrenceID == "" {
@@ -41,8 +40,8 @@ func NewOccurrence(srcType store.DataSourceType, targetID store.DataSourceTarget
 }
 
 type Occurrence struct {
-	sourceType          store.DataSourceType
-	targetID            store.DataSourceTargetID
+	sourceType          datasources.DataSourceType
+	targetID            datasources.DataSourceTargetID
 	sourceOccurrenceID  string
 	formattedDate       string
 	createdAt           *time.Time
@@ -52,6 +51,14 @@ type Occurrence struct {
 	fsTimeLocationQuery firestore.Query
 }
 
+func (Ω *Occurrence) SourceType() datasources.DataSourceType {
+	return Ω.sourceType
+}
+
+func (Ω *Occurrence) TargetID() datasources.DataSourceTargetID {
+	return Ω.targetID
+}
+
 func (Ω *Occurrence) locationKey() (string, error) {
 	if Ω == nil || Ω.GeoFeatureSet == nil {
 		return "", errors.New("Nil Occurrence")
@@ -59,7 +66,7 @@ func (Ω *Occurrence) locationKey() (string, error) {
 	if Ω.GeoFeatureSet == nil {
 		return "", errors.New("Nil FeatureSet")
 	}
-	return Ω.GeoFeatureSet.CoordinateKey() + Ω.formattedDate, nil
+	return Ω.GeoFeatureSet.CoordinateKey() + "|" + Ω.formattedDate, nil
 }
 
 const keySourceType = "SourceType"
@@ -69,6 +76,14 @@ const keyFormattedDate = "FormattedDate"
 const keyCreatedAt = "CreatedAt"
 const keyModifiedAt = "ModifiedAt"
 
+
+func (Ω *Occurrence) MarshalJSON() ([]byte, error) {
+	m, err := Ω.toMap()
+	if err != nil {
+		return nil, err
+	}
+	return json.Marshal(m)
+}
 
 func (Ω *Occurrence) toMap() (map[string]interface{}, error) {
 
@@ -99,8 +114,8 @@ func (Ω *Occurrence) toMap() (map[string]interface{}, error) {
 func fromMap(m map[string]interface{}) (*Occurrence, error) {
 
 	o, err := NewOccurrence(
-		m[keySourceType].(store.DataSourceType),
-		m[keyTargetID].(store.DataSourceTargetID),
+		m[keySourceType].(datasources.DataSourceType),
+		m[keyTargetID].(datasources.DataSourceTargetID),
 		m[keySourceOccurrenceID].(string),
 	)
 	if err != nil {
@@ -170,17 +185,45 @@ func (Ω *Occurrence) SetGeospatial(lat, lng float64, date string, coordinatesEs
 	return nil
 }
 
-type Occurrences struct {
+type OccurrenceAggregation struct {
 	collisions int
+	iterator_position int
 	sync.Mutex
 	list []*Occurrence
 }
 
-func (Ω *Occurrences) Count() int {
+func NewOccurrenceAggregation() *OccurrenceAggregation {
+	oa := OccurrenceAggregation{
+		list: []*Occurrence{},
+	}
+	return &oa
+}
+
+func (Ω *OccurrenceAggregation) Collisions() int {
+	Ω.Lock()
+	defer Ω.Unlock()
+	return Ω.collisions
+}
+
+func (Ω *OccurrenceAggregation) Count() int {
+	if Ω == nil {
+		return 0
+	}
+	Ω.Lock()
+	defer Ω.Unlock()
+	if Ω.list == nil {
+		return 0
+	}
 	return len(Ω.list)
 }
 
-func (Ω *Occurrences) Add(b *Occurrence) error {
+func (a *OccurrenceAggregation) OccurrenceList() []*Occurrence {
+	return a.list
+}
+
+
+var ErrCollision = errors.New("Occurrence Collision")
+func (Ω *OccurrenceAggregation) AddOccurrence(b *Occurrence) error {
 
 	if b == nil {
 		return nil
@@ -191,6 +234,8 @@ func (Ω *Occurrences) Add(b *Occurrence) error {
 		return err
 	}
 
+	bSourceType := b.sourceType
+
 	Ω.Lock()
 	defer Ω.Unlock()
 
@@ -198,20 +243,26 @@ func (Ω *Occurrences) Add(b *Occurrence) error {
 		Ω.list = []*Occurrence{}
 	}
 
-	for _, a := range Ω.list {
-		aKey, err := a.locationKey()
+	for i := range Ω.list {
+		aKey, err := Ω.list[i].locationKey()
 		if err != nil {
 			return err
 		}
 		if aKey != bKey {
 			continue
 		}
-		Ω.collisions += 1
-		fmt.Println("Warning: Collision")
-		fmt.Println("Keys", aKey, bKey)
-		fmt.Println("SourceTypes", a.sourceType, b.sourceType)
-		fmt.Println("TargetIDs", a.targetID, b.targetID)
-		return nil
+		aSourceType := Ω.list[i].sourceType
+
+		fmt.Println("Warning: Collision",
+			aKey,
+			"[" + fmt.Sprint(Ω.list[i].sourceType, ",", Ω.list[i].targetID, ",", Ω.list[i].sourceOccurrenceID) + "]",
+			"[" + fmt.Sprint(b.sourceType, ",", b.targetID, ",", b.sourceOccurrenceID) + "]")
+
+		if aSourceType != bSourceType && bSourceType == datasources.DataSourceTypeGBIF {
+			Ω.list[i] = b
+		}
+
+		return ErrCollision
 	}
 
 	Ω.list = append(Ω.list, b)
@@ -224,7 +275,7 @@ func (Ω *Occurrences) Add(b *Occurrence) error {
 
 // TODO: Should periodically check all occurrences for consistency.
 
-func (Ω Occurrences) Upsert(cxt context.Context, firestoreClient *firestore.Client) error {
+func (Ω OccurrenceAggregation) Upsert(cxt context.Context, firestoreClient *firestore.Client) error {
 
 	col := firestoreClient.Collection(store.CollectionTypeOccurrences)
 	limiter := ratelimit.New(100)
@@ -247,7 +298,7 @@ func (Ω Occurrences) Upsert(cxt context.Context, firestoreClient *firestore.Cli
 }
 
 func (Ω *Occurrence) reference(col *firestore.CollectionRef) error {
-	if !Ω.sourceType.Valid() || !Ω.targetID.Valid() || strings.TrimSpace(Ω.sourceOccurrenceID) == "" {
+	if !Ω.sourceType.Valid() || !Ω.targetID.Valid(Ω.sourceType) || strings.TrimSpace(Ω.sourceOccurrenceID) == "" {
 		return errors.Newf("Invalid firestore reference ID: %s, %s, %s", Ω.sourceType, Ω.targetID, Ω.sourceOccurrenceID)
 	}
 	id := fmt.Sprintf("%s-%s-%s", Ω.sourceType, Ω.targetID, Ω.sourceOccurrenceID)
@@ -298,7 +349,7 @@ func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) err
 			return err
 		}
 
-		if Ω.sourceType != imbricate.sourceType && imbricate.sourceType == store.DataSourceTypeGBIF {
+		if Ω.sourceType != imbricate.sourceType && imbricate.sourceType == datasources.DataSourceTypeGBIF {
 			// So we have something other than GBIF, and the GBIF record is already in the database.
 			// No opt to prefer the existing GBIF record.
 			return nil

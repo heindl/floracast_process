@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
+	"bitbucket.org/heindl/taxa/datasources"
 )
 
 type page struct {
@@ -21,7 +22,6 @@ type page struct {
 	Page         int `json:"page"`
 	PerPage      int `json:"per_page"`
 }
-
 
 type Taxon struct {
 	CompleteSpeciesCount      int `json:"complete_species_count"`
@@ -265,8 +265,8 @@ func (Ω *orchestrator) parseTaxon(txn Taxon, isFromFullPageRequest bool) error 
 }
 
 type INaturalistTaxonScheme struct {
-	DataSourceType store.DataSourceType
-	TargetID       store.DataSourceTargetID
+	DataSourceType datasources.DataSourceType
+	TargetID       datasources.DataSourceTargetID
 }
 
 var taxonSchemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
@@ -297,7 +297,7 @@ func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonSc
 	res := []INaturalistTaxonScheme{}
 	doc.Find(`a[href*="/taxon_schemes/"]`).Each(func(i int, s *goquery.Selection) {
 		v, _ := s.Attr("href")
-		originID := store.DataSourceType(strings.TrimLeft(v, "/taxon_schemes/"))
+		originID := datasources.DataSourceType(strings.TrimLeft(v, "/taxon_schemes/"))
 		if string(originID) == "" {
 			return
 		}
@@ -305,7 +305,7 @@ func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonSc
 		if dataID == "" {
 			return
 		}
-		targetID := store.DataSourceTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
+		targetID := datasources.DataSourceTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
 		res = append(res, INaturalistTaxonScheme {
 			DataSourceType: originID,
 			TargetID:       targetID,

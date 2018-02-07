@@ -6,8 +6,8 @@ import (
 	"golang.org/x/net/context"
 	"fmt"
 	"bitbucket.org/heindl/taxa/utils"
-	"bitbucket.org/heindl/taxa/store"
 	"time"
+	"bitbucket.org/heindl/taxa/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -20,6 +20,7 @@ func TestTaxonFetcher(t *testing.T) {
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(usages))
 
+
 		//fmt.Println(utils.JsonOrSpew(usages.Names()))
 		//fmt.Println(utils.JsonOrSpew(usages.TargetIDs(store.DataSourceTypeGBIF)))
 
@@ -27,11 +28,11 @@ func TestTaxonFetcher(t *testing.T) {
 
 	SkipConvey("should fetch occurrences", t, func() {
 
-		occurrences, err := FetchOccurrences(context.Background(), store.DataSourceTargetID("58682"), utils.TimePtr(time.Now().Add(time.Hour * 24 * 60 * -1)))
+		occurrences, err := FetchOccurrences(context.Background(), datasources.DataSourceTargetID("58682"), utils.TimePtr(time.Now().Add(time.Hour * 24 * 60 * -1)))
 		So(err, ShouldBeNil)
 		So(occurrences.Count(), ShouldEqual, 24)
 
-		occurrences, err = FetchOccurrences(context.Background(), store.DataSourceTargetID("58682"), nil)
+		occurrences, err = FetchOccurrences(context.Background(), datasources.DataSourceTargetID("58682"), nil)
 		So(err, ShouldBeNil)
 		So(occurrences.Count(), ShouldEqual, 100)
 

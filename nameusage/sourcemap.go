@@ -1,10 +1,10 @@
 package nameusage
 
 import (
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/taxa/datasources"
 )
 
-type nameUsageSourceMap map[store.DataSourceType]map[store.DataSourceTargetID]*NameUsageSource
+type nameUsageSourceMap map[datasources.DataSourceType]map[datasources.DataSourceTargetID]*NameUsageSource
 
 func (a nameUsageSourceMap) intersects(b nameUsageSourceMap) bool {
 
@@ -49,9 +49,9 @@ func (Ω nameUsageSourceMap) totalOccurrenceCount() int {
 	return total
 }
 
-func (Ω nameUsageSourceMap) targetIDs(srcType store.DataSourceType) store.DataSourceTargetIDs {
+func (Ω nameUsageSourceMap) targetIDs(srcType datasources.DataSourceType) datasources.DataSourceTargetIDs {
 
-	res := store.DataSourceTargetIDs{}
+	res := datasources.DataSourceTargetIDs{}
 	if _, ok := Ω[srcType]; !ok {
 		return res
 	}
@@ -65,7 +65,7 @@ func (Ω nameUsageSourceMap) targetIDs(srcType store.DataSourceType) store.DataS
 
 func (Ω nameUsageSourceMap) set(src *NameUsageSource) {
 	if _, ok := Ω[src.sourceType]; !ok {
-		Ω[src.sourceType] = map[store.DataSourceTargetID]*NameUsageSource{}
+		Ω[src.sourceType] = map[datasources.DataSourceTargetID]*NameUsageSource{}
 	}
 	Ω[src.sourceType][src.targetID] = src
 }

@@ -5,6 +5,8 @@ import (
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"
 	"math"
+	"strings"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 type AlgoliaNameObject map[nameObjectKey]interface{}
@@ -16,7 +18,7 @@ const (
 	keyScientificName  = nameObjectKey("ScientificName")
 	keyCommonName      = nameObjectKey("CommonName")
 	keyThumbnail       = nameObjectKey("Thumbnail")
-	keyOccurrenceCount = nameObjectKey("OccurrenceCount")
+	keyOccurrenceCount = nameObjectKey("TotalOccurrenceCount")
 	keyReferenceCount  = nameObjectKey("ReferenceCount")
 )
 
@@ -72,7 +74,7 @@ func (Ω AlgoliaNameUsageObjects) batches(maxBatchSize float64) []AlgoliaNameUsa
 
 func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (AlgoliaNameUsageObjects, error) {
 
-	if usage.OccurrenceCount() == 0 {
+	if usage.TotalOccurrenceCount() == 0 {
 		// Note that the algolia generation should only be called after occurrences fetched.
 		// The occurrence count allows us to sort search results in Autocomplete.
 		return nil, errors.New("Expected name usage provided to Algolia to have occurrences")
@@ -82,8 +84,9 @@ func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (Algol
 	if err != nil {
 		return nil, err
 	}
+	usageCommonName = strings.Title(usageCommonName)
 
-	usageOccurrenceCount := usage.OccurrenceCount()
+	usageOccurrenceCount := usage.TotalOccurrenceCount()
 
 	// TODO: Generate thumbnail from image
 	thumbnail := ""
@@ -93,7 +96,7 @@ func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (Algol
 	for _, ref := range usage.ScientificNameReferenceLedger() {
 		res = append(res, AlgoliaNameObject{
 			keyNameUsageID:     usage.ID(),
-			keyScientificName:  ref.Name,
+			keyScientificName:  utils.CapitalizeString(ref.Name),
 			keyCommonName:      usageCommonName,
 			keyThumbnail:       thumbnail,
 			keyOccurrenceCount: usageOccurrenceCount,
@@ -105,12 +108,13 @@ func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (Algol
 	if err != nil {
 		return nil, err
 	}
+	usageScientificName = utils.CapitalizeString(usageScientificName)
 
 	for _, ref := range usage.CommonNameReferenceLedger() {
 		res = append(res, AlgoliaNameObject{
 			keyNameUsageID:     usage.ID(),
 			keyScientificName:  usageScientificName,
-			keyCommonName:      ref.Name,
+			keyCommonName:      strings.Title(ref.Name),
 			keyThumbnail:       thumbnail,
 			keyOccurrenceCount: usageOccurrenceCount,
 			keyReferenceCount:  ref.ReferenceCount,

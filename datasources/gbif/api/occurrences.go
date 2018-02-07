@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
-	"gopkg.in/tomb.v2"
 	"io/ioutil"
-	"math"
-	"sync"
 	"github.com/sethgrid/pester"
 	"time"
+	"math"
+	"sync"
+	"gopkg.in/tomb.v2"
 )
 
 type OccurrenceSearchQuery struct {
@@ -157,13 +157,16 @@ type response struct {
 	Results []Occurrence `json:"results"`
 }
 
-// OccurrenceCount returns a full search across all occurrences. Results are ordered by relevance.
+// TotalOccurrenceCount returns a full search across all occurrences. Results are ordered by relevance.
 func  Occurrences(q OccurrenceSearchQuery) ([]Occurrence, error) {
+
 
 	var syncList struct{
 		sync.Mutex
 		list []Occurrence
 	}
+
+
 
 	response, err := q.request(0)
 	if err != nil {

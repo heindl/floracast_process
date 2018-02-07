@@ -38,19 +38,19 @@ func main() {
 		TaxonID: store.INaturalistTaxonID("473935"),
 	}
 
-	if _, _, err := client.Collection("OccurrenceCount").Add(context.Background(), o); err != nil {
+	if _, _, err := client.Collection("TotalOccurrenceCount").Add(context.Background(), o); err != nil {
 		panic(err)
 	}
 
-	//docs, err := client.Collection("OccurrenceCount").Where("INaturalistTaxonID", "==", "143393").
+	//docs, err := client.Collection("TotalOccurrenceCount").Where("INaturalistTaxonID", "==", "143393").
 	////Select("Location", ).
-	////docs, err := client.Collection("OccurrenceCount").
+	////docs, err := client.Collection("TotalOccurrenceCount").
 	////Where("S2CellIDs.1_10001", "==", true).
 	//Documents(context.Background()).GetAll()
 	//if err != nil {
 	//	panic(err)
 	//}
-	//res := store.OccurrenceCount{}
+	//res := store.TotalOccurrenceCount{}
 	//for _, doc := range docs {
 	//	o := store.Occurrence{}
 	//	if err := doc.DataTo(&o); err != nil {

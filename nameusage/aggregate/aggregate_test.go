@@ -5,8 +5,7 @@ import (
 	"testing"
 	"context"
 	"fmt"
-	"encoding/json"
-	"bitbucket.org/heindl/taxa/taxa/name_usage"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -15,26 +14,32 @@ func TestTaxonFetcher(t *testing.T) {
 
 	Convey("should generate a list of sources", t, func() {
 
-		srcs, err := AggregateNameUsages(context.Background(), 47348, 56830, 48701)
+		srcs, err := AggregateNameUsages(context.Background(), 60607)
+		So(err, ShouldBeNil)
+		return
+
+		// 47348, 56830, 48701
+		srcs, err = AggregateNameUsages(context.Background(), 48701)
 		So(err, ShouldBeNil)
 		////
+		fmt.Println(utils.JsonOrSpew(srcs))
 
 
-		sufficient := name_usage.AggregateNameUsages{}
-		for _, src := range srcs {
-			if src.OccurrenceCount() < 100 {
-				continue
-			}
-			sufficient = append(sufficient, src)
-		}
-
-
-		marshalledSources, err := json.Marshal(sufficient)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(string(marshalledSources))
+		//sufficient := name_usage.AggregateNameUsages{}
+		//for _, src := range srcs {
+		//	if src.TotalOccurrenceCount() < 100 {
+		//		continue
+		//	}
+		//	sufficient = append(sufficient, src)
+		//}
+		//
+		//
+		//marshalledSources, err := json.Marshal(sufficient)
+		//if err != nil {
+		//	panic(err)
+		//}
+		//
+		//fmt.Println(string(marshalledSources))
 
 		//b, err := ioutil.ReadFile("/Users/m/Desktop/morchella.json")
 		//So(err, ShouldBeNil)

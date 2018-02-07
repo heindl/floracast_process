@@ -2,18 +2,22 @@ package nameusage
 
 import (
 	"fmt"
-	"bitbucket.org/heindl/taxa/store"
 	"github.com/mongodb/mongo-tools/common/json"
 	"github.com/elgs/gostrgen"
 	"github.com/dropbox/godropbox/errors"
 	"strings"
 	"sort"
+	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/taxa/utils"
+	"time"
+	"bitbucket.org/heindl/taxa/occurrences"
 )
 
 type CanonicalNameUsage struct {
-	id string
-	canonicalName   *CanonicalName
-	sources         nameUsageSourceMap
+	id                    string
+	canonicalName         *CanonicalName
+	sources               nameUsageSourceMap
+	occurrenceAggregation *occurrences.OccurrenceAggregation
 }
 
 func NewCanonicalNameUsage(src *NameUsageSource) (*CanonicalNameUsage, error) {
@@ -24,10 +28,11 @@ func NewCanonicalNameUsage(src *NameUsageSource) (*CanonicalNameUsage, error) {
 	}
 
 	return &CanonicalNameUsage{
-		id: id,
-		canonicalName: src.canonicalName,
+		id:                    id,
+		canonicalName:         src.canonicalName,
+		occurrenceAggregation: occurrences.NewOccurrenceAggregation(),
 		sources: nameUsageSourceMap{
-			src.sourceType: map[store.DataSourceTargetID]*NameUsageSource{
+			src.sourceType: map[datasources.DataSourceTargetID]*NameUsageSource{
 				src.targetID: src,
 			},
 		},
@@ -42,8 +47,42 @@ func (Ω *CanonicalNameUsage) SourceCount() int {
 	return Ω.sources.targetIDCount()
 }
 
-func (Ω *CanonicalNameUsage) OccurrenceCount() int {
-	Ω.sources.totalOccurrenceCount()
+func (Ω *CanonicalNameUsage) TotalOccurrenceCount() int {
+	return Ω.sources.totalOccurrenceCount()
+}
+
+func (Ω *CanonicalNameUsage) CachedOccurrences() []*occurrences.Occurrence {
+	return Ω.occurrenceAggregation.OccurrenceList()
+}
+
+func (Ω *CanonicalNameUsage) hasSource(sourceType datasources.DataSourceType, targetID datasources.DataSourceTargetID) bool {
+
+	if _, ok := Ω.sources[sourceType]; !ok {
+		return false
+	}
+
+	if _, ok := Ω.sources[sourceType][targetID]; !ok {
+		return false
+
+		}
+
+	return true
+}
+
+func (Ω *CanonicalNameUsage) registerOccurrenceFetch(sourceType datasources.DataSourceType, targetID datasources.DataSourceTargetID, occurrenceCount int) error {
+
+	if _, ok := Ω.sources[sourceType]; !ok {
+		return errors.Newf("CanonicalNameUsage [%s] does not contain sourceType [%s]", Ω.canonicalName, sourceType)
+	}
+
+	if _, ok := Ω.sources[sourceType][targetID]; !ok {
+		return errors.Newf("CanonicalNameUsage [%s] does not contain sourceType [%s] targetID [%s]", Ω.canonicalName, sourceType, targetID)
+	}
+
+	Ω.sources[sourceType][targetID].occurrenceCount = Ω.sources[sourceType][targetID].occurrenceCount + occurrenceCount
+	Ω.sources[sourceType][targetID].lastFetchedAt = utils.TimePtr(time.Now())
+
+	return nil
 }
 
 func (Ω *CanonicalNameUsage) MarshalJSON() ([]byte, error) {
@@ -52,20 +91,46 @@ func (Ω *CanonicalNameUsage) MarshalJSON() ([]byte, error) {
 	}
 	return json.Marshal(map[string]interface{}{
 		"CanonicalName": Ω.canonicalName,
-		"Synonyms": Ω.CanonicalNames().Strings(),
-		"OccurrenceCount": Ω.sources.totalOccurrenceCount(),
+		"Synonyms": Ω.ScientificNames().Strings(),
+		"TotalOccurrenceCount": Ω.sources.totalOccurrenceCount(),
 		"Sources": Ω.sources,
 	})
 }
 
-func (Ω *CanonicalNameUsage) AddSource(src *NameUsageSource) error {
-	Ω.sources.set(src)
+func (Ω *CanonicalNameUsage) AddSources(sources ...*NameUsageSource) error {
+	for _, src := range sources {
+		Ω.sources.set(src)
+	}
+	return nil
+}
+
+func (Ω *CanonicalNameUsage) AddOccurrence(o *occurrences.Occurrence) error {
+
+	if o == nil {
+		return nil
+	}
+
+	if !Ω.hasSource(o.SourceType(), o.TargetID()) {
+		return errors.Newf("CanonicalNameUsage does not contain source [%s, %s]", o.SourceType(), o.TargetID())
+	}
+
+	Ω.sources[o.SourceType()][o.TargetID()].occurrenceCount += 1
+	Ω.sources[o.SourceType()][o.TargetID()].lastFetchedAt = utils.TimePtr(time.Now())
+
+	if Ω.occurrenceAggregation == nil {
+		Ω.occurrenceAggregation = occurrences.NewOccurrenceAggregation()
+	}
+
+	if err := Ω.occurrenceAggregation.AddOccurrence(o); err != nil && !utils.ContainsError(err, occurrences.ErrCollision) {
+		return err
+	}
+
 	return nil
 }
 
 func (Ω *CanonicalNameUsage) Synonyms() CanonicalNames {
 	res := CanonicalNames{}
-	for _, cn := range Ω.CanonicalNames() {
+	for _, cn := range Ω.ScientificNames() {
 		if !cn.Equals(Ω.canonicalName) {
 			res = res.AddToSet(cn)
 		}
@@ -73,10 +138,10 @@ func (Ω *CanonicalNameUsage) Synonyms() CanonicalNames {
 	return res
 }
 
-func (Ω *CanonicalNameUsage) ContainsCanonicalName(name *CanonicalName) bool {
+func (Ω *CanonicalNameUsage) ContainsCanonicalName(cn *CanonicalName) bool {
 	for _, targets := range Ω.sources {
 		for _, src := range targets {
-			if src.canonicalName.Equals(name) {
+			if src.canonicalName.Equals(cn) || src.synonyms.Contains(cn) {
 				return true
 			}
 		}
@@ -91,9 +156,12 @@ func (Ω *CanonicalNameUsage) ScientificNameString() (string, error) {
 	return Ω.canonicalName.name, nil
 }
 
-func (Ω *CanonicalNameUsage) Sources() []*NameUsageSource {
+func (Ω *CanonicalNameUsage) Sources(sourceTypes ...datasources.DataSourceType) []*NameUsageSource {
 	res := []*NameUsageSource{}
-	for _, targets := range Ω.sources {
+	for srcType, targets := range Ω.sources {
+		if len(sourceTypes) > 0 && !datasources.HasDataSourceType(sourceTypes, srcType) {
+			continue
+		}
 		for _, src := range targets {
 			res = append(res, src)
 		}
@@ -134,10 +202,15 @@ func (Ω *CanonicalNameUsage) CommonNameString() (string, error) {
 	return ledger[0].Name, nil
 }
 
-func (Ω *CanonicalNameUsage) CanonicalNames() CanonicalNames {
+func (Ω *CanonicalNameUsage) CanonicalName() *CanonicalName {
+	return Ω.canonicalName
+}
+
+func (Ω *CanonicalNameUsage) ScientificNames() CanonicalNames {
 	res := CanonicalNames{}
 	for _, src := range Ω.Sources() {
 		res = res.AddToSet(src.canonicalName)
+		res = res.AddToSet(src.synonyms...)
 	}
 	return res
 }
@@ -151,13 +224,14 @@ func (Ω *CanonicalNameUsage) AddSynonyms(sources ...*NameUsageSource) error {
 
 
 func (a *CanonicalNameUsage) shouldCombine(b *CanonicalNameUsage) bool {
-	for _, aName := range a.CanonicalNames() {
+	for _, aName := range a.ScientificNames() {
 		if b.ContainsCanonicalName(aName) {
-			fmt.Println()
+			//fmt.Println(fmt.Sprintf("Should combine on CanonicalName [%s, %s]",a.CanonicalName(), b.CanonicalName()))
 			return true
 		}
 	}
 	if a.sources.intersects(b.sources) {
+		//fmt.Println(fmt.Sprintf("Should combine on Sources [%s, %s]", a.CanonicalName(), b.CanonicalName()))
 		return true
 	}
 	return false
@@ -174,14 +248,12 @@ func (a *CanonicalNameUsage) combine(b *CanonicalNameUsage) (*CanonicalNameUsage
 	aSourceCount := a.SourceCount()
 	bSourceCount := b.SourceCount()
 
-	fmt.Println("----Combining----")
-	fmt.Println( a.canonicalName.name, b.canonicalName.name)
-	fmt.Println("Synonymous", aNameIsSynonym, bNameIsSynonym)
-	fmt.Println("SourceCount", aSourceCount, bSourceCount)
+	//fmt.Println("----Combining----")
+	//fmt.Println( a.canonicalName.name, b.canonicalName.name)
+	//fmt.Println("Synonymous", aNameIsSynonym, bNameIsSynonym)
+	//fmt.Println("SourceCount", aSourceCount, bSourceCount)
 	//targetIDsIntersect := a.nameUsageSourceMap.Intersects(b.nameUsageSourceMap)
 	//synonymsIntersect := utils.IntersectsStrings(a.Synonyms, b.Synonyms)
-
-
 
 	if bNameIsSynonym && aNameIsSynonym {
 		fmt.Println(fmt.Sprintf("Warning: found two name usages [%s, %s] that appear to be synonyms for each other.", a.canonicalName, b.canonicalName))
@@ -208,8 +280,6 @@ func (a *CanonicalNameUsage) combine(b *CanonicalNameUsage) (*CanonicalNameUsage
 	c.sources = nameUsageSourceMap{}
 	c.sources.merge(a.sources)
 	c.sources.merge(b.sources)
-
-	fmt.Println("final", c.canonicalName.name)
 
 	return &c, nil
 }

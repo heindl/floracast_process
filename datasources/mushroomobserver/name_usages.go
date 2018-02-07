@@ -1,19 +1,17 @@
-package mushroom_observer
+package mushroomobserver
 
 import (
 	"fmt"
 	"strings"
-	//"bitbucket.org/heindl/taxa/store"
-	//"golang.org/x/net/context"
 	"time"
-	"bitbucket.org/heindl/taxa/taxa/name_usage"
 	"net/url"
 	"bitbucket.org/heindl/taxa/utils"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/taxa/store"
 	"gopkg.in/tomb.v2"
 	"sync"
 	"context"
+	"bitbucket.org/heindl/taxa/nameusage"
+	"bitbucket.org/heindl/taxa/datasources"
 )
 
 type MushroomObserverQueryResult struct {
@@ -27,22 +25,25 @@ type MushroomObserverQueryResult struct {
 	RunTime float64 `json:"run_time"`
 }
 
-func MatchCanonicalNames(cxt context.Context, names ...string) ([]*name_usage.NameUsageSource, error) {
+var lmtr = utils.NewLimiter(10)
+
+func MatchCanonicalNames(cxt context.Context, names ...string) ([]*nameusage.NameUsageSource, error) {
 
 	//TODO: If names are three, consider adding var. "Cantharellus cibarius var. cibarius"
 	// Only if missing in parent.
 
-	nameResponse := []*name_usage.NameUsageSource{}
+	nameResponse := []*nameusage.NameUsageSource{}
 	locker := sync.Mutex{}
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error{
 		for _, _name := range names {
+			done := lmtr.Go()
 			name := _name
 			tmb.Go(func() error {
-
+				done()
 				parameters := strings.Join([]string{
-					//fmt.Sprintf("updated_at=%s-%s", time.Now().Add(time.Hour * 24 * 30 * -120).Format("20060102"), time.Now().Format("20060102")),
+					//fmt.Sprintf("updated_at=%s-%s", time.Now().AddUsages(time.Hour * 24 * 30 * -120).Format("20060102"), time.Now().Format("20060102")),
 					"format=json",
 					"is_deprecated=false",
 					//"ok_for_export=true",
@@ -55,10 +56,12 @@ func MatchCanonicalNames(cxt context.Context, names ...string) ([]*name_usage.Na
 
 				apiURL := "http://mushroomobserver.org/api/names?" + parameters
 
-				fmt.Println(apiURL)
-
 				var queryResult MushroomObserverQueryResult
 				if err := utils.RequestJSON(apiURL, &queryResult); err != nil {
+					if strings.Contains(err.Error(), "StatusCode: 503") {
+						fmt.Println(fmt.Sprintf("Warning: Could not fetch name from MushroomObserver [%s]", apiURL))
+						return nil
+					}
 					return errors.Wrapf(err, "could not fetch name from mushroom observer [%s]", name)
 				}
 
@@ -119,29 +122,20 @@ type MushroomObserverTaxonResult struct {
 	//Parents       []interface{} `json:"parents"`
 }
 
-func parseTaxonResult(cxt context.Context, r *MushroomObserverTaxonResult) (*name_usage.NameUsageSource, error) {
+func parseTaxonResult(cxt context.Context, r *MushroomObserverTaxonResult) (*nameusage.NameUsageSource, error) {
 
-	targetID, err := store.NewDataSourceTargetIDFromInt(r.ID)
+	targetID, err := datasources.NewDataSourceTargetIDFromInt(r.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	cn, err := store.NewCanonicalName(r.Name)
+	cn, err := nameusage.NewCanonicalName(r.Name, strings.ToLower(r.Rank))
 	if err != nil {
 		return nil, err
 	}
 
-	src, err := name_usage.NewNameUsageSource(store.DataSourceTypeMushroomObserver, targetID, *cn, false)
+	src, err := nameusage.NewNameUsageSource(datasources.DataSourceTypeMushroomObserver, targetID, cn)
 	if err != nil {
-		return nil, err
-	}
-
-	o, err := FetchOccurrences(cxt, targetID, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := src.SetOccurrenceCount(o.Count()); err != nil {
 		return nil, err
 	}
 

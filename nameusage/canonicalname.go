@@ -13,6 +13,13 @@ type CanonicalName struct {
 	rank string
 }
 
+func (a *CanonicalName) ScientificName() string {
+	if a == nil {
+		return ""
+	}
+	return a.name
+}
+
 func (a *CanonicalName) MarshalJSON() ([]byte, error) {
 	if a == nil {
 		return nil, nil
@@ -35,7 +42,7 @@ func NewCanonicalName(name string, rank string) (*CanonicalName, error) {
 	if wc == 1 {
 		return nil, errors.Newf("Invalid CanonicalName: Has only one word [%s], which suggests it is not a species or below", s)
 	}
-	if wc > 4 {
+	if wc > 5 {
 		return nil, errors.Newf("Invalid CanonicalName: More than four words [%s]", s)
 	}
 
@@ -61,12 +68,7 @@ func (Ω CanonicalNames) Strings() []string {
 }
 
 func (a CanonicalNames) Contains(b *CanonicalName) bool {
-	for _, cn := range a {
-		if cn.name == b.name {
-			return true
-		}
-	}
-	return false
+	return utils.ContainsString(a.Strings(), b.name)
 }
 
 func (Ω CanonicalNames) AddToSet(names ...*CanonicalName) CanonicalNames {

@@ -136,7 +136,7 @@ func (Ω GeoFeatureSet) ToMap() (map[string]interface{}, error) {
 		return nil, errors.New("Invalid Coordinates to Marshal GeoFeatureSet")
 	}
 
-	if e := liveProcessor.getElevation(Ω.lat, Ω.lng); e == nil && len(liveProcessor.elevationQueue) > 0 {
+	if e := liveProcessor.getElevation(Ω.lat, Ω.lng); e == nil && len(liveProcessor.elevationsQueued) > 0 {
 		if err := liveProcessor.flushElevations(); err != nil {
 			return nil, err
 		}
@@ -172,16 +172,16 @@ func hasDecimalPlaces(i int, v float64) bool {
 }
 
 var liveProcessor = &geoFeaturesProcessor{
-	elevationQueue:    []maps.LatLng{},
-	fetchedElevations: map[string]float64{},
+	elevationsQueued:    map[string]maps.LatLng{},
+	elevationsFetched: map[string]float64{},
 }
 
 type geoFeaturesProcessor struct {
 	mapClient         *maps.Client
 	ecoRegionCache    *ecoregions.EcoRegionsCache
 	sync.Mutex
-	elevationQueue    []maps.LatLng
-	fetchedElevations map[string]float64
+	elevationsQueued    map[string]maps.LatLng
+	elevationsFetched map[string]float64
 }
 
 func init() {
@@ -203,45 +203,64 @@ func init() {
 	}
 }
 
+func elevationKey(lat, lng float64) string {
+	return fmt.Sprintf("%.4f|%.4f", lat, lng)
+}
+
+func (Ω *geoFeaturesProcessor) elevationQueueStatus(lat, lng float64) (queued, fetched bool) {
+	Ω.Lock()
+	defer Ω.Unlock()
+	k := elevationKey(lat, lng)
+	_, queued = Ω.elevationsQueued[k]
+	_, fetched = Ω.elevationsFetched[k]
+	return
+}
 
 func (Ω *geoFeaturesProcessor) queueElevation(lat, lng float64) error {
-	if e := Ω.getElevation(lat, lng); e != nil {
+	queued, fetched := Ω.elevationQueueStatus(lat, lng)
+	if queued || fetched {
 		return nil
 	}
+	k := elevationKey(lat, lng)
 	Ω.Lock()
-	Ω.elevationQueue = append(Ω.elevationQueue, maps.LatLng{lat, lng})
+	Ω.elevationsQueued[k] = maps.LatLng{lat, lng}
 	Ω.Unlock()
-	if len(Ω.elevationQueue) >= 500 {
+	if len(Ω.elevationsQueued) >= 500 {
 		return Ω.flushElevations()
 	}
 	return nil
 }
 
 func (Ω *geoFeaturesProcessor) getElevation(lat, lng float64) *float64 {
-	k := fmt.Sprintf("%.3f|%.3f", lat, lng)
-	Ω.Lock()
-	defer Ω.Unlock()
-	e, ok := Ω.fetchedElevations[k]
-	if !ok {
+	_, fetched := Ω.elevationQueueStatus(lat, lng)
+	if !fetched {
 		return nil
 	}
-	return utils.FloatPtr(e)
+	return utils.FloatPtr(Ω.elevationsFetched[elevationKey(lat, lng)])
 }
 
 func (Ω *geoFeaturesProcessor) flushElevations() error {
 	Ω.Lock()
 	defer Ω.Unlock()
-	eleReq := maps.ElevationRequest{Locations: Ω.elevationQueue}
+
+	locs := []maps.LatLng{}
+	for _, k := range Ω.elevationsQueued {
+		locs = append(locs, k)
+	}
+
+	eleReq := maps.ElevationRequest{Locations: locs}
 
 	resolvedElevations, err := Ω.mapClient.Elevation(context.Background(), &eleReq)
 	if err != nil {
 		return errors.Wrap(err, "could not fetch elevations")
 	}
 	for _, e := range resolvedElevations {
-		k := fmt.Sprintf("%.3f|%.3f", e.Location.Lat, e.Location.Lng)
-		Ω.fetchedElevations[k] = e.Elevation
+		k := elevationKey(e.Location.Lat, e.Location.Lng)
+		Ω.elevationsFetched[k] = e.Elevation
 	}
-	Ω.elevationQueue = Ω.elevationQueue[:0]
+
+	fmt.Println("Flushing Elevations", len(Ω.elevationsQueued), len(Ω.elevationsFetched), len(locs), len(resolvedElevations))
+	Ω.elevationsQueued = map[string]maps.LatLng{}
 	return nil
 }
 

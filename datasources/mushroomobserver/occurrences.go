@@ -1,11 +1,10 @@
-package mushroom_observer
+package mushroomobserver
 
 import (
 	"fmt"
 	"strings"
 	"bitbucket.org/heindl/taxa/occurrences"
 	"context"
-	"bitbucket.org/heindl/taxa/store"
 	"time"
 	"github.com/dropbox/godropbox/errors"
 	"bitbucket.org/heindl/taxa/utils"
@@ -13,15 +12,16 @@ import (
 	"strconv"
 	"bitbucket.org/heindl/taxa/geofeatures"
 	"github.com/mongodb/mongo-tools/common/json"
+	"bitbucket.org/heindl/taxa/datasources"
 )
 
-func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, since *time.Time) (*occurrences.Occurrences, error) {
+func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTargetID, since *time.Time) (*occurrences.OccurrenceAggregation, error) {
 
-	if !targetID.Valid() {
+	if !targetID.Valid(datasources.DataSourceTypeMushroomObserver) {
 		return nil, errors.New("Invalid TargetID")
 	}
 
-	res := occurrences.Occurrences{}
+	res := occurrences.OccurrenceAggregation{}
 
 	page := 1
 	for {
@@ -59,7 +59,7 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 				return nil, err
 			}
 
-			if err := res.Add(o); err != nil {
+			if err := res.AddOccurrence(o); err != nil && !utils.ContainsError(err, occurrences.ErrCollision) {
 				return nil, err
 			}
 		}
@@ -73,7 +73,7 @@ func FetchOccurrences(cxt context.Context, targetID store.DataSourceTargetID, si
 	return &res, nil
 }
 
-func parseOccurrenceFromObservation(targetID store.DataSourceTargetID, observation *Observation) (*occurrences.Occurrence, error) {
+func parseOccurrenceFromObservation(targetID datasources.DataSourceTargetID, observation *Observation) (*occurrences.Occurrence, error) {
 
 	taxonID, err := targetID.ToInt()
 	if err != nil {
@@ -98,7 +98,7 @@ func parseOccurrenceFromObservation(targetID store.DataSourceTargetID, observati
 		return nil, nil
 	}
 
-	o, err := occurrences.NewOccurrence(store.DataSourceTypeMushroomObserver, targetID, strconv.Itoa(observation.ID))
+	o, err := occurrences.NewOccurrence(datasources.DataSourceTypeMushroomObserver, targetID, strconv.Itoa(observation.ID))
 	if err != nil {
 		return nil, err
 	}

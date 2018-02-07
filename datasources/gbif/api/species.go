@@ -23,13 +23,13 @@ type NameUsage struct {
 	Authorship          string        `json:"authorship"`
 	CanonicalName       string        `json:"canonicalName"`
 	Confidence          int           `json:"confidence"` // From search api.
-	DatasetKey          string        `json:"datasetKey"`
 	Issues              []interface{} `json:"issues"`
 	Key                 TaxonID           `json:"key"`
 	LastCrawled         string        `json:"lastCrawled"`
 	LastInterpreted     string        `json:"lastInterpreted"`
 	MatchType           string        `json:"matchType"` // From search api.
 	Modified            string        `json:"modified"`
+	NameKey             int           `json:"nameKey"`
 	NameType            string        `json:"nameType"`
 	NomenclaturalStatus []interface{} `json:"nomenclaturalStatus"`
 	Note                string        `json:"note"` // From search api.
@@ -40,12 +40,22 @@ type NameUsage struct {
 	ParentKey           TaxonID           `json:"parentKey"`
 	Rank                Rank        `json:"rank"`
 	ScientificName      string        `json:"scientificName"`
+	SourceTaxonKey      int           `json:"sourceTaxonKey,omitempty"`
 	Status              string        `json:"status"` // From search api.
 	Synonym             bool          `json:"synonym"`
 	TaxonID             string        `json:"taxonID"`
 	TaxonomicStatus     TaxonomicStatus        `json:"taxonomicStatus"`
 	UsageKey            TaxonID           `json:"usageKey"`    // From search api.
 	AcceptedKey         TaxonID           `json:"acceptedKey"` // From search api.
+	DatasetKey          string        `json:"datasetKey"`
+	ConstituentKey      string        `json:"constituentKey,omitempty"`
+	BasionymKey         int           `json:"basionymKey,omitempty"`
+	Basionym            string        `json:"basionym,omitempty"`
+	VernacularName      string        `json:"vernacularName,omitempty"`
+	Remarks             string        `json:"remarks,omitempty"`
+	PublishedIn         string        `json:"publishedIn,omitempty"`
+	Class               string        `json:"class,omitempty"`
+	References          string        `json:"references,omitempty"`
 }
 
 type Classification struct{
