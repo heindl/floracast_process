@@ -3,25 +3,23 @@ package mushroomobserver
 import (
 	"fmt"
 	"strings"
-	"bitbucket.org/heindl/taxa/occurrences"
 	"context"
 	"time"
 	"github.com/dropbox/godropbox/errors"
 	"bitbucket.org/heindl/taxa/utils"
 	"bitbucket.org/heindl/taxa/terra"
 	"strconv"
-	"bitbucket.org/heindl/taxa/geofeatures"
 	"github.com/mongodb/mongo-tools/common/json"
 	"bitbucket.org/heindl/taxa/datasources"
 )
 
-func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTargetID, since *time.Time) (*occurrences.OccurrenceAggregation, error) {
+func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Observation, error) {
 
 	if !targetID.Valid(datasources.DataSourceTypeMushroomObserver) {
 		return nil, errors.New("Invalid TargetID")
 	}
 
-	res := occurrences.OccurrenceAggregation{}
+	res := []*Observation{}
 
 	page := 1
 	for {
@@ -54,14 +52,23 @@ func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTarget
 
 		for _, observation := range apiResult.Results {
 
-			o, err := parseOccurrenceFromObservation(targetID, observation)
+			taxonID, err := targetID.ToInt()
 			if err != nil {
 				return nil, err
 			}
 
-			if err := res.AddOccurrence(o); err != nil && !utils.ContainsError(err, occurrences.ErrCollision) {
-				return nil, err
+			// Should be covered in search, but just in case.
+			if observation.Consensus.ID != taxonID {
+				return nil, errors.Newf("WARNING: MushroomObserver consensus id [%d] does not equal taxon id [%d] in query.", observation.Consensus.ID, taxonID)
 			}
+
+			// Confidence should be covered by request, but just to be safe ...
+			if observation.Confidence < 2 || observation.Namings.VotesForTaxonID(taxonID) < 2 {
+				return nil, nil
+			}
+
+			res = append(res, observation)
+
 		}
 
 		if page >= apiResult.NumberOfPages {
@@ -70,51 +77,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTarget
 		page += 1
 	}
 
-	return &res, nil
-}
-
-func parseOccurrenceFromObservation(targetID datasources.DataSourceTargetID, observation *Observation) (*occurrences.Occurrence, error) {
-
-	taxonID, err := targetID.ToInt()
-	if err != nil {
-		return nil, err
-	}
-
-	lat := float64(observation.Latitude)
-	lng := float64(observation.Longitude)
-	isEstimated := false
-	if lat == 0 || lng == 0 {
-		isEstimated = true
-		lat, lng = observation.Location.Coordinates()
-	}
-
-	// Should be covered in search, but just in case.
-	if observation.Consensus.ID != taxonID {
-		return nil, errors.Newf("WARNING: MushroomObserver consensus id [%d] does not equal taxon id [%d] in query.", observation.Consensus.ID, taxonID)
-	}
-
-	// Confidence should be covered by request, but just to be safe ...
-	if observation.Confidence < 2 || observation.Namings.VotesForTaxonID(taxonID) < 2 {
-		return nil, nil
-	}
-
-	o, err := occurrences.NewOccurrence(datasources.DataSourceTypeMushroomObserver, targetID, strconv.Itoa(observation.ID))
-	if err != nil {
-		return nil, err
-	}
-
-	err = o.SetGeospatial(lat, lng, strings.Replace(observation.Date, "-", "", -1), isEstimated)
-	if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidCoordinate) {
-		return nil, nil
-	}
-	if err != nil && utils.ContainsError(err, occurrences.ErrInvalidDate) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	return o, nil
+	return res, nil
 }
 
 type ObservationsResult struct {
@@ -295,6 +258,34 @@ type Naming struct {
 		ObservationID int       `json:"observation_id"`
 	} `json:"votes"`
 	Reasons []interface{} `json:"reasons"`
+}
+
+func (Ω *Observation) Lat() (float64, error) {
+	lat := float64(Ω.Latitude)
+	if lat == 0 {
+		lat, _ = Ω.Location.Coordinates()
+	}
+	return lat, nil
+}
+func (Ω *Observation) Lng() (float64, error) {
+	lng := float64(Ω.Longitude)
+	if lng == 0 {
+		_, lng = Ω.Location.Coordinates()
+	}
+	return lng, nil
+}
+func (Ω *Observation) DateString() string {
+	return strings.Replace(Ω.Date, "-", "", -1)
+}
+func (Ω *Observation) CoordinatesEstimated() bool {
+	isEstimated := false
+	if Ω.Latitude == 0 || Ω.Longitude == 0 {
+		isEstimated = true
+	}
+	return isEstimated
+}
+func (Ω *Observation) SourceOccurrenceID() string {
+	return strconv.Itoa(Ω.ID)
 }
 
 type Namings []*Naming

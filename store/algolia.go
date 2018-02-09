@@ -1,12 +1,11 @@
-package algolia
+package store
 
 import (
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
+	"github.com/dropbox/godropbox/errors"
 	"os"
-	"github.com/saleswise/errors/errors"
 	"fmt"
 )
-
 
 const indexNameUsage = "NameUsage"
 
@@ -29,13 +28,13 @@ func NewAlgoliaNameUsageIndex() (AlgoliaIndex, error) {
 	index := client.InitIndex(indexNameUsage)
 
 	if _, err := index.SetSettings(algoliasearch.Map{
-		"distinct": keyNameUsageID,
+		"distinct": AlgoliaKeyNameUsageID,
 		"customRanking": []string{
-			fmt.Sprintf("desc(%s)", keyReferenceCount),
+			fmt.Sprintf("desc(%s)", AlgoliaKeyReferenceCount),
 		},
 		"searchableAttributes": []string{
-			string(keyCommonName),
-			string(keyScientificName),
+			string(AlgoliaKeyCommonName),
+			string(AlgoliaKeyScientificName),
 		},
 	}); err != nil {
 		return nil, errors.Wrap(err, "Could not add settings to NameUsage Algolia index")
@@ -44,3 +43,13 @@ func NewAlgoliaNameUsageIndex() (AlgoliaIndex, error) {
 	return index, nil
 
 }
+
+type nameObjectKey string
+const (
+	AlgoliaKeyNameUsageID     = nameObjectKey("NameUsageID")
+	AlgoliaKeyScientificName  = nameObjectKey("ScientificName")
+	AlgoliaKeyCommonName      = nameObjectKey("CommonName")
+	AlgoliaKeyThumbnail       = nameObjectKey("Thumbnail")
+	AlgoliaKeyOccurrenceCount = nameObjectKey("TotalOccurrenceCount")
+	AlgoliaKeyReferenceCount  = nameObjectKey("ReferenceCount")
+)

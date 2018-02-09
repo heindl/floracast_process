@@ -1,137 +1,159 @@
 package aggregate
 
 import (
-	"bitbucket.org/heindl/taxa/datasources/inaturalist"
+	"sync"
+	"encoding/json"
+	"gopkg.in/tomb.v2"
 	"context"
-	"bitbucket.org/heindl/taxa/datasources/gbif"
-	"bitbucket.org/heindl/taxa/nameusage"
+	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
+	"bitbucket.org/heindl/taxa/nameusage/nameusage"
 	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/occurrences/occurrencefetcher"
-	"bitbucket.org/heindl/taxa/datasources/natureserve"
-	"bitbucket.org/heindl/taxa/datasources/mushroomobserver"
-	"fmt"
+	"bitbucket.org/heindl/taxa/occurrences"
 )
 
-// This function is intended to be a process of building a store taxon representation based on several
-// sorted that accumulate taxonomic information. These names and synonyms can then be used to fetch occurrences
-// from various sources using only the list of names.
-
-// Note that this function aggressively combines synonyms at this point. If any of the three sources consider it a synonym,
-// we accept it in order error on the side of more occurrences.
-
-// Initially don't worry about existing values in the database. This function runs alone each time, connects to multiple
-// datasources, and then deletes those in the database that match.
-
-// The main goal here is occurrences. In order to do that we have to know which names are for the same species,
-// so that sources with different occurrences for different species can be combined.
-
-// TODO: One day convert all of this to a graph database. Which could even incorporate DNA records.
-// In this scenario, all occurrences would need photos, and the photos would be used instead of names to connect them
-// to phenotypical dna.
-
-// TODO: Include a step to verify the ids for occurrences haven't changed.
-// Could actually be done in the occurrence fetch step: https://www.inaturalist.org/taxon_changes
-
-func AggregateNameUsages(cxt context.Context, inaturalistTaxonIDs ...int) (*nameusage.AggregateNameUsages, error) {
-
-	// Start with GBIF because the hiearchy is simple. The occurrence sources for the gbif will be searched externally.
-	// Note also that Inaturalist appears to try to avoid synonyms: https://www.inaturalist.org/taxon_changes
-	// Which means that try to combine them and ignore synonyms, though they appear to still show known synonyms like Morchella Conica.
-	// We need synonyms because other archives do not appear to divide them. TotalOccurrenceCount are still stored within the synonym.
-
-	usages, err := inaturalist.FetchNameUsages(cxt, inaturalistTaxonIDs...)
-	if err != nil {
-		return nil, err
-	}
-
-	gbifUsages, err := gbif.FetchNamesUsages(cxt, usages.CanonicalNames().Strings(), usages.TargetIDs(datasources.DataSourceTypeGBIF))
-	if err != nil {
-		return nil, err
-	}
-
-	if err := usages.CombineWith(gbifUsages); err != nil {
-		return nil, err
-	}
-
-	natureServeUsages, err := natureserve.FetchNameUsages(cxt, usages.CanonicalNames().Strings(), usages.TargetIDs(datasources.DataSourceTypeNatureServe))
-	if err != nil {
-		return nil, err
-	}
-
-	if err := usages.CombineWith(natureServeUsages); err != nil {
-		return nil, err
-	}
-
-	// Fetch Inaturalist and GBIF occurrences.
-	if err := usages.ForEach(cxt, newOccurrenceFetcher(datasources.DataSourceTypeINaturalist, datasources.DataSourceTypeGBIF)); err != nil {
-		return nil, err
-	}
-
-	fmt.Println("USAGE COUNT AFTER FETCH", usages.Count())
-
-	filteredUsages, err := usages.Filter(func(u *nameusage.CanonicalNameUsage) bool {
-		fmt.Println("TOTAL OCCURRENCE COUNT IN FILTER", u.TotalOccurrenceCount())
-		return u.TotalOccurrenceCount() < 100
-	})
-
-	fmt.Println("USAGE COUNT AFTER FILTER", filteredUsages.Count())
-
-	// Fetch MushroomObserver sources.
-	if err := filteredUsages.ForEach(cxt, fetchMushroomObserverSources); err != nil {
-		return nil, err
-	}
-
-	// Fetch MushroomObserver Occurrences.
-	if err := filteredUsages.ForEach(cxt, newOccurrenceFetcher(datasources.DataSourceTypeMushroomObserver)); err != nil {
-		return nil, err
-	}
-
-	if err := filteredUsages.ForEach(cxt, func(ctx context.Context, usage *nameusage.CanonicalNameUsage) error {
-		fmt.Println(usage.CanonicalName().ScientificName(), usage.SourceCount(), usage.TotalOccurrenceCount())
-		fmt.Println("SourceCount", usage.SourceCount())
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-
-
-	return nil, nil
-
+type Aggregate struct {
+	list []*nameusage.NameUsage
+	sync.Mutex
 }
 
-func fetchMushroomObserverSources(ctx context.Context, usage *nameusage.CanonicalNameUsage) error {
-	sources, err := mushroomobserver.MatchCanonicalNames(ctx, usage.ScientificNames().Strings()...)
-	if err != nil {
-		return err
-	}
-	return usage.AddSources(sources...)
-}
+//type CanonicalNameUsages []*NameUsage
 
-func newOccurrenceFetcher(sourceTypes ...datasources.DataSourceType) nameusage.ForEachModifierFunction {
-	return func(ctx context.Context, usage *nameusage.CanonicalNameUsage) error {
-		if usage == nil {
-			return nil
+//func (a CanonicalNameUsages) Len() int           { return len(a) }
+//func (a CanonicalNameUsages) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+//func (a CanonicalNameUsages) Less(i, j int) bool { return a[i].canonicalName.name < a[j].canonicalName.name }
+
+
+type EachFunction func(ctx context.Context, usage *nameusage.NameUsage) error
+
+func (Ω *Aggregate) Each(ctx context.Context, handler EachFunction) error {
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _i := range Ω.list {
+			i := _i
+			tmb.Go(func() error {
+				return handler(ctx, Ω.list[i])
+			})
 		}
+		return nil
+	})
+	return tmb.Wait()
+}
+
+
+type FilterFunction func(usage *nameusage.NameUsage) bool
+
+func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
+	res := Aggregate{}
+	for _, u := range Ω.list {
+		if shouldFilter(u) {
+			continue
+		}
+		if err := res.AddUsage(u); err != nil {
+			return nil, err
+		}
+	}
+	return &res, nil
+}
+
+func (Ω *Aggregate) ScientificNames() []string {
+	res := canonicalname.CanonicalNames{}
+	for _, l := range Ω.list {
+		res = res.AddToSet(l.CanonicalName())
+		res = res.AddToSet(l.Synonyms()...)
+	}
+	return res.ScientificNames()
+}
+
+func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (res datasources.DataSourceTargetIDs) {
+	for _, usage := range Ω.list {
 		for _, src := range usage.Sources(sourceTypes...) {
-			if !src.TargetID().Valid(src.SourceType()) {
-				fmt.Println(fmt.Sprintf("Warning: Attempting to fetch occurrences for an invalid source [%s, %s, %s]", src.SourceType(), src.TargetID(), src.CanonicalName().ScientificName()))
-				continue
-			}
-			if !datasources.HasDataSourceType(sourceTypes, src.SourceType()) {
-				continue
-			}
-			occurrenceAggregation, err := occurrencefetcher.FetchOccurrences(ctx, src.SourceType(), src.TargetID(), src.LastFetchedAt())
-			if err != nil {
-				return err
-			}
-			for _, o := range occurrenceAggregation.OccurrenceList() {
-				if err := usage.AddOccurrence(o); err != nil {
-					return err
+			res = append(res, src.TargetID())
+		}
+	}
+	return
+}
+
+func (Ω *Aggregate) MarshalJSON() ([]byte, error) {
+	if Ω == nil {
+		return nil, nil
+	}
+	return json.Marshal(Ω.list)
+}
+
+func (Ω *Aggregate) AddUsage(usages ...*nameusage.NameUsage) error {
+	Ω.Lock()
+	defer Ω.Unlock()
+
+	Ω.list = append(Ω.list, usages...)
+
+ResetLoop:
+	for {
+		changed := false
+		for i := range Ω.list {
+			for k := range Ω.list {
+				if k == i {
+					continue
+				}
+				if Ω.list[i].ShouldCombine(Ω.list[k]) {
+					changed = true
+					var err error
+					Ω.list[i], err = Ω.list[i].Combine(Ω.list[k])
+					if err != nil {
+						return err
+					}
+					Ω.list = append(Ω.list[:k], Ω.list[k+1:]...)
+					continue ResetLoop
 				}
 			}
 		}
+		if !changed {
+			break
+		}
+	}
 
+	return nil
+}
+
+func (Ω *Aggregate) HasCanonicalName(name *canonicalname.CanonicalName) bool {
+	for i := range Ω.list {
+		if Ω.list[i].HasScientificName(name.ScientificName()) {
+			return true
+		}
+	}
+	return false
+}
+
+type OccurrenceFetcher func(context.Context, datasources.SourceType, datasources.TargetID, *time.Time) (*occurrences.OccurrenceAggregation, error)
+
+func (Ω *Aggregate) FetchOccurrences(ctx context.Context, oFetcher OccurrenceFetcher) error {
+
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _src := range Ω.Sources() {
+			src := _src
+			tmb.Go(func() error {
+				aggr, err := oFetcher(ctx, src.SourceType(), src.TargetID(), src.LastFetchedAt())
+				if err != nil {
+					return err
+				}
+				if err := src.RegisterOccurrenceFetch(aggr.Count()); err != nil {
+					return err
+				}
+				if Ω.occurrenceAggregation == nil {
+					Ω.occurrenceAggregation = aggr
+					return nil
+				}
+				return Ω.occurrenceAggregation.Merge(aggr)
+			})
+		}
+		return nil
+	})
+	return tmb.Wait()
+}
+
+func (Ω *NameUsage) UploadCachedOccurrences(cxt context.Context, firestoreClient *firestore.Client) error {
+	if Ω.occurrenceAggregation == nil {
 		return nil
 	}
+	return Ω.occurrenceAggregation.Upsert(cxt, firestoreClient)
 }

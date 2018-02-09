@@ -44,7 +44,7 @@ func main() {
 
 	date_list := strings.Split(*dates, ",")
 	if len(date_list) == 0 {
-		date_list = append(date_list, "") // AddUsages an empty value to make iteration simpler.
+		date_list = append(date_list, "") // AddUsage an empty value to make iteration simpler.
 	}
 
 	var cache CacheWriter

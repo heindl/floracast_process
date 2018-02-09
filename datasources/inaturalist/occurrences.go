@@ -2,12 +2,10 @@ package inaturalist
 
 import (
 	"fmt"
-	"bitbucket.org/heindl/taxa/occurrences"
 	"github.com/dropbox/godropbox/errors"
 	"time"
 	"bitbucket.org/heindl/taxa/utils"
 	"strconv"
-	"bitbucket.org/heindl/taxa/geofeatures"
 	"context"
 	"bitbucket.org/heindl/taxa/datasources"
 	"strings"
@@ -106,6 +104,32 @@ type Occurrence struct {
 		} `json:"application"`
 }
 
+func (Ω *Occurrence) Lat() (float64, error) {
+	lat, err := strconv.ParseFloat(Ω.Geojson.Coordinates[1], 64)
+	if err != nil {
+		return 0, errors.Wrap(err, "Could not parse latitude from INaturalist occurrence")
+	}
+	return lat, nil
+}
+func (Ω *Occurrence) Lng() (float64, error) {
+	lng, err := strconv.ParseFloat(Ω.Geojson.Coordinates[0], 64)
+	if err != nil {
+		return 0, errors.Wrap(err, "Could not parse longitude from INaturalist occurrence")
+	}
+	return lng, nil
+}
+func (Ω *Occurrence) DateString() string {
+	return strings.Replace(Ω.ObservedOnDetails.Date, "-", "", -1)
+}
+func (Ω *Occurrence) CoordinatesEstimated() bool {
+	// Rounded to 5 decimal place. Not what I expected.
+	// isEstimated := s.Issues.HasIssue(ogbif.OCCURRENCE_ISSUE_COORDINATE_ROUNDED)
+	return false
+}
+func (Ω *Occurrence) SourceOccurrenceID() string {
+	return strconv.Itoa(Ω.ID)
+}
+
 type ProjectObservation struct {
 	Preferences struct {
 		AllowsCuratorCoordinateAccess bool `json:"allows_curator_coordinate_access"`
@@ -186,7 +210,7 @@ type Identification struct {
 }
 
 var throttle = time.Tick(time.Second / 20)
-func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTargetID, since *time.Time) (*occurrences.OccurrenceAggregation, error) {
+func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Occurrence, error) {
 
 	taxonID := TaxonIDFromTargetID(targetID)
 
@@ -194,7 +218,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTarget
 		return nil, errors.New("Invalid TaxonID")
 	}
 
-	output := occurrences.OccurrenceAggregation{}
+	output := []*Occurrence{}
 
 	page := 1
 
@@ -246,36 +270,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTarget
 				return nil, errors.Newf("Invalid Geojson [%d]. Should have been solved by changing privacy setting", inatOccurrence.ID)
 			}
 
-			lng, err := strconv.ParseFloat(inatOccurrence.Geojson.Coordinates[0], 64)
-			if err != nil {
-				return nil, errors.Wrap(err, "Could not parse longitude from INaturalist occurrence")
-			}
-			lat, err := strconv.ParseFloat(inatOccurrence.Geojson.Coordinates[1], 64)
-			if err != nil {
-				return nil, errors.Wrap(err, "Could not parse latitude from INaturalist occurrence")
-			}
-
-			date := strings.Replace(inatOccurrence.ObservedOnDetails.Date, "-", "", -1)
-
-			newOccurrence, err := occurrences.NewOccurrence(datasources.DataSourceTypeINaturalist, taxonID.TargetID(), strconv.Itoa(inatOccurrence.ID))
-			if err != nil {
-				return nil, err
-			}
-
-			err = newOccurrence.SetGeospatial(lat, lng, date, false)
-			if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidCoordinate) {
-				continue
-			}
-			if err != nil && utils.ContainsError(err, occurrences.ErrInvalidDate) {
-				continue
-			}
-			if err != nil {
-				return nil, err
-			}
-
-			if err := output.AddOccurrence(newOccurrence); err != nil && !utils.ContainsError(err, occurrences.ErrCollision) {
-				return nil, err
-			}
+			output = append(output, inatOccurrence)
 		}
 
 		if (response.Page * response.PerPage) < response.TotalResults {
@@ -286,5 +281,5 @@ func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTarget
 		break
 	}
 
-	return &output, nil
+	return output, nil
 }

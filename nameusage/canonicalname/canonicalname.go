@@ -1,4 +1,4 @@
-package nameusage
+package canonicalname
 
 import (
 	"github.com/dropbox/godropbox/errors"
@@ -59,7 +59,7 @@ func (a *CanonicalName) Equals(b *CanonicalName) bool {
 
 type CanonicalNames []*CanonicalName
 
-func (Ω CanonicalNames) Strings() []string {
+func (Ω CanonicalNames) ScientificNames() []string {
 	res := []string{}
 	for _, c := range Ω {
 		res = utils.AddStringToSet(res, c.name)
@@ -67,8 +67,8 @@ func (Ω CanonicalNames) Strings() []string {
 	return res
 }
 
-func (a CanonicalNames) Contains(b *CanonicalName) bool {
-	return utils.ContainsString(a.Strings(), b.name)
+func (a CanonicalNames) Contains(b ...*CanonicalName) bool {
+	return utils.IntersectsStrings(a.ScientificNames(), CanonicalNames(b).ScientificNames())
 }
 
 func (Ω CanonicalNames) AddToSet(names ...*CanonicalName) CanonicalNames {

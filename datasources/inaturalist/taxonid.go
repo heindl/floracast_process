@@ -11,7 +11,7 @@ func (Ω TaxonID) Valid() bool {
 	return Ω != 0
 }
 
-func TaxonIDFromTargetID(id datasources.DataSourceTargetID) TaxonID {
+func TaxonIDFromTargetID(id datasources.TargetID) TaxonID {
 	i, err := strconv.Atoi(string(id))
 	if err != nil {
 		return TaxonID(0)
@@ -19,8 +19,8 @@ func TaxonIDFromTargetID(id datasources.DataSourceTargetID) TaxonID {
 	return TaxonID(i)
 }
 
-func (Ω TaxonID) TargetID() datasources.DataSourceTargetID {
-	return datasources.DataSourceTargetID(strconv.Itoa(int(Ω)))
+func (Ω TaxonID) TargetID() datasources.TargetID {
+	return datasources.TargetID(strconv.Itoa(int(Ω)))
 }
 
 func TaxonIDsFromIntegers(ids ...int) (res []TaxonID) {

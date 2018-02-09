@@ -6,10 +6,10 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"io/ioutil"
 	"github.com/sethgrid/pester"
-	"time"
 	"math"
 	"sync"
 	"gopkg.in/tomb.v2"
+	"bitbucket.org/heindl/taxa/utils"
 )
 
 type OccurrenceSearchQuery struct {
@@ -24,7 +24,7 @@ type OccurrenceSearchQuery struct {
 	// so a search for aves with taxonKey=212 (i.e. /occurrence/search?taxonKey=212) will match all birds, no matter which species.
 	TaxonKey int `json:"taxonKey"`
 	// The 4 digit year. A year of 98 will be interpreted as AD 98.
-	// Supports range queries: http://api.gbif.org/v1//occurrence/search?year=1800,1899
+	// Supports range queries: http://api.gbif.org/v1/occurrence/search?year=1800,1899
 	Year int `json:"year"`
 	// Limits searches to occurrence records which contain a value in both latitude and longitude
 	// (i.e. hasCoordinate=true limits to occurrence records with coordinate values and hasCoordinate=false limits to occurrence records without coordinate values).
@@ -152,21 +152,37 @@ type Occurrence struct {
 	Year                                 int           `json:"year"`
 }
 
+func (Ω *Occurrence) Lat() (float64, error) {
+	return Ω.DecimalLatitude, nil
+}
+func (Ω *Occurrence) Lng() (float64, error) {
+	return Ω.DecimalLongitude, nil
+}
+func (Ω *Occurrence) DateString() string {
+	return Ω.EventDate.Time.Format("20060102")
+}
+func (Ω *Occurrence) CoordinatesEstimated() bool {
+	// Rounded to 5 decimal place. Not what I expected.
+	// isEstimated := s.Issues.HasIssue(ogbif.OCCURRENCE_ISSUE_COORDINATE_ROUNDED)
+	return false
+}
+
+func (Ω *Occurrence) SourceOccurrenceID() string {
+	return Ω.GbifID
+}
+
 type response struct {
 	page
-	Results []Occurrence `json:"results"`
+	Results []*Occurrence `json:"results"`
 }
 
 // TotalOccurrenceCount returns a full search across all occurrences. Results are ordered by relevance.
-func  Occurrences(q OccurrenceSearchQuery) ([]Occurrence, error) {
-
+func  Occurrences(q OccurrenceSearchQuery) ([]*Occurrence, error) {
 
 	var syncList struct{
 		sync.Mutex
-		list []Occurrence
+		list []*Occurrence
 	}
-
-
 
 	response, err := q.request(0)
 	if err != nil {
@@ -201,9 +217,10 @@ func  Occurrences(q OccurrenceSearchQuery) ([]Occurrence, error) {
 
 }
 
-var throttle = time.Tick(time.Second / 10)
+var limiter = utils.NewLimiter(10)
 func (s *OccurrenceSearchQuery) request(offset int) (response, error) {
-	<-throttle
+	done := limiter.Go()
+	defer done()
 	client := pester.New()
 	client.Concurrency = 1
 	client.MaxRetries = 5

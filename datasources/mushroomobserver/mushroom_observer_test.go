@@ -70,10 +70,10 @@ func TestTaxonFetcher(t *testing.T) {
 		So(len(res), ShouldEqual, 4)
 
 		requiredTargetIDs := datasources.DataSourceTargetIDs{
-			datasources.DataSourceTargetID("16103"),
-			datasources.DataSourceTargetID("20594"),
-			datasources.DataSourceTargetID("16041"),
-			datasources.DataSourceTargetID("344"),
+			datasources.TargetID("16103"),
+			datasources.TargetID("20594"),
+			datasources.TargetID("16041"),
+			datasources.TargetID("344"),
 		}
 
 		for _, src := range res {
@@ -84,19 +84,19 @@ func TestTaxonFetcher(t *testing.T) {
 
 	Convey("Should fetch MushroomObserver OccurrenceAggregation ", t, func() {
 
-		res, err := FetchOccurrences(context.Background(), datasources.DataSourceTargetID("16103"), nil)
+		res, err := FetchOccurrences(context.Background(), datasources.TargetID("16103"), nil)
 		So(err, ShouldBeNil)
 		So(res.Count(), ShouldEqual, 0)
 
-		res, err = FetchOccurrences(context.Background(), datasources.DataSourceTargetID("20594"), nil)
+		res, err = FetchOccurrences(context.Background(), datasources.TargetID("20594"), nil)
 		So(err, ShouldBeNil)
 		So(res.Count(), ShouldEqual, 0)
 
-		res, err = FetchOccurrences(context.Background(), datasources.DataSourceTargetID("16041"), nil)
+		res, err = FetchOccurrences(context.Background(), datasources.TargetID("16041"), nil)
 		So(err, ShouldBeNil)
 		So(res.Count(), ShouldEqual, 0)
 
-		res, err = FetchOccurrences(context.Background(), datasources.DataSourceTargetID("344"), nil)
+		res, err = FetchOccurrences(context.Background(), datasources.TargetID("344"), nil)
 		So(err, ShouldBeNil)
 		So(res.Count(), ShouldEqual, 16)
 

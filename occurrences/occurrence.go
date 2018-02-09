@@ -18,8 +18,7 @@ import (
 	"encoding/json"
 )
 
-
-func NewOccurrence(srcType datasources.DataSourceType, targetID datasources.DataSourceTargetID, occurrenceID string) (*Occurrence, error) {
+func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID, occurrenceID string) (*Occurrence, error) {
 	if !srcType.Valid() {
 		return nil, errors.Newf("Invalid source type [%s]", srcType)
 	}
@@ -40,8 +39,8 @@ func NewOccurrence(srcType datasources.DataSourceType, targetID datasources.Data
 }
 
 type Occurrence struct {
-	sourceType          datasources.DataSourceType
-	targetID            datasources.DataSourceTargetID
+	sourceType          datasources.SourceType
+	targetID            datasources.TargetID
 	sourceOccurrenceID  string
 	formattedDate       string
 	createdAt           *time.Time
@@ -51,11 +50,11 @@ type Occurrence struct {
 	fsTimeLocationQuery firestore.Query
 }
 
-func (Ω *Occurrence) SourceType() datasources.DataSourceType {
+func (Ω *Occurrence) SourceType() datasources.SourceType {
 	return Ω.sourceType
 }
 
-func (Ω *Occurrence) TargetID() datasources.DataSourceTargetID {
+func (Ω *Occurrence) TargetID() datasources.TargetID {
 	return Ω.targetID
 }
 
@@ -114,8 +113,8 @@ func (Ω *Occurrence) toMap() (map[string]interface{}, error) {
 func fromMap(m map[string]interface{}) (*Occurrence, error) {
 
 	o, err := NewOccurrence(
-		m[keySourceType].(datasources.DataSourceType),
-		m[keyTargetID].(datasources.DataSourceTargetID),
+		m[keySourceType].(datasources.SourceType),
+		m[keyTargetID].(datasources.TargetID),
 		m[keySourceOccurrenceID].(string),
 	)
 	if err != nil {
@@ -217,10 +216,15 @@ func (Ω *OccurrenceAggregation) Count() int {
 	return len(Ω.list)
 }
 
-func (a *OccurrenceAggregation) OccurrenceList() []*Occurrence {
-	return a.list
+func (Ω *OccurrenceAggregation) Merge(æ *OccurrenceAggregation) error {
+	for _, o := range æ.list {
+		if err := Ω.AddOccurrence(o); err != nil && !utils.ContainsError(err, ErrCollision) {
+			return err
+		}
+	}
+	Ω.collisions += æ.collisions
+	return nil
 }
-
 
 var ErrCollision = errors.New("Occurrence Collision")
 func (Ω *OccurrenceAggregation) AddOccurrence(b *Occurrence) error {
@@ -388,7 +392,7 @@ func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) err
 //
 //	isNewOccurrence = false
 //
-//	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.DataSourceType, o.TargetID)
+//	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.SourceType, o.TargetID)
 //	if err != nil {
 //		return false, err
 //	}

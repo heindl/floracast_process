@@ -11,13 +11,13 @@ import (
 const EntityKindPhoto = "Photo"
 
 type Photo struct {
-	ID            string             `datastore:",omitempty"`
-	DataSourceID  datasources.DataSourceType     `datastore:",omitempty"`
-	TaxonID       INaturalistTaxonID `datastore:",omitempty"`
-	PhotoType     PhotoType          `datastore:",omitempty,noindex" json:"type,omitempty" bson:"type,omitempty"`
-	URL           string             `datastore:",omitempty,noindex" json:"url,omitempty" bson:"url,omitempty"`
-	NativePhotoID string             `datastore:",omitempty,noindex" json:"nativePhotoId,omitempty" bson:"nativePhotoId,omitempty"`
-	SquareURL     string             `datastore:",omitempty,noindex" json:"squareUrl,omitempty" bson:"squareUrl,omitempty"`
+	ID            string                 `datastore:",omitempty"`
+	DataSourceID  datasources.SourceType `datastore:",omitempty"`
+	TaxonID       INaturalistTaxonID     `datastore:",omitempty"`
+	PhotoType     PhotoType              `datastore:",omitempty,noindex" json:"type,omitempty" bson:"type,omitempty"`
+	URL           string                 `datastore:",omitempty,noindex" json:"url,omitempty" bson:"url,omitempty"`
+	NativePhotoID string                 `datastore:",omitempty,noindex" json:"nativePhotoId,omitempty" bson:"nativePhotoId,omitempty"`
+	SquareURL     string                 `datastore:",omitempty,noindex" json:"squareUrl,omitempty" bson:"squareUrl,omitempty"`
 	SmallURL      string             `datastore:",omitempty,noindex" json:"smallUrl,omitempty" bson:"smallUrl,omitempty"`
 	MediumURL     string        `datastore:",omitempty,noindex" json:"mediumUrl,omitempty" bson:"mediumUrl,omitempty"`
 	LargeURL      string        `datastore:",omitempty,noindex" json:"largeUrl,omitempty" bson:"largeUrl,omitempty"`
@@ -95,7 +95,7 @@ func (Ω PhotoType) Valid() bool {
 	return Ω == PhotoTypeFlickr || Ω == PhotoTypeINaturalist
 }
 
-func (Ω *store) NewPhotoDocumentRef(taxonID INaturalistTaxonID, dataSourceID datasources.DataSourceType, photoID string) (*firestore.DocumentRef, error) {
+func (Ω *store) NewPhotoDocumentRef(taxonID INaturalistTaxonID, dataSourceID datasources.SourceType, photoID string) (*firestore.DocumentRef, error) {
 
 	if !taxonID.Valid() {
 		return nil, errors.New("invalid photo taxon id")

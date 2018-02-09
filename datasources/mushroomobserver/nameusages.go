@@ -10,8 +10,9 @@ import (
 	"gopkg.in/tomb.v2"
 	"sync"
 	"context"
-	"bitbucket.org/heindl/taxa/nameusage"
 	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
+	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
 )
 
 type MushroomObserverQueryResult struct {
@@ -27,12 +28,12 @@ type MushroomObserverQueryResult struct {
 
 var lmtr = utils.NewLimiter(10)
 
-func MatchCanonicalNames(cxt context.Context, names ...string) ([]*nameusage.NameUsageSource, error) {
+func MatchCanonicalNames(cxt context.Context, names ...string) ([]*nameusagesource.Source, error) {
 
 	//TODO: If names are three, consider adding var. "Cantharellus cibarius var. cibarius"
 	// Only if missing in parent.
 
-	nameResponse := []*nameusage.NameUsageSource{}
+	nameResponse := []*nameusagesource.Source{}
 	locker := sync.Mutex{}
 
 	tmb := tomb.Tomb{}
@@ -43,7 +44,7 @@ func MatchCanonicalNames(cxt context.Context, names ...string) ([]*nameusage.Nam
 			tmb.Go(func() error {
 				done()
 				parameters := strings.Join([]string{
-					//fmt.Sprintf("updated_at=%s-%s", time.Now().AddUsages(time.Hour * 24 * 30 * -120).Format("20060102"), time.Now().Format("20060102")),
+					//fmt.Sprintf("updated_at=%s-%s", time.Now().AddUsage(time.Hour * 24 * 30 * -120).Format("20060102"), time.Now().Format("20060102")),
 					"format=json",
 					"is_deprecated=false",
 					//"ok_for_export=true",
@@ -122,19 +123,19 @@ type MushroomObserverTaxonResult struct {
 	//Parents       []interface{} `json:"parents"`
 }
 
-func parseTaxonResult(cxt context.Context, r *MushroomObserverTaxonResult) (*nameusage.NameUsageSource, error) {
+func parseTaxonResult(cxt context.Context, r *MushroomObserverTaxonResult) (*nameusagesource.Source, error) {
 
 	targetID, err := datasources.NewDataSourceTargetIDFromInt(r.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	cn, err := nameusage.NewCanonicalName(r.Name, strings.ToLower(r.Rank))
+	cn, err := canonicalname.NewCanonicalName(r.Name, strings.ToLower(r.Rank))
 	if err != nil {
 		return nil, err
 	}
 
-	src, err := nameusage.NewNameUsageSource(datasources.DataSourceTypeMushroomObserver, targetID, cn)
+	src, err := nameusagesource.NewSource(datasources.DataSourceTypeMushroomObserver, targetID, cn)
 	if err != nil {
 		return nil, err
 	}

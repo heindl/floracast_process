@@ -2,11 +2,13 @@ package natureserve
 
 import (
 	"context"
-	"bitbucket.org/heindl/taxa/nameusage"
 	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
+	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
+	"bitbucket.org/heindl/taxa/nameusage/nameusage"
 )
 
-func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.DataSourceTargetIDs) (*nameusage.AggregateNameUsages, error) {
+func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.DataSourceTargetIDs) ([]*nameusage.NameUsage, error) {
 
 	nameTaxa, err := FetchTaxaFromSearch(cxt, names...)
 	if err != nil {
@@ -20,17 +22,16 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.
 
 	taxa := append(nameTaxa, uidTaxa...)
 
-	res := nameusage.AggregateNameUsages{}
+	res := []*nameusage.NameUsage{}
 
 	for _, txn := range taxa {
 
-
-		canonicalName, err := nameusage.NewCanonicalName(txn.ScientificName.Name, "species")
+		canonicalName, err := canonicalname.NewCanonicalName(txn.ScientificName.Name, "species")
 		if err != nil {
 			return nil, err
 		}
 
-		usageSource, err := nameusage.NewNameUsageSource(datasources.DataSourceTypeNatureServe, datasources.DataSourceTargetID(txn.ID), canonicalName)
+		usageSource, err := nameusagesource.NewSource(datasources.DataSourceTypeNatureServe, datasources.TargetID(txn.ID), canonicalName)
 		if err != nil {
 			return nil, err
 		}
@@ -42,7 +43,7 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.
 		}
 
 		for _, synonym := range txn.Synonyms {
-			synonymCanonicalName, err := nameusage.NewCanonicalName(synonym.Name, "species")
+			synonymCanonicalName, err := canonicalname.NewCanonicalName(synonym.Name, "species")
 			if err != nil {
 				return nil, err
 			}
@@ -51,17 +52,15 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.
 			}
 		}
 
-		usage, err := nameusage.NewCanonicalNameUsage(usageSource)
+		usage, err := nameusage.NewNameUsage(usageSource)
 		if err != nil {
 			return nil, err
 		}
 
+		res = append(res, usage)
 
-		if err := res.AddUsages(usage); err != nil {
-			return nil, err
-		}
 	}
 
-	return &res, nil
+	return res, nil
 
 }

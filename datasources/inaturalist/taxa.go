@@ -2,7 +2,6 @@ package inaturalist
 
 import (
 	"fmt"
-	"strconv"
 	"bitbucket.org/heindl/taxa/store"
 	"context"
 	"github.com/dropbox/godropbox/errors"
@@ -34,27 +33,27 @@ type Taxon struct {
 	CurrentSynonymousTaxonIds []TaxonID `json:"current_synonymous_taxon_ids"`
 	IconicTaxonID             TaxonID         `json:"iconic_taxon_id"`
 	TaxonPhotos       []struct {
-		Photo INaturalistPhoto `json:"photo"`
-		Taxon Taxon            `json:"taxon"`
+		Photo Photo `json:"photo"`
+		Taxon Taxon `json:"taxon"`
 	} `json:"taxon_photos"`
-	RankLevel           store.RankLevel       `json:"rank_level"`
-	TaxonChangesCount   int                   `json:"taxon_changes_count"`
-	AtlasID             int                   `json:"atlas_id"`
-	ParentID            TaxonID               `json:"parent_id"`
-	Name                string                `json:"name"`
-	Rank                string                `json:"rank"`
-	ID                  TaxonID               `json:"id"`
-	DefaultPhoto        INaturalistPhoto      `json:"default_photo"`
-	AncestorIds         []TaxonID             `json:"ancestor_ids"`
-	IconicTaxonName     string                `json:"iconic_taxon_name"`
-	PreferredCommonName string                `json:"preferred_common_name"`
-	Ancestors           []Taxon               `json:"ancestors"`
-	Children            []Taxon               `json:"children"`
-	WikipediaSummary   string                 `json:"wikipedia_summary"`
-	MinSpeciesAncestry string                 `json:"min_species_ancestry"`
-	CreatedAt          time.Time              `json:"created_at"`
+	RankLevel            store.RankLevel      `json:"rank_level"`
+	TaxonChangesCount    int                  `json:"taxon_changes_count"`
+	AtlasID              int                  `json:"atlas_id"`
+	ParentID             TaxonID              `json:"parent_id"`
+	Name                 string               `json:"name"`
+	Rank                 string               `json:"rank"`
+	ID                   TaxonID              `json:"id"`
+	DefaultPhoto         Photo                `json:"default_photo"`
+	AncestorIds          []TaxonID            `json:"ancestor_ids"`
+	IconicTaxonName      string               `json:"iconic_taxon_name"`
+	PreferredCommonName  string               `json:"preferred_common_name"`
+	Ancestors            []*Taxon             `json:"ancestors"`
+	Children             []*Taxon             `json:"children"`
+	WikipediaSummary     string               `json:"wikipedia_summary"`
+	MinSpeciesAncestry   string               `json:"min_species_ancestry"`
+	CreatedAt            time.Time            `json:"created_at"`
 	ConservationStatuses []ConservationStatus `json:"conservation_statuses"`
-	TaxonSchemes []INaturalistTaxonScheme
+	TaxonSchemes         []*TaxonScheme
 }
 
 type ConservationStatus struct {
@@ -71,121 +70,89 @@ type ConservationStatus struct {
 	} `json:"place"`
 }
 
-type INaturalistPhoto struct {
-	OriginalURL        string        `json:"original_url"`
-	Flags              []interface{} `json:"flags"`
-	Type               string        `json:"type"`
-	URL                string        `json:"url"`
-	SquareURL          string        `json:"square_url"`
-	NativePageURL      string        `json:"native_page_url"`
-	NativePhotoID      string        `json:"native_photo_id"`
-	SmallURL           string        `json:"small_url"`
-	Attribution        string        `json:"attribution"`
-	MediumURL          string        `json:"medium_url"`
-	ID                 int           `json:"id"`
-	LicenseCode        string        `json:"license_code"`
-	OriginalDimensions interface{}   `json:"original_dimensions"`
-	LargeURL           string        `json:"large_url"`
-}
-
-//func (Ω INaturalistPhoto) ToStorePhoto(taxonID TaxonID, sourceID store.DataSourceType) store.Photo {
-//	return store.Photo{
-//		ID:            strconv.Itoa(Ω.ID),
-//		DataSourceType:  sourceID,
-//		TaxonID:       taxonID,
-//		PhotoType:     store.PhotoType(Ω.Type),
-//		URL:           Ω.URL,
-//		SquareURL:     Ω.SquareURL,
-//		SmallURL:      Ω.SmallURL,
-//		MediumURL:     Ω.MediumURL,
-//		LargeURL:      Ω.LargeURL,
-//		NativePhotoID: Ω.NativePageURL,
-//		Attribution:   Ω.Attribution,
-//		LicenseCode:   Ω.LicenseCode,
-//		Flags:         Ω.Flags,
-//	}
-//}
-
-func ParseStringIDs(ids ...string) []TaxonID {
-	res := []TaxonID{}
-	for _, id := range ids {
-		tID, err := strconv.Atoi(id)
-		if err != nil {
-			panic(err)
-		}
-		res = append(res, TaxonID(tID))
-	}
-	return res
-}
-
-type orchestrator struct {
-	Tmb tomb.Tomb
-	Limiter chan struct{}
-	Taxa map[TaxonID]*Taxon // Use map to avoid duplicates in recursive search.
-	Schemes map[TaxonID][]INaturalistTaxonScheme
+type TaxaFetcher struct {
+	list []*Taxon
 	sync.Mutex
+	ctx context.Context
+	includeChildren bool
+	includeSchemes bool
 }
 
-func FetchTaxaAndChildren(cxt context.Context, parent_taxa ...TaxonID) ([]*Taxon, error) {
-
-	orch := orchestrator{
-		Tmb: tomb.Tomb{},
-		Taxa: map[TaxonID]*Taxon{},
-		Schemes: map[TaxonID][]INaturalistTaxonScheme{},
+func NewTaxaFetcher(ctx context.Context, includeChildren, includeSchemes bool) *TaxaFetcher {
+	return &TaxaFetcher{
+		includeChildren: includeChildren,
+		includeSchemes: includeSchemes,
+		list: []*Taxon{},
 	}
+}
 
-	orch.Limiter = make(chan struct{}, 20)
-	for i := 0; i < 20; i++ {
-		orch.Limiter <- struct{}{}
+func (Ω *TaxaFetcher) IndexOf(æ TaxonID) int {
+	Ω.Lock()
+	defer Ω.Unlock()
+	for i := range Ω.list {
+		if Ω.list[i].ID == æ {
+			return i
+		}
 	}
+	return -1
+}
 
-	orch.Tmb.Go(func() error {
-		for _, _taxon := range parent_taxa {
-			taxon := _taxon
-			orch.Tmb.Go(func() error {
-				return orch.fetchTaxonAndChildren(taxon);
+func (Ω *TaxaFetcher) Set(æ *Taxon) {
+
+	if æ == nil {
+		return
+	}
+	i := Ω.IndexOf(æ.ID)
+	if i == -1 {
+		Ω.list = append(Ω.list, æ)
+	} else {
+		Ω.list[i] = æ
+	}
+	return
+}
+
+
+func (Ω *TaxaFetcher) FetchTaxa(parent_taxa ...TaxonID) ([]*Taxon, error) {
+
+	tmb := tomb.Tomb{}
+
+	tmb.Go(func()error {
+		for _, _taxonID := range parent_taxa {
+			taxonID := _taxonID
+			tmb.Go(func()error {
+				return Ω.fetchTaxon(taxonID)
 			})
 		}
 		return nil
 	})
 
-	if err := orch.Tmb.Wait(); err != nil {
+	if err := tmb.Wait(); err != nil {
 		return nil, err
 	}
 
-	res := []*Taxon{}
-	for _, v := range orch.Taxa {
-		res = append(res, v)
-	}
-	return res, nil
+	return Ω.list, nil
 }
 
-func (Ω *orchestrator) fetchTaxonAndChildren(taxonID TaxonID) error {
+var globalTaxonLimiter = utils.NewLimiter(20)
 
-	// Check to see if we've already processed the full page
-	if _, ok := Ω.Taxa[taxonID]; ok {
+func (Ω *TaxaFetcher) fetchTaxon(taxonID TaxonID) error {
+
+	if Ω.IndexOf(taxonID) != -1 {
 		return nil
 	}
-	//} else {
-		// Stop another process from doing it.
-	//	Ω.Lock()
-	//	Ω.Taxa[taxonID] = &Taxon{}
-	//	Ω.Unlock()
-	//}
 
 	var response struct {
 		page
-		Results []Taxon `json:"results"`
+		Results []*Taxon `json:"results"`
 	}
 
+	done := globalTaxonLimiter.Go()
 	url := fmt.Sprintf("http://api.inaturalist.org/v1/taxa/%d", taxonID)
-
-	//<- Ω.Limiter
 	if err := utils.RequestJSON(url, &response); err != nil {
-		//Ω.Limiter <- struct{}{}
+		done()
 		return err
 	}
-	//Ω.Limiter <- struct{}{}
+	done()
 
 	if response.TotalResults == 0 {
 		return errors.Newf("no taxon returned from ID: %s", taxonID)
@@ -195,25 +162,31 @@ func (Ω *orchestrator) fetchTaxonAndChildren(taxonID TaxonID) error {
 		return errors.Newf("taxon request has more than one result: %s", taxonID)
 	}
 
-	// Should only be one result.
-	taxon := response.Results[0]
-
-	for _, _txn := range taxon.Children {
-		txn := _txn
-		Ω.Tmb.Go(func() error {
-			return Ω.parseTaxon(txn, false)
+	if Ω.includeChildren {
+		tmb := tomb.Tomb{}
+		tmb.Go(func() error {
+			for _, _txn := range response.Results[0].Children {
+				txn := _txn
+				tmb.Go(func() error {
+					return Ω.parseTaxon(txn, false)
+				})
+			}
+			return nil
 		})
+		if err := tmb.Wait(); err != nil {
+			return err
+		}
 	}
 
-	if err := Ω.parseTaxon(taxon, true); err != nil {
+
+	if err := Ω.parseTaxon(response.Results[0], true); err != nil {
 		return err
 	}
 
+
 	// Fetch synonyms? Maybe be good to have a source connection for each of them,
 	// as well as a connection to the gbif.
-	if len(taxon.CurrentSynonymousTaxonIds) > 0 {
-		fmt.Println("Have Synonymous Taxon Ids", taxonID, taxon.CurrentSynonymousTaxonIds)
-		panic("ANOMOLY DETECTED")
+	if len(response.Results[0].CurrentSynonymousTaxonIds) > 0 {
 		return errors.Newf("Sanity check failed. Have synonymous taxon ids from taxon[%s] with no way to handle.", taxonID)
 	}
 
@@ -227,14 +200,15 @@ func (Ω *orchestrator) fetchTaxonAndChildren(taxonID TaxonID) error {
 
 }
 
-func (Ω *orchestrator) parseTaxon(txn Taxon, isFromFullPageRequest bool) error {
+
+func (Ω *TaxaFetcher) parseTaxon(txn *Taxon, isFromFullPageRequest bool) error {
 	rank := store.RankLevel(txn.RankLevel)
 
 	// Exit early if not a species.
 	if rank != store.RankLevelSpecies && rank != store.RankLevelSubSpecies {
 		// Fetch children if this was the child of another request. Otherwise we're safe stopping with species.
 		if !isFromFullPageRequest {
-			return Ω.fetchTaxonAndChildren(txn.ID)
+			return Ω.fetchTaxon(txn.ID)
 		}
 		// We expect children to be parsed in the caller of this function.
 		return nil
@@ -249,38 +223,26 @@ func (Ω *orchestrator) parseTaxon(txn Taxon, isFromFullPageRequest bool) error 
 	}
 
 	// Fetch Schemes
-	if txn.TaxonSchemesCount > 0 {
-		var err error
-		txn.TaxonSchemes, err = Ω.fetchTaxonSchemes(txn.ID)
+	if txn.TaxonSchemesCount > 0 && Ω.includeSchemes {
+		schemes, err := fetchTaxonSchemes(txn.ID)
 		if err != nil {
 			return err
 		}
+		txn.TaxonSchemes = schemes
 	}
 
-	Ω.Lock()
-	defer Ω.Unlock()
-	Ω.Taxa[txn.ID] = &txn
-
+	Ω.Set(txn)
 	return nil
 }
 
-type INaturalistTaxonScheme struct {
-	DataSourceType datasources.DataSourceType
-	TargetID       datasources.DataSourceTargetID
+type TaxonScheme struct {
+	SourceType datasources.SourceType
+	TargetID   datasources.TargetID
 }
 
 var taxonSchemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
-func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonScheme, error) {
-
-	if s, ok := Ω.Schemes[taxonID]; ok {
-		return s, nil
-	}
-
-	<- Ω.Limiter
-	defer func() {
-		Ω.Limiter <- struct{}{}
-	}()
+func fetchTaxonSchemes(taxonID TaxonID) ([]*TaxonScheme, error) {
 
 	url := fmt.Sprintf("http://www.inaturalist.org/taxa/%d/schemes", taxonID)
 
@@ -294,10 +256,10 @@ func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonSc
 		return nil, errors.Wrap(err, "could parse site for goquery")
 	}
 
-	res := []INaturalistTaxonScheme{}
+	res := []*TaxonScheme{}
 	doc.Find(`a[href*="/taxon_schemes/"]`).Each(func(i int, s *goquery.Selection) {
 		v, _ := s.Attr("href")
-		originID := datasources.DataSourceType(strings.TrimLeft(v, "/taxon_schemes/"))
+		originID := datasources.SourceType(strings.TrimLeft(v, "/taxon_schemes/"))
 		if string(originID) == "" {
 			return
 		}
@@ -305,18 +267,12 @@ func (Ω *orchestrator) fetchTaxonSchemes(taxonID TaxonID) ([]INaturalistTaxonSc
 		if dataID == "" {
 			return
 		}
-		targetID := datasources.DataSourceTargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
-		res = append(res, INaturalistTaxonScheme {
-			DataSourceType: originID,
-			TargetID:       targetID,
+		targetID := datasources.TargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
+		res = append(res, &TaxonScheme{
+			SourceType: originID,
+			TargetID:   targetID,
 		})
 	})
-
-	Ω.Lock()
-	defer Ω.Unlock()
-
-	Ω.Schemes[taxonID] = res
-
 	return res, nil
 
 }

@@ -1,26 +1,55 @@
-package algolia
+package materialtaxa
 
 import (
-	"bitbucket.org/heindl/taxa/nameusage"
-	"github.com/algolia/algoliasearch-client-go/algoliasearch"
-	"github.com/dropbox/godropbox/errors"
-	"math"
-	"strings"
-	"bitbucket.org/heindl/taxa/utils"
+"github.com/algolia/algoliasearch-client-go/algoliasearch"
+"github.com/dropbox/godropbox/errors"
+"math"
+"strings"
+"bitbucket.org/heindl/taxa/utils"
+"os"
+"fmt"
 )
+
+const indexNameUsage = "NameUsage"
+
+type AlgoliaIndex interface{
+	AddObjects([]algoliasearch.Object) (algoliasearch.BatchRes, error)
+	DeleteBy(params algoliasearch.Map) (res algoliasearch.DeleteTaskRes, err error)
+}
+
+const envAPIKey = "envAPIKey"
+const envApplicationID = "envApplicationID"
+
+func NewAlgoliaNameUsageIndex() (AlgoliaIndex, error) {
+
+	if os.Getenv(envAPIKey) == "" || os.Getenv(envApplicationID) == "" {
+		return nil, errors.Newf("%s and %s environment variables required for an Algolia Index", envAPIKey, envApplicationID)
+	}
+
+	client := algoliasearch.NewClient(os.Getenv(envApplicationID), os.Getenv(envAPIKey))
+
+	index := client.InitIndex(indexNameUsage)
+
+	if _, err := index.SetSettings(algoliasearch.Map{
+		"distinct": keyNameUsageID,
+		"customRanking": []string{
+			fmt.Sprintf("desc(%s)", keyReferenceCount),
+		},
+		"searchableAttributes": []string{
+			string(keyCommonName),
+			string(keyScientificName),
+		},
+	}); err != nil {
+		return nil, errors.Wrap(err, "Could not add settings to NameUsage Algolia index")
+	}
+
+	return index, nil
+
+}
 
 type AlgoliaNameObject map[nameObjectKey]interface{}
 type AlgoliaNameUsageObjects []AlgoliaNameObject
 
-type nameObjectKey string
-const (
-	keyNameUsageID     = nameObjectKey("NameUsageID")
-	keyScientificName  = nameObjectKey("ScientificName")
-	keyCommonName      = nameObjectKey("CommonName")
-	keyThumbnail       = nameObjectKey("Thumbnail")
-	keyOccurrenceCount = nameObjectKey("TotalOccurrenceCount")
-	keyReferenceCount  = nameObjectKey("ReferenceCount")
-)
 
 func (Ω AlgoliaNameUsageObjects) hasCombination(scientificName, commonName string) bool {
 
@@ -72,7 +101,7 @@ func (Ω AlgoliaNameUsageObjects) batches(maxBatchSize float64) []AlgoliaNameUsa
 
 
 
-func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (AlgoliaNameUsageObjects, error) {
+func GenerateAlgoliaNameUsageObjects(usage *NameUsage) (AlgoliaNameUsageObjects, error) {
 
 	if usage.TotalOccurrenceCount() == 0 {
 		// Note that the algolia generation should only be called after occurrences fetched.
@@ -80,7 +109,7 @@ func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (Algol
 		return nil, errors.New("Expected name usage provided to Algolia to have occurrences")
 	}
 
-	usageCommonName, err := usage.CommonNameString()
+	usageCommonName, err := usage.CommonName()
 	if err != nil {
 		return nil, err
 	}
@@ -104,16 +133,10 @@ func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (Algol
 		})
 	}
 
-	usageScientificName, err := usage.ScientificNameString()
-	if err != nil {
-		return nil, err
-	}
-	usageScientificName = utils.CapitalizeString(usageScientificName)
-
 	for _, ref := range usage.CommonNameReferenceLedger() {
 		res = append(res, AlgoliaNameObject{
 			keyNameUsageID:     usage.ID(),
-			keyScientificName:  usageScientificName,
+			keyScientificName:  utils.CapitalizeString(usage.CanonicalName().ScientificName()),
 			keyCommonName:      strings.Title(ref.Name),
 			keyThumbnail:       thumbnail,
 			keyOccurrenceCount: usageOccurrenceCount,
@@ -125,7 +148,7 @@ func GenerateAlgoliaNameUsageObjects(usage *nameusage.CanonicalNameUsage) (Algol
 
 }
 
-func (Ω AlgoliaNameUsageObjects) SetObjects(index AlgoliaIndex) error {
+func (Ω AlgoliaNameUsageObjects) UploadObjects(index AlgoliaIndex) error {
 	for _, batch := range Ω.batches(500) {
 		if _, err := index.AddObjects(batch.asAlgoliaMapObjects()); err != nil {
 			return errors.Wrap(err, "Could not add Angolia NameUsage objects")

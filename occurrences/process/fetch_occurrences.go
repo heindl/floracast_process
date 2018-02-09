@@ -235,7 +235,7 @@ package main
 //	return res, nil
 //}
 //
-//func newfetcher(sourceID store.DataSourceType, targetID store.DataSourceTargetID) (Fetcher, error) {
+//func newfetcher(sourceID store.SourceType, targetID store.DataSourceTargetID) (Fetcher, error) {
 //	switch sourceID {
 //	case store.DataSourceTypeGBIF:
 //		i, err := strconv.Atoi(string(targetID))

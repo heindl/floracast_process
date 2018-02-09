@@ -1,4 +1,4 @@
-package nameusage
+package nameusagesource
 
 import (
 	"time"
@@ -8,25 +8,35 @@ import (
 	"sync"
 	"encoding/json"
 	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
 )
 
-type NameUsageSource struct {
+type Source struct {
 	mutex *sync.Mutex
 	taxonomicReference bool
-	sourceType datasources.DataSourceType
-	targetID datasources.DataSourceTargetID
-	canonicalName *CanonicalName
-	synonyms CanonicalNames
+	sourceType datasources.SourceType
+	targetID datasources.TargetID
+	canonicalName *canonicalname.CanonicalName
+	synonyms canonicalname.CanonicalNames
 	commonNames []string
-	descriptions []description
-	photos []photo
 	occurrenceCount int
 	lastFetchedAt *time.Time
 	modifiedAt *time.Time
 	createdAt *time.Time
 }
 
-func (Ω *NameUsageSource) MarshalJSON() ([]byte, error) {
+type Sources []*Source
+
+func (Ω Sources) HasName(æ *canonicalname.CanonicalName) bool {
+	for _, s := range Ω {
+		if s.CanonicalName().Equals(æ) || s.Synonyms().Contains(æ) {
+			return true
+		}
+	}
+	return false
+}
+
+func (Ω *Source) MarshalJSON() ([]byte, error) {
 
 	if Ω == nil {
 		return nil, nil
@@ -57,17 +67,7 @@ func (Ω *NameUsageSource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m)
 }
 
-type description struct {
-	citation string
-	text string
-}
-
-type photo struct {
-	citation string
-	source string
-}
-
-func NewNameUsageSource(sourceType datasources.DataSourceType, targetID datasources.DataSourceTargetID, canonicalName *CanonicalName) (*NameUsageSource, error) {
+func NewSource(sourceType datasources.SourceType, targetID datasources.TargetID, canonicalName *canonicalname.CanonicalName) (*Source, error) {
 
 	if !sourceType.Valid() {
 		return nil, errors.Newf("Invalid SourceType [%s]", sourceType)
@@ -88,7 +88,7 @@ func NewNameUsageSource(sourceType datasources.DataSourceType, targetID datasour
 	//	return nil, errors.Newf("Unexpected: source type should not be taxonomic [%s]", sourceType)
 	//}
 
-	return &NameUsageSource{
+	return &Source{
 		mutex: &sync.Mutex{},
 		taxonomicReference: isTaxonomic,
 		sourceType: sourceType,
@@ -99,31 +99,35 @@ func NewNameUsageSource(sourceType datasources.DataSourceType, targetID datasour
 		}, nil
 }
 
-func (Ω *NameUsageSource) SourceType() datasources.DataSourceType {
+func (Ω *Source) SourceType() datasources.SourceType {
 	return Ω.sourceType
 }
 
-func (Ω *NameUsageSource) TargetID() datasources.DataSourceTargetID {
+func (Ω *Source) TargetID() datasources.TargetID {
 	return Ω.targetID
 }
 
-func (Ω *NameUsageSource) CanonicalName() *CanonicalName{
+func (Ω *Source) CanonicalName() *canonicalname.CanonicalName{
 	return Ω.canonicalName
 }
 
-func (Ω *NameUsageSource) LastFetchedAt() *time.Time {
+func (Ω *Source) Synonyms() canonicalname.CanonicalNames {
+	return Ω.synonyms
+}
+
+func (Ω *Source) LastFetchedAt() *time.Time {
 	return Ω.lastFetchedAt
 }
 
-func (Ω *NameUsageSource) ScientificName() string {
-	return Ω.canonicalName.name
-}
-
-func (Ω *NameUsageSource) CommonNames() []string {
+func (Ω *Source) CommonNames() []string {
 	return Ω.commonNames
 }
 
-func (Ω *NameUsageSource) AddSynonym(synonym *CanonicalName) error {
+func (Ω *Source) OccurrenceCount() int {
+	return Ω.occurrenceCount
+}
+
+func (Ω *Source) AddSynonym(synonym *canonicalname.CanonicalName) error {
 	if Ω.canonicalName.Equals(synonym) {
 		return nil
 	}
@@ -131,7 +135,7 @@ func (Ω *NameUsageSource) AddSynonym(synonym *CanonicalName) error {
 	return nil
 }
 
-func (Ω *NameUsageSource) AddCommonNames(names ...string) error {
+func (Ω *Source) AddCommonNames(names ...string) error {
 	Ω.mutex.Lock()
 	defer Ω.mutex.Unlock()
 	for _, s := range names {
@@ -144,7 +148,8 @@ func (Ω *NameUsageSource) AddCommonNames(names ...string) error {
 	return nil
 }
 
-func (Ω *NameUsageSource) SetOccurrenceCount(count int) error {
-	Ω.occurrenceCount = count
+func (Ω *Source) RegisterOccurrenceFetch(count int) error {
+	Ω.occurrenceCount += count
+	Ω.lastFetchedAt = utils.TimePtr(time.Now())
 	return nil
 }

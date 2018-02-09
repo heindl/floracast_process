@@ -24,7 +24,7 @@ func (Ω *TestWriter) WritePredictionLine(p store.Prediction) error {
 }
 
 func (Ω *TestWriter) Close() error {
-	fmt.Println("Prediction Count", Ω.Count)
+	fmt.Println("Prediction Len", Ω.Count)
 	return nil
 }
 

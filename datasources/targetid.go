@@ -5,15 +5,15 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
-type DataSourceTargetID string
+type TargetID string
 
-func (Ω DataSourceTargetID) Valid(sourceType DataSourceType) bool {
+func (Ω TargetID) Valid(sourceType SourceType) bool {
 
 	if  string(Ω) == "" || string(Ω) == "0" {
 		return false
 	}
 
-	intTypes := []DataSourceType{DataSourceTypeGBIF, DataSourceTypeINaturalist, DataSourceTypeMushroomObserver}
+	intTypes := []SourceType{DataSourceTypeGBIF, DataSourceTypeINaturalist, DataSourceTypeMushroomObserver}
 
 	_, intParseErr := strconv.Atoi(string(Ω))
 
@@ -21,14 +21,14 @@ func (Ω DataSourceTargetID) Valid(sourceType DataSourceType) bool {
 		return false
 	}
 
-	if intParseErr == nil && HasDataSourceType([]DataSourceType{DataSourceTypeMushroomObserver}, sourceType) {
+	if intParseErr == nil && HasDataSourceType([]SourceType{DataSourceTypeNatureServe}, sourceType) {
 		return false
 	}
 
 	return true
 }
 
-func (Ω DataSourceTargetID) ToInt() (int, error) {
+func (Ω TargetID) ToInt() (int, error) {
 	i, err := strconv.Atoi(string(Ω))
 	if err != nil {
 		return 0, errors.Wrapf(err, "Could not cast TargetID [%s] as int", Ω)
@@ -36,14 +36,14 @@ func (Ω DataSourceTargetID) ToInt() (int, error) {
 	return i, nil
 }
 
-func NewDataSourceTargetIDFromInt(i int) (DataSourceTargetID, error) {
+func NewDataSourceTargetIDFromInt(i int) (TargetID, error) {
 	if i == 0 {
-		return DataSourceTargetID(""), errors.New("Invalid DataSourceTargetID: Received zero.")
+		return TargetID(""), errors.New("Invalid TargetID: Received zero.")
 	}
-	return DataSourceTargetID(strconv.Itoa(i)), nil
+	return TargetID(strconv.Itoa(i)), nil
 }
 
-type DataSourceTargetIDs []DataSourceTargetID
+type DataSourceTargetIDs []TargetID
 
 func (Ω DataSourceTargetIDs) Strings() (res []string) {
 	for _, id := range Ω {
@@ -52,7 +52,7 @@ func (Ω DataSourceTargetIDs) Strings() (res []string) {
 	return
 }
 
-func (Ω DataSourceTargetIDs) AddToSet(ids ...DataSourceTargetID) DataSourceTargetIDs {
+func (Ω DataSourceTargetIDs) AddToSet(ids ...TargetID) DataSourceTargetIDs {
 	for _, id := range ids {
 		if Ω.Contains(id) {
 			continue
@@ -62,7 +62,7 @@ func (Ω DataSourceTargetIDs) AddToSet(ids ...DataSourceTargetID) DataSourceTarg
 	return Ω
 }
 
-func (Ω DataSourceTargetIDs) Contains(id DataSourceTargetID) bool {
+func (Ω DataSourceTargetIDs) Contains(id TargetID) bool {
 	for i := range Ω {
 		if Ω[i] == id {
 			return true

@@ -16,7 +16,7 @@ type TaxaStore interface {
 	SetTaxonPhoto(context.Context, INaturalistTaxonID, string) error
 	SetPhoto(context.Context, Photo) error
 	//UpsertDataSource(context.Context, DataSource) error
-	//GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID datasources.DataSourceType) (*time.Time, error)
+	//GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID datasources.SourceType) (*time.Time, error)
 	//UpdateDataSourceLastFetched(context.Context, DataSource) error
 	//GetOccurrenceDataSources(context.Context, INaturalistTaxonID) (DataSources, error)
 	SetPrediction(cxt context.Context, p Prediction) error

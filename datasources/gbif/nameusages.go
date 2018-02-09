@@ -7,21 +7,36 @@ import (
 	"bitbucket.org/heindl/taxa/utils"
 	"gopkg.in/tomb.v2"
 	"strings"
-	"bitbucket.org/heindl/taxa/nameusage"
 	"bitbucket.org/heindl/taxa/datasources"
 	"bitbucket.org/heindl/taxa/datasources/gbif/api"
 	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/taxa/nameusage/nameusage"
+	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
+	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
+	"sync"
 )
 
 type orchestrator struct {
-	Usages *nameusage.AggregateNameUsages
+	Usages []*nameusage.NameUsage
 	Context context.Context
+	sync.Mutex
 }
 
-func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch datasources.DataSourceTargetIDs) (*nameusage.AggregateNameUsages, error) {
+func (Ω *orchestrator) hasCanonicalName(name string) bool {
+	Ω.Lock()
+	defer Ω.Unlock()
+	for _, u := range Ω.Usages {
+		if u.HasScientificName(name) {
+			return true
+		}
+	}
+	return false
+}
+
+func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch datasources.DataSourceTargetIDs) ([]*nameusage.NameUsage, error) {
 
 	o := orchestrator{
-		Usages: &nameusage.AggregateNameUsages{},
+		Usages: []*nameusage.NameUsage{},
 		Context: cxt,
 	}
 
@@ -53,14 +68,15 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch da
 		for _, _name := range utils.StringsToLower(utils.RemoveStringDuplicates(namesToMatch)...) {
 			name := _name
 			tmb.Go(func() error {
-				canonicalName, err := nameusage.NewCanonicalName(name, "")
+				// Run CanonicalName to check for error
+				canonicalName, err := canonicalname.NewCanonicalName(name, "")
 				if err != nil {
 					return err
 				}
-				if i := o.Usages.FirstIndexOfName(canonicalName); i == -1 {
-					return o.matchName(name)
+				if o.hasCanonicalName(canonicalName.ScientificName()) {
+					return nil
 				}
-				return nil
+				return o.matchName(name)
 			})
 		}
 		return nil
@@ -72,7 +88,7 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch da
 	return o.Usages, nil
 }
 
-func TaxonIDFromTargetID(id datasources.DataSourceTargetID) (api.TaxonID, error) {
+func TaxonIDFromTargetID(id datasources.TargetID) (api.TaxonID, error) {
 	i, err := id.ToInt()
 	if err != nil {
 		return api.TaxonID(0), errors.Wrapf(err, "Could not cast GBIF TargetID [%s] as TaxonID", id)
@@ -136,14 +152,14 @@ func (Ω *orchestrator) matchKey(usageKey api.TaxonID) error {
 }
 
 func (Ω *orchestrator) fashionCanonicalNameUsage(scientificName, vernacularName, rank string, taxonID api.TaxonID) error {
-	canonicalName, err := nameusage.NewCanonicalName(scientificName, strings.ToLower(rank))
+	canonicalName, err := canonicalname.NewCanonicalName(scientificName, strings.ToLower(rank))
 	if err != nil {
 		return nil
 	}
 
-	usageSource, err := nameusage.NewNameUsageSource(datasources.DataSourceTypeGBIF, taxonID.TargetID(), canonicalName)
+	usageSource, err := nameusagesource.NewSource(datasources.DataSourceTypeGBIF, taxonID.TargetID(), canonicalName)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("WARNING: Invalid GBIF NameUsage [%s, %d]", canonicalName, taxonID))
+		fmt.Println(fmt.Sprintf("WARNING: Invalid GBIF NameUsage [%s, %d]", canonicalName.ScientificName(), taxonID))
 		return nil
 	}
 
@@ -153,7 +169,7 @@ func (Ω *orchestrator) fashionCanonicalNameUsage(scientificName, vernacularName
 		}
 	}
 
-	usage, err := nameusage.NewCanonicalNameUsage(usageSource)
+	usage, err := nameusage.NewNameUsage(usageSource)
 	if err != nil {
 		return err
 	}
@@ -163,13 +179,14 @@ func (Ω *orchestrator) fashionCanonicalNameUsage(scientificName, vernacularName
 		return err
 	}
 
-	if err := usage.AddSynonyms(synonymUsageSources...); err != nil {
+	if err := usage.AddSources(synonymUsageSources...); err != nil {
 		return err
 	}
 
-	if err := Ω.Usages.AddUsages(usage); err != nil {
-		return err
-	}
+	Ω.Lock()
+	defer Ω.Unlock()
+
+	Ω.Usages = append(Ω.Usages, usage)
 
 	return nil
 }
@@ -187,14 +204,14 @@ type MatchResult struct {
 	Synonym    bool   `json:"synonym"`
 }
 
-func matchSynonyms(id api.TaxonID) ([]*nameusage.NameUsageSource, error) {
+func matchSynonyms(id api.TaxonID) ([]*nameusagesource.Source, error) {
 
 	synonymUsages, err := fetchNameUsages(fmt.Sprintf( "http://api.gbif.org/v1/species/%d/synonyms?", id))
 	if err != nil {
 		return nil, err
 	}
 
-	response := []*nameusage.NameUsageSource{}
+	response := []*nameusagesource.Source{}
 
 	for _, synonym := range synonymUsages {
 
@@ -222,12 +239,12 @@ func matchSynonyms(id api.TaxonID) ([]*nameusage.NameUsageSource, error) {
 			continue
 		}
 
-		canonicalName, err := nameusage.NewCanonicalName(synonym.CanonicalName, strings.ToLower(string(synonym.Rank)))
+		canonicalName, err := canonicalname.NewCanonicalName(synonym.CanonicalName, strings.ToLower(string(synonym.Rank)))
 		if err != nil {
 			return nil, err
 		}
 
-		src, err := nameusage.NewNameUsageSource(datasources.DataSourceTypeGBIF, synonym.Key.TargetID(), canonicalName)
+		src, err := nameusagesource.NewSource(datasources.DataSourceTypeGBIF, synonym.Key.TargetID(), canonicalName)
 		if err != nil {
 			return nil, err
 		}

@@ -3,16 +3,13 @@ package gbif
 import (
 	"bitbucket.org/heindl/taxa/datasources/gbif/api"
 	"time"
-	"bitbucket.org/heindl/taxa/occurrences"
 	"github.com/dropbox/godropbox/errors"
 	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
 	"context"
-	"bitbucket.org/heindl/taxa/geofeatures"
 	"bitbucket.org/heindl/taxa/datasources"
 )
 
-func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTargetID, since *time.Time) (*occurrences.OccurrenceAggregation, error) {
+func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*api.Occurrence, error) {
 
 	taxonID, err := TaxonIDFromTargetID(targetID)
 	if err != nil {
@@ -32,7 +29,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTarget
 		return nil, errors.Wrapf(err, "Could not fetch occurrences [%d] from the gbif", taxonID)
 	}
 
-	res := occurrences.OccurrenceAggregation{}
+	res := []*api.Occurrence{}
 
 	for _, gbifO := range apiList {
 
@@ -50,31 +47,11 @@ func FetchOccurrences(cxt context.Context, targetID datasources.DataSourceTarget
 			continue
 		}
 
-		o, err := occurrences.NewOccurrence(datasources.DataSourceTypeGBIF, targetID, gbifO.GbifID)
-		if err != nil {
-			return nil, err
-		}
+		res = append(res, gbifO)
 
-		// Rounded to 5 decimal place. Not what I expected.
-		// isEstimated := gbifO.Issues.HasIssue(ogbif.OCCURRENCE_ISSUE_COORDINATE_ROUNDED)
-
-		err = o.SetGeospatial(gbifO.DecimalLatitude, gbifO.DecimalLongitude, gbifO.EventDate.Time.Format("20060102"), false)
-		if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidCoordinate) {
-			continue
-		}
-		if err != nil && utils.ContainsError(err, occurrences.ErrInvalidDate) {
-			continue
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		if err := res.AddOccurrence(o); err != nil && !utils.ContainsError(err, occurrences.ErrCollision) {
-			return nil, err
-		}
 	}
 
-	return &res, nil
+	return res, nil
 
 }
 

@@ -24,8 +24,8 @@ package store
 //}
 //
 //type OccurrenceSource struct {
-//	SourceID      datasources.DataSourceType     `firestore:",omitempty"`
-//	TargetID      datasources.DataSourceTargetID `firestore:",omitempty"`
+//	SourceID      datasources.SourceType     `firestore:",omitempty"`
+//	TargetID      datasources.TargetID `firestore:",omitempty"`
 //	CanonicalName string             `firestore:",omitempty"`
 //	CreatedAt     *time.Time         `firestore:",omitempty"`
 //	ModifiedAt    *time.Time         `firestore:",omitempty"`
@@ -34,9 +34,9 @@ package store
 //
 //type DataSource struct {
 //	Kind     DataSourceKind `firestore:",omitempty"`
-//	SourceID datasources.DataSourceType `firestore:",omitempty"`
+//	SourceID datasources.SourceType `firestore:",omitempty"`
 //
-//	TargetID      datasources.DataSourceTargetID `firestore:",omitempty"`
+//	TargetID      datasources.TargetID `firestore:",omitempty"`
 //	TaxonID       INaturalistTaxonID `firestore:",omitempty"`
 //	CreatedAt     *time.Time         `firestore:",omitempty"`
 //	ModifiedAt    *time.Time         `firestore:",omitempty"`
@@ -68,7 +68,7 @@ package store
 //
 //	return nil
 //}
-//func (Ω *store) GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID datasources.DataSourceType) (*time.Time, error) {
+//func (Ω *store) GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID datasources.SourceType) (*time.Time, error) {
 //	iter := Ω.FirestoreClient.Collection(CollectionTypeDataSources).
 //		Where("Kind", "==", kind).
 //			Where("SourceID", "==", srcID).
@@ -122,7 +122,7 @@ package store
 //	return
 //}
 //
-//func (Ω *store) NewDataSourceDocumentRef(taxonID INaturalistTaxonID, dataSourceID datasources.DataSourceType, targetID datasources.DataSourceTargetID, kind DataSourceKind) (*firestore.DocumentRef, error) {
+//func (Ω *store) NewDataSourceDocumentRef(taxonID INaturalistTaxonID, dataSourceID datasources.SourceType, targetID datasources.TargetID, kind DataSourceKind) (*firestore.DocumentRef, error) {
 //
 //	if !taxonID.Valid() {
 //		return nil, errors.New("invalid data source document reference id")

@@ -1,21 +1,23 @@
 package inaturalist
 
 import (
-	"bitbucket.org/heindl/taxa/nameusage"
+	"bitbucket.org/heindl/taxa/nameusage/nameusage"
 	"context"
 	"strings"
 	"github.com/saleswise/errors/errors"
 	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
+	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
 )
 
-func FetchNameUsages(cxt context.Context, ids ...int) (*nameusage.AggregateNameUsages, error) {
+func FetchNameUsages(cxt context.Context, ids ...int) ([]*nameusage.NameUsage, error) {
 
-	taxa, err := FetchTaxaAndChildren(cxt, TaxonIDsFromIntegers(ids...)...)
+	taxa, err := NewTaxaFetcher(cxt, true, true).FetchTaxa(TaxonIDsFromIntegers(ids...)...)
 	if err != nil {
 		return nil, err
 	}
 
-	res := nameusage.AggregateNameUsages{}
+	res := []*nameusage.NameUsage{}
 
 	for _, inaturalistTaxon := range taxa {
 		if len(inaturalistTaxon.CurrentSynonymousTaxonIds) > 0 {
@@ -27,12 +29,12 @@ func FetchNameUsages(cxt context.Context, ids ...int) (*nameusage.AggregateNameU
 			return nil, errors.Newf("Taxon [%d] has synonymous Taxon IDs [%v]", inaturalistTaxon.ID, inaturalistTaxon.CurrentSynonymousTaxonIds)
 		}
 
-		name, err := nameusage.NewCanonicalName(inaturalistTaxon.Name, strings.ToLower(inaturalistTaxon.Rank))
+		name, err := canonicalname.NewCanonicalName(inaturalistTaxon.Name, strings.ToLower(inaturalistTaxon.Rank))
 		if err != nil {
 			return nil, err
 		}
 
-		src, err := nameusage.NewNameUsageSource(datasources.DataSourceTypeINaturalist, inaturalistTaxon.ID.TargetID(), name)
+		src, err := nameusagesource.NewSource(datasources.DataSourceTypeINaturalist, inaturalistTaxon.ID.TargetID(), name)
 		if err != nil {
 			return nil, err
 		}
@@ -43,14 +45,14 @@ func FetchNameUsages(cxt context.Context, ids ...int) (*nameusage.AggregateNameU
 			}
 		}
 
-		usage, err := nameusage.NewCanonicalNameUsage(src)
+		usage, err := nameusage.NewNameUsage(src)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, scheme := range inaturalistTaxon.TaxonSchemes {
 
-			src, err := nameusage.NewNameUsageSource(scheme.DataSourceType, scheme.TargetID, name)
+			src, err := nameusagesource.NewSource(scheme.SourceType, scheme.TargetID, name)
 			if err != nil {
 				return nil, err
 			}
@@ -60,11 +62,10 @@ func FetchNameUsages(cxt context.Context, ids ...int) (*nameusage.AggregateNameU
 			}
 		}
 
-		if err := res.AddUsages(usage); err != nil {
-			return nil, err
-		}
+		res = append(res, usage)
+
 
 	}
 
-	return &res, nil
+	return res, nil
 }
