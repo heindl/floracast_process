@@ -2,13 +2,13 @@ package natureserve
 
 import (
 	"context"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
-	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
-	"bitbucket.org/heindl/taxa/nameusage/nameusage"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/nameusage/canonicalname"
+	"bitbucket.org/heindl/processors/nameusage/nameusagesource"
+	"bitbucket.org/heindl/processors/nameusage/nameusage"
 )
 
-func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.DataSourceTargetIDs) ([]*nameusage.NameUsage, error) {
+func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.TargetIDs) ([]*nameusage.NameUsage, error) {
 
 	nameTaxa, err := FetchTaxaFromSearch(cxt, names...)
 	if err != nil {
@@ -31,7 +31,7 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.
 			return nil, err
 		}
 
-		usageSource, err := nameusagesource.NewSource(datasources.DataSourceTypeNatureServe, datasources.TargetID(txn.ID), canonicalName)
+		usageSource, err := nameusagesource.NewSource(datasources.TypeNatureServe, datasources.TargetID(txn.ID), canonicalName)
 		if err != nil {
 			return nil, err
 		}

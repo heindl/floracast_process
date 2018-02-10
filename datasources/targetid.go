@@ -13,7 +13,7 @@ func (Ω TargetID) Valid(sourceType SourceType) bool {
 		return false
 	}
 
-	intTypes := []SourceType{DataSourceTypeGBIF, DataSourceTypeINaturalist, DataSourceTypeMushroomObserver}
+	intTypes := []SourceType{TypeGBIF, TypeINaturalist, TypeMushroomObserver}
 
 	_, intParseErr := strconv.Atoi(string(Ω))
 
@@ -21,7 +21,7 @@ func (Ω TargetID) Valid(sourceType SourceType) bool {
 		return false
 	}
 
-	if intParseErr == nil && HasDataSourceType([]SourceType{DataSourceTypeNatureServe}, sourceType) {
+	if intParseErr == nil && HasDataSourceType([]SourceType{TypeNatureServe}, sourceType) {
 		return false
 	}
 
@@ -43,16 +43,40 @@ func NewDataSourceTargetIDFromInt(i int) (TargetID, error) {
 	return TargetID(strconv.Itoa(i)), nil
 }
 
-type DataSourceTargetIDs []TargetID
+func NewDataSourceTargetIDFromInts(ints ...int) (TargetIDs, error) {
+	res := TargetIDs{}
+	for _, i := range ints {
+		id, err := NewDataSourceTargetIDFromInt(i)
+		if err != nil {
+			return nil, err
+		}
+		res = res.AddToSet(id)
+	}
+	return res, nil
+}
 
-func (Ω DataSourceTargetIDs) Strings() (res []string) {
+type TargetIDs []TargetID
+
+func (Ω TargetIDs) Integers() ([]int, error) {
+	res := []int{}
+	for _, id := range Ω {
+		i, err := id.ToInt()
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, i)
+	}
+	return res, nil
+}
+
+func (Ω TargetIDs) Strings() (res []string) {
 	for _, id := range Ω {
 		res = append(res, string(id))
 	}
 	return
 }
 
-func (Ω DataSourceTargetIDs) AddToSet(ids ...TargetID) DataSourceTargetIDs {
+func (Ω TargetIDs) AddToSet(ids ...TargetID) TargetIDs {
 	for _, id := range ids {
 		if Ω.Contains(id) {
 			continue
@@ -62,7 +86,7 @@ func (Ω DataSourceTargetIDs) AddToSet(ids ...TargetID) DataSourceTargetIDs {
 	return Ω
 }
 
-func (Ω DataSourceTargetIDs) Contains(id TargetID) bool {
+func (Ω TargetIDs) Contains(id TargetID) bool {
 	for i := range Ω {
 		if Ω[i] == id {
 			return true

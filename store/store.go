@@ -3,65 +3,62 @@ package store
 import (
 	"cloud.google.com/go/firestore"
 	"context"
-	"github.com/jonboulle/clockwork"
-	"time"
+	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 )
 
-type TaxaStore interface {
-	ReadTaxa(context.Context) (Taxa, error)
-	ReadSpecies(context.Context) (Taxa, error)
-	ReadTaxaFromCanonicalNames(context.Context, TaxonRank, ...CanonicalName) (Taxa, error)
-	ReadTaxon(context.Context, INaturalistTaxonID) (*Taxon, error)
-	CreateTaxonIfNotExists(context.Context, Taxon) error
-	SetTaxonPhoto(context.Context, INaturalistTaxonID, string) error
-	SetPhoto(context.Context, Photo) error
-	//UpsertDataSource(context.Context, DataSource) error
-	//GetSourceLastCreated(cxt context.Context, kind DataSourceKind, srcID datasources.SourceType) (*time.Time, error)
-	//UpdateDataSourceLastFetched(context.Context, DataSource) error
-	//GetOccurrenceDataSources(context.Context, INaturalistTaxonID) (DataSources, error)
-	SetPrediction(cxt context.Context, p Prediction) error
+type FloraStore interface {
+	FirestoreCollection(FirestoreCollection) *firestore.CollectionRef
+	FirestoreBatch() *firestore.WriteBatch
+	FirestoreTransaction(ctx context.Context, fn FirestoreTransactionFunc) error
+	AlgoliaIndex(indexFunc AlgoliaIndexFunc) (AlgoliaIndex, error)
 	Close() error
 }
 
-var _ TaxaStore = &store{}
-
-func NewTestTaxaStore() TaxaStore {
-
-	s := store{
-		Clock: clockwork.NewFakeClockAt(time.Now()),
-	}
-
-	var err error
-
-	s.FirestoreClient, err = NewMockFirestore()
-	if err != nil {
-		panic(err)
-	}
-
-	return TaxaStore(&s)
-}
-
-func NewTaxaStore() (TaxaStore, error) {
-
-	s := store{
-		Clock: clockwork.NewRealClock(),
-	}
-
-	var err error
-
-	s.FirestoreClient, err = NewLiveFirestore()
+func NewFloraStore(ctx context.Context) (FloraStore, error) {
+	//s := store{
+	//	Clock: clockwork.NewRealClock(),
+	//}
+	firestoreClient, err := NewLiveFirestore(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return TaxaStore(&s), nil
+	algoliaClient, err := NewLiveAlgoliaClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &store{
+		firestoreClient: firestoreClient,
+		algoliaClient: algoliaClient,
+	}, nil
 }
 
 type store struct {
-	Clock                clockwork.Clock
-	FirestoreClient      *firestore.Client
+	firestoreClient      *firestore.Client
+	algoliaClient algoliasearch.Client
+}
+
+func (Ω *store) FirestoreCollection(æ FirestoreCollection) *firestore.CollectionRef {
+	return Ω.firestoreClient.Collection(string(æ))
+}
+
+
+func (Ω *store) FirestoreBatch() *firestore.WriteBatch {
+	return Ω.firestoreClient.Batch()
+}
+
+type FirestoreTransactionFunc func(context.Context, *firestore.Transaction) error
+
+func (Ω *store) FirestoreTransaction(ctx context.Context, fn FirestoreTransactionFunc) error {
+	return Ω.firestoreClient.RunTransaction(ctx, fn)
+}
+
+
+func (Ω *store) AlgoliaIndex(æ AlgoliaIndexFunc) (AlgoliaIndex, error) {
+	return æ(Ω.algoliaClient)
 }
 
 func (Ω *store) Close() error {
-	return Ω.FirestoreClient.Close()
+	return Ω.firestoreClient.Close()
 }

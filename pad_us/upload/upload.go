@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bitbucket.org/heindl/taxa/pad_us"
-	"bitbucket.org/heindl/taxa/store"
-	"bitbucket.org/heindl/taxa/terra"
+	"bitbucket.org/heindl/processors/pad_us"
+	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/processors/terra"
 	"flag"
-	"github.com/saleswise/errors/errors"
+	"github.com/dropbox/godropbox/errors"
 	"golang.org/x/net/context"
 	"gopkg.in/tomb.v2"
 	"os"

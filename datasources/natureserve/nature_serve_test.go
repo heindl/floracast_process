@@ -5,7 +5,7 @@ import (
 	"testing"
 	"golang.org/x/net/context"
 	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 )
 
 func TestTaxonFetcher(t *testing.T) {

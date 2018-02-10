@@ -1,11 +1,11 @@
 package filecache
 
 import (
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/processors/store"
 	"encoding/json"
 	"fmt"
 	"github.com/elgs/gostrgen"
-	"github.com/saleswise/errors/errors"
+	"github.com/dropbox/godropbox/errors"
 	"os"
 	"path"
 )

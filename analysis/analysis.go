@@ -1,14 +1,14 @@
 package main
 
 import (
-	"bitbucket.org/heindl/taxa/store"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/processors/utils"
 	"cloud.google.com/go/storage"
 	"context"
 	"flag"
 	"fmt"
 	"github.com/mongodb/mongo-tools/common/json"
-	"github.com/saleswise/errors/errors"
+	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/api/iterator"
 	"gopkg.in/tomb.v2"
 	"io/ioutil"

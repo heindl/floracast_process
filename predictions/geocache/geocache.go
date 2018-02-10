@@ -1,12 +1,12 @@
 package geocache
 
 import (
-	"bitbucket.org/heindl/taxa/store"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/processors/utils"
 	"fmt"
 	"github.com/elgs/gostrgen"
 	"github.com/kellydunn/golang-geo"
-	"github.com/saleswise/errors/errors"
+	"github.com/dropbox/godropbox/errors"
 	"github.com/tidwall/buntdb"
 	"os"
 	"path"

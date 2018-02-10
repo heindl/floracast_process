@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 	"sync"
 	"gopkg.in/tomb.v2"
 	"strings"
@@ -26,21 +26,23 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 	locker := sync.Mutex{}
 	taxa := []*Taxon{}
 
-	limit := utils.NewLimiter(10)
+	limit := utils.NewLimiter(1)
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func()error {
 		for _, _name := range names {
 			name := _name
-			done := limit.Go()
 			tmb.Go(func() error {
+				done := limit.Go()
 				defer done()
+				fmt.Println("SEARCHING TAXA")
 				local_taxa, err := searchName(cxt, name)
 				if err != nil {
 					return err
 				}
 				locker.Lock()
 				defer locker.Unlock()
+				fmt.Println("APPENDING TAXA")
 				taxa = append(taxa, local_taxa...)
 				return nil
 			})
@@ -58,10 +60,12 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 func searchName(cxt context.Context, name string) ([]*Taxon, error) {
 
 	url := fmt.Sprintf(
-		"https://services.natureserve.org/idd/rest/ns/v1/globalSpecies/list/nameSearch?&NSAccessKeyId=%s&name=%s",
+		"https://services.natureserve.org/idd/rest/ns/v1/globalSpecies/list/nameSearch?NSAccessKeyId=%s&name=%s",
 		natureServeAPIKey,
 		url2.QueryEscape(name),
 	)
+
+	fmt.Println(url)
 
 	searchResults := SpeciesSearchReport{}
 	if err := utils.RequestXML(url, &searchResults); err != nil {

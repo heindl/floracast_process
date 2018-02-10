@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"bitbucket.org/heindl/taxa/store"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/processors/utils"
 	"context"
 	"github.com/montanaflynn/stats"
-	"github.com/saleswise/errors/errors"
+	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/genproto/googleapis/type/latlng"
 	"gopkg.in/tomb.v2"
 	"strings"

@@ -1,11 +1,11 @@
 package parser
 
 import (
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/processors/store"
 	"bufio"
 	"cloud.google.com/go/storage"
 	"context"
-	"github.com/saleswise/errors/errors"
+	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/api/iterator"
 	"io/ioutil"
 	"os"

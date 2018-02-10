@@ -21,7 +21,7 @@ func TestOccurrenceFetcher(t *testing.T) {
 			{47.2600975, -120.2742729},
 			{46.4411401, -117.8572807},
 		} {
-			s, err := NewGeoFeatureSet(a[0], a[1])
+			s, err := NewGeoFeatureSet(a[0], a[1], false)
 			So(err, ShouldBeNil)
 			sets = append(sets, s)
 		}

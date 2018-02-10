@@ -1,10 +1,10 @@
-package main
+package process
 
 import (
-	"bitbucket.org/heindl/taxa/predictions/filecache"
-	"bitbucket.org/heindl/taxa/predictions/geocache"
-	"bitbucket.org/heindl/taxa/predictions/parser"
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/processors/predictions/filecache"
+	"bitbucket.org/heindl/processors/predictions/geocache"
+	"bitbucket.org/heindl/processors/predictions/parser"
+	"bitbucket.org/heindl/processors/store"
 	"context"
 	"flag"
 	"fmt"

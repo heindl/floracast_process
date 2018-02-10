@@ -2,38 +2,39 @@ package nameusage
 
 import (
 	"fmt"
-	"github.com/mongodb/mongo-tools/common/json"
-	"github.com/elgs/gostrgen"
 	"github.com/dropbox/godropbox/errors"
 	"sort"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/occurrences"
-	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
-	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/nameusage/canonicalname"
+	"bitbucket.org/heindl/processors/nameusage/nameusagesource"
+	"bitbucket.org/heindl/processors/utils"
+	"time"
 )
 
 
 type NameUsage struct {
-	id                    string
+	id                    NameUsageID
 	canonicalName         *canonicalname.CanonicalName
 	sources               nameUsageSourceMap
-	occurrenceAggregation *occurrences.OccurrenceAggregation
+	createdAt time.Time
+	modifiedAt time.Time
 }
 
 type nameUsageSourceMap map[datasources.SourceType]map[datasources.TargetID]*nameusagesource.Source
 
 func NewNameUsage(src *nameusagesource.Source) (*NameUsage, error) {
 
-	id, err := gostrgen.RandGen(20, gostrgen.Lower|gostrgen.Digit|gostrgen.Upper, "", "")
+	id, err := newNameUsageID()
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not generate name usage id")
+		return nil, err
 	}
 
 	u := NameUsage{
 		id:                    id,
 		canonicalName:         src.CanonicalName(),
-		occurrenceAggregation: occurrences.NewOccurrenceAggregation(),
+		createdAt: time.Now(),
+		modifiedAt: time.Now(),
+		sources: nameUsageSourceMap{},
 	}
 
 	if err := u.AddSources(src); err != nil {
@@ -43,7 +44,7 @@ func NewNameUsage(src *nameusagesource.Source) (*NameUsage, error) {
 	return &u, nil
 }
 
-func (Ω *NameUsage) ID() string {
+func (Ω *NameUsage) ID() NameUsageID {
 	return Ω.id
 }
 
@@ -80,18 +81,6 @@ func (Ω *NameUsage) hasSource(sourceType datasources.SourceType, targetID datas
 	return true
 }
 
-func (Ω *NameUsage) MarshalJSON() ([]byte, error) {
-	if Ω == nil {
-		return nil, nil
-	}
-	return json.Marshal(map[string]interface{}{
-		"CanonicalName": Ω.CanonicalName().ScientificName(),
-		"Synonyms": Ω.Synonyms().ScientificNames(),
-		"TotalOccurrenceCount": Ω.TotalOccurrenceCount(),
-		"Sources": Ω.sources,
-	})
-}
-
 func (Ω *NameUsage) AddSources(sources ...*nameusagesource.Source) error {
 	for _, src := range sources {
 
@@ -104,10 +93,10 @@ func (Ω *NameUsage) AddSources(sources ...*nameusagesource.Source) error {
 	return nil
 }
 
-func (Ω *NameUsage) HasScientificName(name string) bool {
-	names := utils.AddStringToSet(Ω.Synonyms().ScientificNames(), Ω.CanonicalName().ScientificName())
-	return utils.ContainsString(names, name)
+func (Ω *NameUsage) CanonicalName() *canonicalname.CanonicalName {
+	return Ω.canonicalName
 }
+
 
 func (Ω *NameUsage) Synonyms() canonicalname.CanonicalNames {
 	res := canonicalname.CanonicalNames{}
@@ -120,6 +109,14 @@ func (Ω *NameUsage) Synonyms() canonicalname.CanonicalNames {
 		}
 	}
 	return res
+}
+
+func (Ω *NameUsage) HasScientificName(name string) bool {
+	return utils.ContainsString(Ω.AllScientificNames(), name)
+}
+
+func (Ω *NameUsage) AllScientificNames() []string{
+	return utils.AddStringToSet(Ω.Synonyms().ScientificNames(), Ω.CanonicalName().ScientificName())
 }
 
 func (Ω *NameUsage) ScientificNameReferenceLedger() NameReferenceLedger {
@@ -153,10 +150,6 @@ func (Ω *NameUsage) CommonName() (string, error) {
 	}
 
 	return ledger[0].Name, nil
-}
-
-func (Ω *NameUsage) CanonicalName() *canonicalname.CanonicalName {
-	return Ω.canonicalName
 }
 
 func (a *NameUsage) ShouldCombine(b *NameUsage) bool {

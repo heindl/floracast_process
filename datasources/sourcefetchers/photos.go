@@ -1,10 +1,11 @@
-package fetchers
+package sourcefetchers
 
 import (
-	"bitbucket.org/heindl/taxa/datasources/inaturalist"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/datasources/gbif"
+	"bitbucket.org/heindl/processors/datasources/inaturalist"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/datasources/gbif"
 	"context"
+	"github.com/dropbox/godropbox/errors"
 )
 
 type Photo interface {
@@ -18,7 +19,7 @@ func FetchPhotos(ctx context.Context, sourceType datasources.SourceType, targetI
 
 	res := []Photo{}
 	switch sourceType {
-	case datasources.DataSourceTypeGBIF:
+	case datasources.TypeGBIF:
 		photos, err := gbif.FetchPhotos(ctx, targetID)
 		if err != nil {
 			return nil, err
@@ -26,7 +27,7 @@ func FetchPhotos(ctx context.Context, sourceType datasources.SourceType, targetI
 		for _, o := range photos {
 			res = append(res, o)
 		}
-	case datasources.DataSourceTypeINaturalist:
+	case datasources.TypeINaturalist:
 		photos, err := inaturalist.FetchPhotos(ctx, targetID)
 		if err != nil {
 			return nil, err
@@ -35,7 +36,7 @@ func FetchPhotos(ctx context.Context, sourceType datasources.SourceType, targetI
 			res = append(res, o)
 		}
 	default:
-		return res, nil
+		return nil, errors.Newf("Unsupported SourceType [%s]", sourceType)
 	}
 
 	return res, nil

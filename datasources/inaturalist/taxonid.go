@@ -2,7 +2,7 @@ package inaturalist
 
 import (
 	"strconv"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 )
 
 type TaxonID int64

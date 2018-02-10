@@ -5,8 +5,8 @@ import (
 	"testing"
 	"golang.org/x/net/context"
 	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/processors/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -65,7 +65,7 @@ func TestTaxonFetcher(t *testing.T) {
 			"morchella rufobrunnea",
 		}
 
-		ids := datasources.DataSourceTargetIDs{"2594601",
+		ids := datasources.TargetIDs{"2594601",
 			"3495681",
 			"2594630",
 			"3495624",

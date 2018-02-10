@@ -1,4 +1,4 @@
-package materialtaxa
+package taxa
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -9,7 +9,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 	t.Parallel()
 
-	SkipConvey("should fetch photos", t, func() {
+	Convey("should m", t, func() {
 
 		//src, err := NewSource()
 		//

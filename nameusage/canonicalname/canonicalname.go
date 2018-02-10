@@ -4,7 +4,7 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"strings"
 	"encoding/json"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 )
 
 // The canonical name is the scientific name of the species, subspecies, variety, etc. Anything under Genus.

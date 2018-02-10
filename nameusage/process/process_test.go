@@ -5,7 +5,8 @@ import (
 	"testing"
 	"context"
 	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/processors/nameusage/nameusage"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -14,46 +15,17 @@ func TestTaxonFetcher(t *testing.T) {
 
 	Convey("should generate a list of sources", t, func() {
 
-
+		cxt := context.Background()
 		// 47348, 56830, 48701
-		srcs, err := AggregateNameUsages(context.Background(), 47348)
-		So(err, ShouldBeNil)
-		////
-		fmt.Println(utils.JsonOrSpew(srcs))
+		nameUsageAggr, err := InitialAggregation(cxt, 47348)
+		if err != nil {
+			panic(err)
+		}
 
-
-		//sufficient := name_usage.Aggregate{}
-		//for _, src := range srcs {
-		//	if src.TotalOccurrenceCount() < 100 {
-		//		continue
-		//	}
-		//	sufficient = append(sufficient, src)
-		//}
-		//
-		//
-		//marshalledSources, err := json.Marshal(sufficient)
-		//if err != nil {
-		//	panic(err)
-		//}
-		//
-		//fmt.Println(string(marshalledSources))
-
-		//b, err := ioutil.ReadFile("/Users/m/Desktop/morchella.json")
-		//So(err, ShouldBeNil)
-		////
-		//sources := CanonicalNameSources{}
-		//So(json.Unmarshal(b, &sources), ShouldBeNil)
-		//
-		//for _, src := range res {
-		//	fmt.Println(src.CanonicalName)
-		//	fmt.Println(strings.Join(src.Synonyms, ", "))
-		//	fmt.Println(src.SynonymFor)
-		//	for k, v := range src.sourceTargetOccurrenceCount {
-		//		fmt.Println(k, ":", len(v))
-		//	}
-		//	fmt.Println("-------------------")
-		//	fmt.Println("-------------------")
-		//}
+		So(nameUsageAggr.Each(cxt, func(ctx context.Context, usage *nameusage.NameUsage) error{
+			fmt.Println(utils.JsonOrSpew(usage))
+			return nil
+		}), ShouldBeNil)
 
 	})
 }

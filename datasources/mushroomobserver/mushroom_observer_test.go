@@ -4,7 +4,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"context"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -69,7 +69,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 		So(len(res), ShouldEqual, 4)
 
-		requiredTargetIDs := datasources.DataSourceTargetIDs{
+		requiredTargetIDs := datasources.TargetIDs{
 			datasources.TargetID("16103"),
 			datasources.TargetID("20594"),
 			datasources.TargetID("16041"),

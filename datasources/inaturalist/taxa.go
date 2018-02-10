@@ -2,18 +2,17 @@ package inaturalist
 
 import (
 	"fmt"
-	"bitbucket.org/heindl/taxa/store"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 	"sync"
 	"time"
 	"regexp"
 	"bytes"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 )
 
 type page struct {
@@ -26,6 +25,7 @@ type Taxon struct {
 	CompleteSpeciesCount      int `json:"complete_species_count"`
 	Extinct                   bool        `json:"extinct"`
 	ObservationsCount         int         `json:"observations_count"`
+	WikipediaURL string `json:"wikipedia_url"`
 	TaxonSchemesCount         int         `json:"taxon_schemes_count"`
 	Ancestry                  string      `json:"ancestry"`
 	IsActive                  bool        `json:"is_active"`
@@ -36,7 +36,7 @@ type Taxon struct {
 		Photo Photo `json:"photo"`
 		Taxon Taxon `json:"taxon"`
 	} `json:"taxon_photos"`
-	RankLevel            store.RankLevel      `json:"rank_level"`
+	RankLevel            RankLevel      `json:"rank_level"`
 	TaxonChangesCount    int                  `json:"taxon_changes_count"`
 	AtlasID              int                  `json:"atlas_id"`
 	ParentID             TaxonID              `json:"parent_id"`
@@ -202,10 +202,9 @@ func (Ω *TaxaFetcher) fetchTaxon(taxonID TaxonID) error {
 
 
 func (Ω *TaxaFetcher) parseTaxon(txn *Taxon, isFromFullPageRequest bool) error {
-	rank := store.RankLevel(txn.RankLevel)
 
 	// Exit early if not a species.
-	if rank != store.RankLevelSpecies && rank != store.RankLevelSubSpecies {
+	if txn.RankLevel > RankLevelSpecies {
 		// Fetch children if this was the child of another request. Otherwise we're safe stopping with species.
 		if !isFromFullPageRequest {
 			return Ω.fetchTaxon(txn.ID)

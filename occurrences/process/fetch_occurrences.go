@@ -1,14 +1,13 @@
 package main
 //
 //import (
-//	"bitbucket.org/heindl/taxa/ecoregions"
-//	"bitbucket.org/heindl/taxa/store"
-//	"bitbucket.org/heindl/taxa/utils"
+//	"bitbucket.org/heindl/processors/ecoregions"
+//	"bitbucket.org/heindl/processors/store"
+//	"bitbucket.org/heindl/processors/utils"
 //	"flag"
 //	"fmt"
-//	"bitbucket.org/heindl/taxa/datasources/gbif"
+//	"bitbucket.org/heindl/processors/datasources/gbif"
 //	"github.com/jonboulle/clockwork"
-//	"github.com/saleswise/errors/errors"
 //	"golang.org/x/net/context"
 //	"google.golang.org/genproto/googleapis/type/latlng"
 //	"gopkg.in/tomb.v2"

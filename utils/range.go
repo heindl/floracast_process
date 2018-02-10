@@ -1,8 +1,7 @@
 package utils
 
 import (
-	"github.com/saleswise/errors/errors"
-	. "github.com/saleswise/malias"
+	"github.com/dropbox/godropbox/errors"
 	"strconv"
 	"time"
 )
@@ -19,7 +18,7 @@ func (start RangeVal) ExpandTo(end RangeVal) ([]RangeVal, error) {
 		return nil, err
 	}
 	if s.After(e) {
-		return nil, errors.New("expected start to be before end time while expanding ranges").SetState(M{LogkeyTimes: []time.Time{s, e}})
+		return nil, errors.New("expected start to be before end time while expanding ranges")
 	}
 	if s.Equal(e) {
 		return []RangeVal{MarshalRangeVal(s)}, nil
@@ -45,10 +44,10 @@ func MarshalRangeVal(t time.Time) RangeVal {
 
 func (v RangeVal) Validate() error {
 	if len(v) != 8 {
-		return errors.New("range value must be in the format YYYYMMDD").SetState(M{LogkeyStringValue: v})
+		return errors.New("range value must be in the format YYYYMMDD")
 	}
 	if _, err := strconv.Atoi(string(v)); err != nil {
-		return errors.New("range value must be in the format YYYYMMDD").SetState(M{LogkeyStringValue: v})
+		return errors.New("range value must be in the format YYYYMMDD")
 	}
 	return nil
 }
@@ -59,7 +58,7 @@ func (v RangeVal) Int() (int, error) {
 	}
 	i, err := strconv.Atoi(string(v))
 	if err != nil {
-		return 0, errors.New("range value must be in the format YYYYMMDD").SetState(M{LogkeyStringValue: v})
+		return 0, errors.New("range value must be in the format YYYYMMDD")
 	}
 	return i, nil
 }

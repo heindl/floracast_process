@@ -3,12 +3,12 @@ package nameusagesource
 import (
 	"time"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 	"strings"
 	"sync"
 	"encoding/json"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/nameusage/canonicalname"
 )
 
 type Source struct {
@@ -77,7 +77,7 @@ func NewSource(sourceType datasources.SourceType, targetID datasources.TargetID,
 		return nil, errors.Newf("Invalid TargetID [%s, %s]", targetID, canonicalName.ScientificName())
 	}
 
-	isTaxonomic := sourceType == datasources.DataSourceTypeGBIF || sourceType == datasources.DataSourceTypeINaturalist || sourceType == datasources.DataSourceTypeNatureServe
+	isTaxonomic := sourceType == datasources.TypeGBIF || sourceType == datasources.TypeINaturalist || sourceType == datasources.TypeNatureServe
 
 	// Verbose expectations.
 	//if !isTaxonomic && expectTaxonomicSourceType {

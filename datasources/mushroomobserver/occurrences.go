@@ -6,16 +6,16 @@ import (
 	"context"
 	"time"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/taxa/utils"
-	"bitbucket.org/heindl/taxa/terra"
+	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/processors/terra"
 	"strconv"
 	"github.com/mongodb/mongo-tools/common/json"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 )
 
 func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Observation, error) {
 
-	if !targetID.Valid(datasources.DataSourceTypeMushroomObserver) {
+	if !targetID.Valid(datasources.TypeMushroomObserver) {
 		return nil, errors.New("Invalid TargetID")
 	}
 

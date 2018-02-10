@@ -1,9 +1,9 @@
 package geofeatures
 
 import (
-	"bitbucket.org/heindl/taxa/ecoregions"
-	"bitbucket.org/heindl/taxa/terra"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/ecoregions"
+	"bitbucket.org/heindl/processors/terra"
+	"bitbucket.org/heindl/processors/utils"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"googlemaps.github.io/maps"
@@ -13,6 +13,7 @@ import (
 	"sync"
 	"fmt"
 	"cloud.google.com/go/firestore"
+	"google.golang.org/appengine"
 )
 
 // Description of Precision
@@ -30,26 +31,23 @@ import (
 
 
 type GeoFeatureSet struct {
-	lat  float64
-	lng float64
 	coordinatesEstimated bool
 	biome     ecoregions.Biome
 	ecoNum    ecoregions.EcoNum
-	s2Tokens  []string // Ordered from 0 to 10.
 	elevation *float64
+	geopoint *appengine.GeoPoint
 }
 
 func (Ω GeoFeatureSet) Lat() float64 {
-	return Ω.lat
+	return Ω.geopoint.Lat
 }
 
 func (Ω GeoFeatureSet) Lng() float64 {
-	return Ω.lng
+	return Ω.geopoint.Lng
 }
 
 const keyCoordinate = "CoordinateKey"
-const keyLatitude = "Latitude"
-const keyLongitude = "Longitude"
+const keyGeoPoint = "GeoPoint"
 const keyCoordinatesEstimated = "CoordinatesEstimated"
 const keyBiome = "Biome"
 const keyEcoNum = "EcoNum"
@@ -58,7 +56,7 @@ const keyElevation = "Elevation"
 
 func (Ω GeoFeatureSet) CoordinateKey() string {
 	// Intentionally reduce the precision of the coordinates to ensure we're not duplicating occurrences.
-	return fmt.Sprintf("%.3f|%.3f", Ω.lat, Ω.lng)
+	return fmt.Sprintf("%.3f|%.3f", Ω.Lat(), Ω.Lng())
 }
 
 func (Ω GeoFeatureSet) CoordinateQuery(collection *firestore.CollectionRef) (firestore.Query, error) {
@@ -67,18 +65,18 @@ func (Ω GeoFeatureSet) CoordinateQuery(collection *firestore.CollectionRef) (fi
 
 func NewGeoFeatureSetFromMap(m map[string]interface{}) (*GeoFeatureSet, error) {
 
+	geopoint := m[keyGeoPoint].(appengine.GeoPoint)
+
+	if err := validateCoordinates(&geopoint); err != nil {
+		return nil, err
+	}
+
 	gs := GeoFeatureSet{
-		lat: m[keyLatitude].(float64),
-		lng: m[keyLongitude].(float64),
 		coordinatesEstimated: m[keyCoordinatesEstimated].(bool),
 		biome: m[keyBiome].(ecoregions.Biome),
 		ecoNum: m[keyEcoNum].(ecoregions.EcoNum),
-		s2Tokens: m[keyS2Tokens].([]string),
 		elevation: utils.FloatPtr(m[keyElevation].(float64)),
-	}
-
-	if err := validateCoordinates(gs.lat, gs.lng); err != nil {
-		return nil, err
+		geopoint: &geopoint,
 	}
 
 	if !gs.biome.Valid() {
@@ -87,10 +85,6 @@ func NewGeoFeatureSetFromMap(m map[string]interface{}) (*GeoFeatureSet, error) {
 
 	if !gs.ecoNum.Valid() {
 		return nil, errors.New("Invalid EcoNum")
-	}
-
-	if len(gs.s2Tokens) == 0 {
-		return nil, errors.New("Invalid S2Tokens")
 	}
 
 	if gs.elevation == nil {
@@ -103,62 +97,78 @@ func NewGeoFeatureSetFromMap(m map[string]interface{}) (*GeoFeatureSet, error) {
 
 var ErrInvalidCoordinate = errors.New("Invalid Coordinate")
 
-func validateCoordinates(lat, lng float64) error {
-	if lat < 6.6 || lat > 83.3 {
-		return errors.Wrapf(ErrInvalidCoordinate,"latitude [%f] is out of bounds", lat)
+func validateCoordinates(geopoint *appengine.GeoPoint) error {
+
+	if !geopoint.Valid() {
+		return errors.Wrapf(ErrInvalidCoordinate,"Invalid GeoPoint [%f, %f]", geopoint.Lat, geopoint.Lng)
 	}
-	if lng < -178.2 || lng > -49.0 {
-		return errors.Wrapf(ErrInvalidCoordinate,"longitude [%f] is out of bounds", lng)
+
+	if geopoint.Lat < 6.6 || geopoint.Lat > 83.3 {
+		return errors.Wrapf(ErrInvalidCoordinate,"latitude [%f] is out of bounds", geopoint.Lat)
+	}
+	if geopoint.Lng < -178.2 || geopoint.Lng > -49.0 {
+		return errors.Wrapf(ErrInvalidCoordinate,"longitude [%f] is out of bounds", geopoint.Lng)
 	}
 	// We need the decimal precision to be at least a football field, so require at least three decimal places (110m).
-	if hasDecimalPlaces(2, lat) || hasDecimalPlaces(1, lat) {
-		return errors.Wrapf(ErrInvalidCoordinate,"latitude [%f] has insufficient precision", lat)
+	if hasDecimalPlaces(2, geopoint.Lat) || hasDecimalPlaces(1, geopoint.Lat) {
+		return errors.Wrapf(ErrInvalidCoordinate,"latitude [%f] has insufficient precision", geopoint.Lat)
 	}
-	if hasDecimalPlaces(2, lng) || hasDecimalPlaces(1, lng) {
-		return errors.Wrapf(ErrInvalidCoordinate,"longitude [%f] has insufficient precision", lng)
+	if hasDecimalPlaces(2, geopoint.Lng) || hasDecimalPlaces(1, geopoint.Lng) {
+		return errors.Wrapf(ErrInvalidCoordinate,"longitude [%f] has insufficient precision", geopoint.Lng)
 	}
 	return nil
 }
 
 func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureSet, error) {
-	if err := validateCoordinates(lat, lng); err != nil {
+
+	geopoint := appengine.GeoPoint{Lat: lat, Lng: lng}
+
+	if err := validateCoordinates(&geopoint); err != nil {
 		return nil, err
 	}
 	if err := liveProcessor.queueElevation(lat, lng); err != nil {
 		return nil, err
 	}
-	return &GeoFeatureSet{lat: lat, lng: lng, coordinatesEstimated: coordinatesEstimated}, nil
+	return &GeoFeatureSet{geopoint: &geopoint, coordinatesEstimated: coordinatesEstimated}, nil
 }
 
 func (Ω GeoFeatureSet) ToMap() (map[string]interface{}, error) {
 
-	if Ω.lat == 0 || Ω.lng == 0 {
-		return nil, errors.New("Invalid Coordinates to Marshal GeoFeatureSet")
+	if err := validateCoordinates(Ω.geopoint); err != nil {
+		return nil, err
 	}
 
-	if e := liveProcessor.getElevation(Ω.lat, Ω.lng); e == nil && len(liveProcessor.elevationsQueued) > 0 {
+	elevation, err := liveProcessor.getElevation(Ω.geopoint.Lat, Ω.geopoint.Lng)
+	if err != nil {
+		return nil, err
+	}
+
+	// Flush elevations. Assumes our entry has been queued.
+	if elevation == nil && len(liveProcessor.elevationsQueued) > 0 {
 		if err := liveProcessor.flushElevations(); err != nil {
 			return nil, err
 		}
 	}
 
-	elevation := liveProcessor.getElevation(Ω.lat, Ω.lng)
+	elevation, err = liveProcessor.getElevation(Ω.geopoint.Lat, Ω.geopoint.Lng)
+	if err != nil {
+		return nil, err
+	}
 	if elevation == nil {
-		return nil, errors.New("Elevation Not Generated")
+		return nil, errors.Newf("Elevation still not generated after flush [%s]", elevationKey(Ω.geopoint.Lat, Ω.geopoint.Lng))
 	}
 
-	ecoID := liveProcessor.ecoRegionCache.EcoID(Ω.lat, Ω.lng)
+	ecoID := liveProcessor.ecoRegionCache.EcoID(Ω.geopoint.Lat, Ω.geopoint.Lng)
 	if !ecoID.Valid() {
 		return nil, InvalidEcoRegion
 	}
 
 	return map[string]interface{}{
-		keyLatitude:    Ω.lat,
-		keyLongitude:   Ω.lng,
+		keyGeoPoint: Ω.geopoint,
 		keyCoordinatesEstimated: Ω.coordinatesEstimated,
 		keyBiome:       ecoID.Biome(),
 		keyEcoNum:      ecoID.EcoNum(),
-		keyS2Tokens:    terra.NewPoint(Ω.lat, Ω.lng).S2TokenArray(),
+		keyS2Tokens:    terra.NewPoint(Ω.geopoint.Lat, Ω.geopoint.Lng).S2TokenMap(),
 		keyElevation:   elevation,
 		keyCoordinate: Ω.CoordinateKey(),
 	}, nil
@@ -231,12 +241,15 @@ func (Ω *geoFeaturesProcessor) queueElevation(lat, lng float64) error {
 	return nil
 }
 
-func (Ω *geoFeaturesProcessor) getElevation(lat, lng float64) *float64 {
-	_, fetched := Ω.elevationQueueStatus(lat, lng)
-	if !fetched {
-		return nil
+func (Ω *geoFeaturesProcessor) getElevation(lat, lng float64) (*float64, error) {
+	queued, fetched := Ω.elevationQueueStatus(lat, lng)
+	if !fetched && queued {
+		return nil, nil
 	}
-	return utils.FloatPtr(Ω.elevationsFetched[elevationKey(lat, lng)])
+	if !fetched && !queued {
+		return nil, errors.Newf("Trying to get coordinates neither fetched or queued [%s]", elevationKey(lat, lng))
+	}
+	return utils.FloatPtr(Ω.elevationsFetched[elevationKey(lat, lng)]), nil
 }
 
 func (Ω *geoFeaturesProcessor) flushElevations() error {

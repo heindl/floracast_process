@@ -1,20 +1,20 @@
 package occurrences
 
 import (
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 	"cloud.google.com/go/firestore"
-	"golang.org/x/net/context"
+	"context"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"strings"
 	"time"
-	"bitbucket.org/heindl/taxa/store"
-	"bitbucket.org/heindl/taxa/geofeatures"
+	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/processors/geofeatures"
 	"go.uber.org/ratelimit"
 	"gopkg.in/tomb.v2"
 	"strconv"
 	"sync"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 	"encoding/json"
 )
 
@@ -262,7 +262,7 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b *Occurrence) error {
 			"[" + fmt.Sprint(Ω.list[i].sourceType, ",", Ω.list[i].targetID, ",", Ω.list[i].sourceOccurrenceID) + "]",
 			"[" + fmt.Sprint(b.sourceType, ",", b.targetID, ",", b.sourceOccurrenceID) + "]")
 
-		if aSourceType != bSourceType && bSourceType == datasources.DataSourceTypeGBIF {
+		if aSourceType != bSourceType && bSourceType == datasources.TypeGBIF {
 			Ω.list[i] = b
 		}
 
@@ -279,9 +279,8 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b *Occurrence) error {
 
 // TODO: Should periodically check all occurrences for consistency.
 
-func (Ω OccurrenceAggregation) Upsert(cxt context.Context, firestoreClient *firestore.Client) error {
+func (Ω OccurrenceAggregation) Upload(cxt context.Context, florastore store.FloraStore) error {
 
-	col := firestoreClient.Collection(store.CollectionTypeOccurrences)
 	limiter := ratelimit.New(100)
 
 	tmb := tomb.Tomb{}
@@ -290,10 +289,10 @@ func (Ω OccurrenceAggregation) Upsert(cxt context.Context, firestoreClient *fir
 			o := _o
 			limiter.Take()
 			tmb.Go(func() error{
-				if err := o.reference(col); err != nil {
+				if err := o.reference(florastore); err != nil {
 					return err
 				}
-				return firestoreClient.RunTransaction(cxt, o.upsert)
+				return florastore.FirestoreTransaction(cxt, o.upsert)
 			})
 		}
 		return nil
@@ -301,11 +300,14 @@ func (Ω OccurrenceAggregation) Upsert(cxt context.Context, firestoreClient *fir
 	return tmb.Wait()
 }
 
-func (Ω *Occurrence) reference(col *firestore.CollectionRef) error {
+func (Ω *Occurrence) reference(florastore store.FloraStore) error {
 	if !Ω.sourceType.Valid() || !Ω.targetID.Valid(Ω.sourceType) || strings.TrimSpace(Ω.sourceOccurrenceID) == "" {
 		return errors.Newf("Invalid firestore reference ID: %s, %s, %s", Ω.sourceType, Ω.targetID, Ω.sourceOccurrenceID)
 	}
 	id := fmt.Sprintf("%s-%s-%s", Ω.sourceType, Ω.targetID, Ω.sourceOccurrenceID)
+
+	col:= florastore.FirestoreCollection(store.CollectionOccurrences)
+
 	Ω.fsDocumentReference = col.Doc(id)
 	q, err := Ω.GeoFeatureSet.CoordinateQuery(col)
 	if err != nil {
@@ -353,7 +355,7 @@ func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) err
 			return err
 		}
 
-		if Ω.sourceType != imbricate.sourceType && imbricate.sourceType == datasources.DataSourceTypeGBIF {
+		if Ω.sourceType != imbricate.sourceType && imbricate.sourceType == datasources.TypeGBIF {
 			// So we have something other than GBIF, and the GBIF record is already in the database.
 			// No opt to prefer the existing GBIF record.
 			return nil
@@ -366,7 +368,6 @@ func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) err
 		if err := tx.Delete(imbricates[0].Ref); err != nil {
 			return errors.Wrapf(err, "Unable to delete occurrence [%s]", imbricates[0].Ref.ID)
 		}
-
 	}
 	
 	updateDoc, err := Ω.toMap()
@@ -386,92 +387,3 @@ func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) err
 	return nil
 
 }
-
-
-//func (Ω *store) UpsertOccurrence(cxt context.Context, o Occurrence) (isNewOccurrence bool, err error) {
-//
-//	isNewOccurrence = false
-//
-//	ref, err := Ω.NewOccurrenceDocumentRef(o.TaxonID, o.SourceType, o.TargetID)
-//	if err != nil {
-//		return false, err
-//	}
-//
-//	bkf := backoff.NewExponentialBackOff()
-//	bkf.InitialInterval = time.Second * 1
-//	ticker := backoff.NewTicker(bkf)
-//	for _ = range ticker.C {
-//
-//		//o.S2CellIDs, err = s2Cells(o.Location.Latitude, o.Location.Longitude)
-//		//if err != nil {
-//		//	return false, err
-//		//}
-//
-//		err := Ω.FirestoreClient.RunTransaction(cxt, func(cxt context.Context, tx *firestore.Transaction) error {
-//			if _, err := tx.Get(ref); err != nil {
-//				if strings.Contains(err.Error(), "not found") {
-//					isNewOccurrence = true
-//					return tx.Set(ref, o)
-//				} else {
-//					return err
-//				}
-//			}
-//			fields := o.mergeFields()
-//			return tx.Set(ref, o, firestore.Merge(fields...))
-//		})
-//
-//		if err != nil && strings.Contains(err.Error(), "rpc error") {
-//			fmt.Println("RPC ERROR", err, utils.JsonOrSpew(o))
-//			continue
-//		}
-//
-//		if err != nil {
-//			ticker.Stop()
-//			return false, errors.Wrap(err, "could not update occurrence")
-//		}
-//
-//		ticker.Stop()
-//		break
-//	}
-//	return isNewOccurrence, nil
-//}
-
-//func s2Cells(lat, lng float64) (map[string]bool, error) {
-//
-//	if lat == 0 || lng == 0 {
-//		return nil, errors.New("invalid lat/lng")
-//	}
-//
-//	cell := s2.CellIDFromLatLng(s2.LatLngFromDegrees(lat, lng))
-//	cells := map[string]bool{strings.Replace(cell.String(), "/", "_", -1): true}
-//	for i:=1; i<14; i++ {
-//		cells[strings.Replace(cell.Parent(i).String(), "/", "_", -1)] = true
-//	}
-//	return cells, nil
-//}
-
-//func (Ω *store) GetOccurrences(cxt context.Context, taxonID INaturalistTaxonID) (res OccurrenceCollection, err error) {
-//
-//	if !taxonID.Valid() {
-//		return nil, errors.Newf("invalid taxon id [%s]", taxonID)
-//	}
-//
-//	docs, err := Ω.FirestoreClient.Collection(CollectionTypeOccurrences).
-//		Where("INaturalistTaxonID", "==", taxonID).
-//		Documents(cxt).
-//		GetAll()
-//
-//	if err != nil {
-//		return nil, errors.Wrapf(err, "could not get occurrences with taxon id [%s]", taxonID)
-//	}
-//
-//	for _, doc := range docs {
-//		o := Occurrence{}
-//		if err := doc.DataTo(&o); err != nil {
-//			return nil, errors.Wrap(err, "could not type cast occurrence")
-//		}
-//		res = append(res, o)
-//	}
-//
-//	return
-//}

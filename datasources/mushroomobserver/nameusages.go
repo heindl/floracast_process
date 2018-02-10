@@ -5,14 +5,15 @@ import (
 	"strings"
 	"time"
 	"net/url"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
 	"sync"
 	"context"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
-	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/nameusage/canonicalname"
+	"bitbucket.org/heindl/processors/nameusage/nameusagesource"
+	"bitbucket.org/heindl/processors/nameusage/nameusage"
 )
 
 type MushroomObserverQueryResult struct {
@@ -28,39 +29,27 @@ type MushroomObserverQueryResult struct {
 
 var lmtr = utils.NewLimiter(10)
 
-func MatchCanonicalNames(cxt context.Context, names ...string) ([]*nameusagesource.Source, error) {
+func MatchCanonicalNames(cxt context.Context, names []string, sources datasources.TargetIDs) ([]*nameusage.NameUsage, error) {
 
 	//TODO: If names are three, consider adding var. "Cantharellus cibarius var. cibarius"
 	// Only if missing in parent.
 
-	nameResponse := []*nameusagesource.Source{}
+	usageResponse := []*nameusage.NameUsage{}
 	locker := sync.Mutex{}
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error{
 		for _, _name := range names {
-			done := lmtr.Go()
 			name := _name
 			tmb.Go(func() error {
-				done()
-				parameters := strings.Join([]string{
-					//fmt.Sprintf("updated_at=%s-%s", time.Now().AddUsage(time.Hour * 24 * 30 * -120).Format("20060102"), time.Now().Format("20060102")),
-					"format=json",
-					"is_deprecated=false",
-					//"ok_for_export=true",
-					//"has_classification=true",
-					fmt.Sprintf("name=%s", url.QueryEscape(name)),
-					//"has_synonyms=true",
-					"detail=high",
-					//fmt.Sprintf("rank=%s", rank),
-				}, "&")
+				release := lmtr.Go()
+				defer release()
 
-				apiURL := "http://mushroomobserver.org/api/names?" + parameters
-
+				nameURL := getMatchNameURL(name)
 				var queryResult MushroomObserverQueryResult
-				if err := utils.RequestJSON(apiURL, &queryResult); err != nil {
+				if err := utils.RequestJSON(nameURL, &queryResult); err != nil {
 					if strings.Contains(err.Error(), "StatusCode: 503") {
-						fmt.Println(fmt.Sprintf("Warning: Could not fetch name from MushroomObserver [%s]", apiURL))
+						fmt.Println(fmt.Sprintf("Warning: Could not fetch name from MushroomObserver [%s]", nameURL))
 						return nil
 					}
 					return errors.Wrapf(err, "could not fetch name from mushroom observer [%s]", name)
@@ -76,17 +65,34 @@ func MatchCanonicalNames(cxt context.Context, names ...string) ([]*nameusagesour
 					return nil
 				}
 
-				for _, r := range queryResult.Results {
-					usage, err := parseTaxonResult(cxt, r)
-					if err != nil {
-						return err
-					}
-					if usage == nil {
-						continue
-					}
-					locker.Lock()
-					nameResponse = append(nameResponse, usage)
-					locker.Unlock()
+				for _, _result := range queryResult.Results {
+					result := _result
+					tmb.Go(func() error {
+						targetID, err := datasources.NewDataSourceTargetIDFromInt(result.ID)
+						if err != nil {
+							return err
+						}
+
+						cn, err := canonicalname.NewCanonicalName(result.Name, strings.ToLower(result.Rank))
+						if err != nil {
+							return err
+						}
+
+						src, err := nameusagesource.NewSource(datasources.TypeMushroomObserver, targetID, cn)
+						if err != nil {
+							return err
+						}
+
+						usage, err := nameusage.NewNameUsage(src)
+						if err != nil {
+							return err
+						}
+
+						locker.Lock()
+						defer locker.Unlock()
+						usageResponse = append(usageResponse, usage)
+						return nil
+					})
 				}
 				return nil
 			})
@@ -98,8 +104,23 @@ func MatchCanonicalNames(cxt context.Context, names ...string) ([]*nameusagesour
 		return nil, err
 	}
 
-	return nameResponse, nil
+	return usageResponse, nil
 
+}
+
+func getMatchNameURL(name string) string {
+	parameters := strings.Join([]string{
+		//fmt.Sprintf("updated_at=%s-%s", time.Now().AddUsage(time.Hour * 24 * 30 * -120).Format("20060102"), time.Now().Format("20060102")),
+		"format=json",
+		"is_deprecated=false",
+		//"ok_for_export=true",
+		//"has_classification=true",
+		fmt.Sprintf("name=%s", url.QueryEscape(name)),
+		//"has_synonyms=true",
+		"detail=high",
+		//fmt.Sprintf("rank=%s", rank),
+	}, "&")
+	return "http://mushroomobserver.org/api/names?" + parameters
 }
 
 type MushroomObserverTaxonResult struct {
@@ -122,24 +143,3 @@ type MushroomObserverTaxonResult struct {
 	//Synonyms      []interface{} `json:"synonyms,omitempty"`
 	//Parents       []interface{} `json:"parents"`
 }
-
-func parseTaxonResult(cxt context.Context, r *MushroomObserverTaxonResult) (*nameusagesource.Source, error) {
-
-	targetID, err := datasources.NewDataSourceTargetIDFromInt(r.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	cn, err := canonicalname.NewCanonicalName(r.Name, strings.ToLower(r.Rank))
-	if err != nil {
-		return nil, err
-	}
-
-	src, err := nameusagesource.NewSource(datasources.DataSourceTypeMushroomObserver, targetID, cn)
-	if err != nil {
-		return nil, err
-	}
-
-	return src, nil
-}
-

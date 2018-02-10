@@ -5,23 +5,18 @@ import (
 	"encoding/json"
 	"gopkg.in/tomb.v2"
 	"context"
-	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
-	"bitbucket.org/heindl/taxa/nameusage/nameusage"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/occurrences"
+	"bitbucket.org/heindl/processors/nameusage/canonicalname"
+	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/processors/algolia"
+	"bitbucket.org/heindl/processors/taxa"
 )
 
 type Aggregate struct {
 	list []*nameusage.NameUsage
 	sync.Mutex
 }
-
-//type CanonicalNameUsages []*NameUsage
-
-//func (a CanonicalNameUsages) Len() int           { return len(a) }
-//func (a CanonicalNameUsages) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-//func (a CanonicalNameUsages) Less(i, j int) bool { return a[i].canonicalName.name < a[j].canonicalName.name }
-
 
 type EachFunction func(ctx context.Context, usage *nameusage.NameUsage) error
 
@@ -55,6 +50,21 @@ func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 	return &res, nil
 }
 
+func (Ω *Aggregate) Upload(cxt context.Context, florastore store.FloraStore) error {
+
+	return Ω.Each(cxt, func(ctx context.Context, usage *nameusage.NameUsage) error {
+		deletedUsageIDs, err := usage.Upload(ctx, florastore)
+		if err != nil {
+			return err
+		}
+		if err := algolia.UploadNameUsageObjects(ctx, florastore, usage, deletedUsageIDs); err != nil {
+			return err
+		}
+		return taxa.UploadMaterializedTaxa(ctx, florastore, usage, deletedUsageIDs)
+	})
+
+}
+
 func (Ω *Aggregate) ScientificNames() []string {
 	res := canonicalname.CanonicalNames{}
 	for _, l := range Ω.list {
@@ -64,7 +74,7 @@ func (Ω *Aggregate) ScientificNames() []string {
 	return res.ScientificNames()
 }
 
-func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (res datasources.DataSourceTargetIDs) {
+func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (res datasources.TargetIDs) {
 	for _, usage := range Ω.list {
 		for _, src := range usage.Sources(sourceTypes...) {
 			res = append(res, src.TargetID())
@@ -121,39 +131,4 @@ func (Ω *Aggregate) HasCanonicalName(name *canonicalname.CanonicalName) bool {
 		}
 	}
 	return false
-}
-
-type OccurrenceFetcher func(context.Context, datasources.SourceType, datasources.TargetID, *time.Time) (*occurrences.OccurrenceAggregation, error)
-
-func (Ω *Aggregate) FetchOccurrences(ctx context.Context, oFetcher OccurrenceFetcher) error {
-
-	tmb := tomb.Tomb{}
-	tmb.Go(func() error {
-		for _, _src := range Ω.Sources() {
-			src := _src
-			tmb.Go(func() error {
-				aggr, err := oFetcher(ctx, src.SourceType(), src.TargetID(), src.LastFetchedAt())
-				if err != nil {
-					return err
-				}
-				if err := src.RegisterOccurrenceFetch(aggr.Count()); err != nil {
-					return err
-				}
-				if Ω.occurrenceAggregation == nil {
-					Ω.occurrenceAggregation = aggr
-					return nil
-				}
-				return Ω.occurrenceAggregation.Merge(aggr)
-			})
-		}
-		return nil
-	})
-	return tmb.Wait()
-}
-
-func (Ω *NameUsage) UploadCachedOccurrences(cxt context.Context, firestoreClient *firestore.Client) error {
-	if Ω.occurrenceAggregation == nil {
-		return nil
-	}
-	return Ω.occurrenceAggregation.Upsert(cxt, firestoreClient)
 }

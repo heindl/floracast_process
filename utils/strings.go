@@ -5,6 +5,8 @@ import (
 	"strings"
 	"unicode/utf8"
 	"unicode"
+	"gopkg.in/tomb.v2"
+	"sync"
 )
 
 func CapitalizeString(s string) string {
@@ -13,6 +15,32 @@ func CapitalizeString(s string) string {
 		}
 		r, n := utf8.DecodeRuneInString(s)
 		return string(unicode.ToUpper(r)) + s[n:]
+}
+
+func ForEachStringToStrings(æ []string, callback func(string) ([]string, error)) ([]string, error) {
+	res := []string{}
+	lock := sync.Mutex{}
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _n := range æ {
+			n := _n
+			tmb.Go(func() error {
+				s, err := callback(n)
+				if err != nil {
+					return err
+				}
+				lock.Lock()
+				defer lock.Unlock()
+				res = AddStringToSet(res, s...)
+				return nil
+			})
+		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func RemoveStringDuplicates(haystack []string) []string {

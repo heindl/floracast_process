@@ -2,7 +2,7 @@ package inaturalist
 
 import (
 	"context"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 	"github.com/dropbox/godropbox/errors"
 )
 
@@ -36,7 +36,7 @@ func (p *Photo) Large() string {
 }
 
 func (p *Photo) Source() datasources.SourceType {
-	return datasources.DataSourceTypeINaturalist
+	return datasources.TypeINaturalist
 }
 
 func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*Photo, error) {

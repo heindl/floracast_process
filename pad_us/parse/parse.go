@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bitbucket.org/heindl/taxa/pad_us"
-	"bitbucket.org/heindl/taxa/terra"
+	"bitbucket.org/heindl/processors/pad_us"
+	"bitbucket.org/heindl/processors/terra"
 	"flag"
 	"fmt"
 	"github.com/elgs/gostrgen"

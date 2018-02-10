@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 	"gopkg.in/tomb.v2"
 	"strings"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/datasources/gbif/api"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/datasources/gbif/api"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/taxa/nameusage/nameusage"
-	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
-	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
+	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/processors/nameusage/canonicalname"
+	"bitbucket.org/heindl/processors/nameusage/nameusagesource"
 	"sync"
 )
 
@@ -33,7 +33,7 @@ func (Ω *orchestrator) hasCanonicalName(name string) bool {
 	return false
 }
 
-func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch datasources.DataSourceTargetIDs) ([]*nameusage.NameUsage, error) {
+func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch datasources.TargetIDs) ([]*nameusage.NameUsage, error) {
 
 	o := orchestrator{
 		Usages: []*nameusage.NameUsage{},
@@ -157,7 +157,7 @@ func (Ω *orchestrator) fashionCanonicalNameUsage(scientificName, vernacularName
 		return nil
 	}
 
-	usageSource, err := nameusagesource.NewSource(datasources.DataSourceTypeGBIF, taxonID.TargetID(), canonicalName)
+	usageSource, err := nameusagesource.NewSource(datasources.TypeGBIF, taxonID.TargetID(), canonicalName)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("WARNING: Invalid GBIF NameUsage [%s, %d]", canonicalName.ScientificName(), taxonID))
 		return nil
@@ -244,7 +244,7 @@ func matchSynonyms(id api.TaxonID) ([]*nameusagesource.Source, error) {
 			return nil, err
 		}
 
-		src, err := nameusagesource.NewSource(datasources.DataSourceTypeGBIF, synonym.Key.TargetID(), canonicalName)
+		src, err := nameusagesource.NewSource(datasources.TypeGBIF, synonym.Key.TargetID(), canonicalName)
 		if err != nil {
 			return nil, err
 		}

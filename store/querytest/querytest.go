@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/processors/store"
 	"golang.org/x/net/context"
 	"google.golang.org/genproto/googleapis/type/latlng"
 	"time"

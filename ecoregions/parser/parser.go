@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/heindl/taxa/terra"
+	"bitbucket.org/heindl/processors/terra"
 	"flag"
 	"fmt"
 	"github.com/buger/jsonparser"

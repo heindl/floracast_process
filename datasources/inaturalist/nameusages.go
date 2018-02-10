@@ -1,18 +1,25 @@
 package inaturalist
 
 import (
-	"bitbucket.org/heindl/taxa/nameusage/nameusage"
+	"bitbucket.org/heindl/processors/nameusage/nameusage"
 	"context"
 	"strings"
-	"github.com/saleswise/errors/errors"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/nameusage/canonicalname"
-	"bitbucket.org/heindl/taxa/nameusage/nameusagesource"
+	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/nameusage/canonicalname"
+	"bitbucket.org/heindl/processors/nameusage/nameusagesource"
 )
 
-func FetchNameUsages(cxt context.Context, ids ...int) ([]*nameusage.NameUsage, error) {
+// namesToMatch []string, keysToMatch datasources.TargetIDs
+func FetchNameUsages(cxt context.Context, namesToMatch []string, ids datasources.TargetIDs) ([]*nameusage.NameUsage, error) {
 
-	taxa, err := NewTaxaFetcher(cxt, true, true).FetchTaxa(TaxonIDsFromIntegers(ids...)...)
+	ints, err := ids.Integers()
+	if err != nil {
+		return nil, err
+	}
+	taxonIDs := TaxonIDsFromIntegers(ints...)
+
+	taxa, err := NewTaxaFetcher(cxt, true, true).FetchTaxa(taxonIDs...)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +41,7 @@ func FetchNameUsages(cxt context.Context, ids ...int) ([]*nameusage.NameUsage, e
 			return nil, err
 		}
 
-		src, err := nameusagesource.NewSource(datasources.DataSourceTypeINaturalist, inaturalistTaxon.ID.TargetID(), name)
+		src, err := nameusagesource.NewSource(datasources.TypeINaturalist, inaturalistTaxon.ID.TargetID(), name)
 		if err != nil {
 			return nil, err
 		}

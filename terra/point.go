@@ -38,12 +38,12 @@ func (Ω Point) Latitude() float64 {
 	return Ω.latlng.Lat.Degrees()
 }
 
-func (Ω Point) S2TokenArray() []string {
+func (Ω Point) S2TokenMap() map[string]bool {
 	initial_cell_id := s2.CellIDFromLatLng(*Ω.latlng)
-	feature_array := []string{}
+	feature_array := map[string]bool{}
 	for i := 0; i < 10; i++ {
 		cell_id := initial_cell_id.Parent(i)
-		feature_array = append(feature_array, cell_id.ToToken())
+		feature_array[cell_id.ToToken()] = true
 	}
 	return feature_array
 }

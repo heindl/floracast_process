@@ -4,20 +4,21 @@ import (
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"
 	"os"
-	"fmt"
+	"context"
 )
 
-const indexNameUsage = "NameUsage"
+const envAPIKey = "envAPIKey"
+const envApplicationID = "envApplicationID"
+
+
+type AlgoliaIndexFunc func(client algoliasearch.Client) (algoliasearch.Index, error)
 
 type AlgoliaIndex interface{
 	AddObjects([]algoliasearch.Object) (algoliasearch.BatchRes, error)
 	DeleteBy(params algoliasearch.Map) (res algoliasearch.DeleteTaskRes, err error)
 }
 
-const envAPIKey = "envAPIKey"
-const envApplicationID = "envApplicationID"
-
-func NewAlgoliaNameUsageIndex() (AlgoliaIndex, error) {
+func NewLiveAlgoliaClient(ctx context.Context) (algoliasearch.Client, error) {
 
 	if os.Getenv(envAPIKey) == "" || os.Getenv(envApplicationID) == "" {
 		return nil, errors.Newf("%s and %s environment variables required for an Algolia Index", envAPIKey, envApplicationID)
@@ -25,31 +26,5 @@ func NewAlgoliaNameUsageIndex() (AlgoliaIndex, error) {
 
 	client := algoliasearch.NewClient(os.Getenv(envApplicationID), os.Getenv(envAPIKey))
 
-	index := client.InitIndex(indexNameUsage)
-
-	if _, err := index.SetSettings(algoliasearch.Map{
-		"distinct": AlgoliaKeyNameUsageID,
-		"customRanking": []string{
-			fmt.Sprintf("desc(%s)", AlgoliaKeyReferenceCount),
-		},
-		"searchableAttributes": []string{
-			string(AlgoliaKeyCommonName),
-			string(AlgoliaKeyScientificName),
-		},
-	}); err != nil {
-		return nil, errors.Wrap(err, "Could not add settings to NameUsage Algolia index")
-	}
-
-	return index, nil
-
+	return client, nil
 }
-
-type nameObjectKey string
-const (
-	AlgoliaKeyNameUsageID     = nameObjectKey("NameUsageID")
-	AlgoliaKeyScientificName  = nameObjectKey("ScientificName")
-	AlgoliaKeyCommonName      = nameObjectKey("CommonName")
-	AlgoliaKeyThumbnail       = nameObjectKey("Thumbnail")
-	AlgoliaKeyOccurrenceCount = nameObjectKey("TotalOccurrenceCount")
-	AlgoliaKeyReferenceCount  = nameObjectKey("ReferenceCount")
-)

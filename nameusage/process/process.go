@@ -1,22 +1,20 @@
 package main
 
 import (
-	"bitbucket.org/heindl/taxa/datasources/inaturalist"
 	"context"
-	"bitbucket.org/heindl/taxa/datasources/gbif"
-	"bitbucket.org/heindl/taxa/nameusage/nameusage"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/datasources/natureserve"
-	"bitbucket.org/heindl/taxa/datasources/mushroomobserver"
-	"bitbucket.org/heindl/taxa/nameusage/aggregate"
-	"bitbucket.org/heindl/taxa/occurrences"
+	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/nameusage/aggregate"
+	"bitbucket.org/heindl/processors/occurrences"
 	"flag"
 	"strings"
 	"strconv"
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/processors/datasources/sourcefetchers"
+	"fmt"
 )
 
-const MinimumOccurrenceCount = 100
+const minimumOccurrenceCount = 100
 
 
 func main() {
@@ -40,28 +38,29 @@ func main() {
 
 	cxt := context.Background()
 
-	aggr, err := InitialAggregation(cxt, intIDs...)
+	nameUsageAggr, err := InitialAggregation(cxt, intIDs...)
 	if err != nil {
 		panic(err)
 	}
 
-	ocAggr, err := OccurrenceFetch(cxt, aggr)
+	occurrenceAggr, err := OccurrenceFetch(cxt, nameUsageAggr)
 	if err != nil {
 		panic(err)
 	}
 
-	fc, err := store.NewLiveFirestore()
+	fc, err := store.NewFloraStore(cxt)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := ocAggr.Upsert(cxt, fc); err != nil {
+	if err := occurrenceAggr.Upload(cxt, fc); err != nil {
+		panic(err)
+	}
+
+	if err := nameUsageAggr.Upload(cxt, fc); err != nil {
 		panic(err)
 	}
 }
-
-
-
 
 
 // This function is intended to be a process of building a store taxon representation based on several
@@ -91,35 +90,35 @@ func InitialAggregation(cxt context.Context, inaturalistTaxonIDs ...int) (*aggre
 	// Which means that try to combine them and ignore synonyms, though they appear to still show known synonyms like Morchella Conica.
 	// We need synonyms because other archives do not appear to divide them. TotalOccurrenceCount are still stored within the synonym.
 
-	usages, err := inaturalist.FetchNameUsages(cxt, inaturalistTaxonIDs...)
+	targetIDs, err := datasources.NewDataSourceTargetIDFromInts(inaturalistTaxonIDs...)
 	if err != nil {
 		return nil, err
 	}
 
-	aggregation := aggregate.Aggregate{}
-	if err := aggregation.AddUsage(usages...); err != nil {
-		return nil, err
+	snowball := aggregate.Aggregate{}
+
+	// Order is obviously extremely important here.
+	for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF, datasources.TypeNatureServe} {
+
+		ids := snowball.TargetIDs(srcType)
+		if srcType == datasources.TypeINaturalist {
+			ids = targetIDs
+		}
+
+		fmt.Println("ids", ids, snowball.ScientificNames())
+
+		usages, err := sourcefetchers.FetchNameUsages(cxt, srcType, snowball.ScientificNames(), ids)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := snowball.AddUsage(usages...); err != nil {
+			return nil, err
+		}
+
 	}
 
-	gbifUsages, err := gbif.FetchNamesUsages(cxt, aggregation.ScientificNames(), aggregation.TargetIDs(datasources.DataSourceTypeGBIF))
-	if err != nil {
-		return nil, err
-	}
-
-	if err := aggregation.AddUsage(gbifUsages...); err != nil {
-		return nil, err
-	}
-
-	natureServeUsages, err := natureserve.FetchNameUsages(cxt, aggregation.ScientificNames(), aggregation.TargetIDs(datasources.DataSourceTypeNatureServe))
-	if err != nil {
-		return nil, err
-	}
-
-	if err := aggregation.AddUsage(natureServeUsages...); err != nil {
-		return nil, err
-	}
-
-	return &aggregation, nil
+	return &snowball, nil
 }
 
 func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*occurrences.OccurrenceAggregation, error) {
@@ -127,38 +126,32 @@ func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*oc
 	res := occurrences.OccurrenceAggregation{}
 
 	// Fetch Inaturalist and GBIF occurrences.
-	if err := aggregation.Each(cxt, occurrenceFetcher(&res, datasources.DataSourceTypeGBIF, datasources.DataSourceTypeINaturalist)); err != nil {
+	if err := aggregation.Each(cxt, occurrenceFetcher(&res, datasources.TypeGBIF, datasources.TypeINaturalist)); err != nil {
 		return nil, err
 	}
 
-	countFilteredAggregation, err := aggregation.Filter(func(u *nameusage.NameUsage) bool {
+	filteredAggregation, err := aggregation.Filter(func(u *nameusage.NameUsage) bool {
 		return u.TotalOccurrenceCount() < 100
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch MushroomObserver sources.
-	if err := countFilteredAggregation.Each(cxt, fetchMushroomObserverSources); err != nil {
+	usages, err := sourcefetchers.FetchNameUsages(cxt, datasources.TypeMushroomObserver, filteredAggregation.ScientificNames(), nil)
+	if err != nil {
 		return nil, err
 	}
 
-	// Fetch MushroomObserver Occurrences.
-	if err := countFilteredAggregation.Each(cxt, occurrenceFetcher(&res, datasources.DataSourceTypeMushroomObserver)); err != nil {
+	if err := filteredAggregation.AddUsage(usages...); err != nil {
+		return nil, err
+	}
+
+	if err := aggregation.Each(cxt, occurrenceFetcher(&res, datasources.TypeMushroomObserver)); err != nil {
 		return nil, err
 	}
 
 	return &res, nil
 
-}
-
-func fetchMushroomObserverSources(ctx context.Context, usage *nameusage.NameUsage) error {
-	names := append(usage.Synonyms().ScientificNames(), usage.CanonicalName().ScientificName())
-	sources, err := mushroomobserver.MatchCanonicalNames(ctx, names...)
-	if err != nil {
-		return err
-	}
-	return usage.AddSources(sources...)
 }
 
 func occurrenceFetcher(oAggr *occurrences.OccurrenceAggregation, srcTypes ...datasources.SourceType) aggregate.EachFunction {
@@ -179,7 +172,7 @@ func occurrenceFetcher(oAggr *occurrences.OccurrenceAggregation, srcTypes ...dat
 			}
 		}
 
-		if usageOccurrenceAggr.Count() >= MinimumOccurrenceCount {
+		if usageOccurrenceAggr.Count() >= minimumOccurrenceCount {
 			if err := oAggr.Merge(&usageOccurrenceAggr); err != nil {
 				return err
 			}

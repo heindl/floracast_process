@@ -1,10 +1,10 @@
 package occurrences
 
 import (
-	"bitbucket.org/heindl/taxa/datasources/inaturalist"
-	"bitbucket.org/heindl/taxa/datasources/mushroomobserver"
-	"bitbucket.org/heindl/taxa/datasources"
-	"bitbucket.org/heindl/taxa/datasources/gbif"
+	"bitbucket.org/heindl/processors/datasources/inaturalist"
+	"bitbucket.org/heindl/processors/datasources/mushroomobserver"
+	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/datasources/gbif"
 	"context"
 	"time"
 	"github.com/dropbox/godropbox/errors"
@@ -28,7 +28,7 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 	provided := []OccurrenceProvider{}
 
 	switch sourceType {
-	case datasources.DataSourceTypeGBIF:
+	case datasources.TypeGBIF:
 		providers, err := gbif.FetchOccurrences(ctx, targetID, since)
 		if err != nil {
 			return nil, err
@@ -36,7 +36,7 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 		for _, _provider := range providers {
 			provided = append(provided, _provider)
 		}
-	case datasources.DataSourceTypeINaturalist:
+	case datasources.TypeINaturalist:
 		providers, err := inaturalist.FetchOccurrences(ctx, targetID, since)
 		if err != nil {
 			return nil, err
@@ -44,7 +44,7 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 		for _, _provider := range providers {
 			provided = append(provided, _provider)
 		}
-	case datasources.DataSourceTypeMushroomObserver:
+	case datasources.TypeMushroomObserver:
 		providers, err := mushroomobserver.FetchOccurrences(ctx, targetID, since)
 		if err != nil {
 			return nil, err

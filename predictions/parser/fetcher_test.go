@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"bitbucket.org/heindl/taxa/predictions/geocache"
-	"bitbucket.org/heindl/taxa/store"
+	"bitbucket.org/heindl/processors/predictions/geocache"
+	"bitbucket.org/heindl/processors/store"
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"

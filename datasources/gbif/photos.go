@@ -1,9 +1,9 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 	"context"
-	"bitbucket.org/heindl/taxa/datasources/gbif/api"
+	"bitbucket.org/heindl/processors/datasources/gbif/api"
 	"github.com/dropbox/godropbox/errors"
 )
 
@@ -25,7 +25,7 @@ func (p *MaterializedPhoto) Large() string {
 }
 
 func (p *MaterializedPhoto) Source() datasources.SourceType {
-	return datasources.DataSourceTypeGBIF
+	return datasources.TypeGBIF
 }
 
 func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*MaterializedPhoto, error) {
@@ -53,12 +53,12 @@ func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*Materia
 		}
 
 		p := MaterializedPhoto{
-			URL: l.Identifier,
+			Link: l.Identifier,
 		}
 
-		p.Citation = l.Creator
+		p.Attribution = l.Creator
 		if l.Source != "" {
-			p.Citation = p.Citation + ", " + l.Source
+			p.Attribution = p.Attribution + ", " + l.Source
 		}
 
 		photos = append(photos, &p)

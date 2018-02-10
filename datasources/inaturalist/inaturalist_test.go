@@ -5,9 +5,9 @@ import (
 	"testing"
 	"golang.org/x/net/context"
 	"fmt"
-	"bitbucket.org/heindl/taxa/utils"
+	"bitbucket.org/heindl/processors/utils"
 	"time"
-	"bitbucket.org/heindl/taxa/datasources"
+	"bitbucket.org/heindl/processors/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -22,7 +22,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 
 		//fmt.Println(utils.JsonOrSpew(usages.Names()))
-		//fmt.Println(utils.JsonOrSpew(usages.TargetIDs(store.DataSourceTypeGBIF)))
+		//fmt.Println(utils.JsonOrSpew(usages.TargetIDs(store.TypeGBIF)))
 
 	})
 
