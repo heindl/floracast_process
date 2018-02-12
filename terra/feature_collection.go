@@ -3,6 +3,8 @@ package terra
 import (
 	"github.com/dropbox/godropbox/errors"
 	"github.com/paulmach/go.geojson"
+	"strings"
+	"fmt"
 )
 
 type FeatureCollection struct {
@@ -19,11 +21,12 @@ func (Ω *FeatureCollection) Features() []*Feature {
 	return Ω.features
 }
 
+var ErrInvalidFeature = errors.New("Invalid Feature")
 func (Ω *FeatureCollection) Append(features ...*Feature) error {
 	for i := range features {
 		features[i].Normalize()
 		if !features[i].Valid() {
-			return errors.New("invalid feature")
+			return ErrInvalidFeature
 		}
 		Ω.features = append(Ω.features, features[i])
 	}
@@ -104,9 +107,10 @@ func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bo
 
 // Note that this function ignores missing strings.
 // max_distance_from_centroid
-func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) FeatureCollections {
+var ErrInvalidProperty = errors.New("Invalid Property")
+func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) (FeatureCollections, error) {
 	if len(property_keys) == 0 {
-		return nil
+		return nil, nil
 	}
 	output_holder := map[string][]*Feature{}
 	for _, feature := range Ω.features {
@@ -114,10 +118,16 @@ func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) FeatureC
 		for _, k := range property_keys {
 			i, err := feature.GetProperty(k)
 			if err != nil {
-				return nil
+				return nil, err
 			}
-			b := i.([]byte)
-			a += string(b)
+			if len(i.([]byte)) == 0 {
+				return nil, errors.Wrapf(ErrInvalidProperty, "Empty Value")
+			}
+			s := strings.TrimSpace(string(i.([]byte)))
+			if s == "" || s == "0"  {
+				return nil, errors.Wrapf(ErrInvalidProperty, "Empty Value")
+			}
+			a = a + s
 		}
 		if _, ok := output_holder[a]; !ok {
 			output_holder[a] = []*Feature{}
@@ -129,11 +139,13 @@ func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) FeatureC
 
 	for _, features := range output_holder {
 		fc := FeatureCollection{}
-		fc.Append(features...)
+		if err := fc.Append(features...); err != nil {
+			return nil, err
+		}
 		output = append(output, &fc)
 	}
 
-	return output
+	return output, nil
 }
 
 func (Ω *FeatureCollection) FilterByMinimumArea(minimum_area_kilometers float64) *FeatureCollection {

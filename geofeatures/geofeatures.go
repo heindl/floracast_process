@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/heindl/processors/ecoregions"
 	"bitbucket.org/heindl/processors/terra"
 	"bitbucket.org/heindl/processors/utils"
-	"context"
 	"github.com/dropbox/godropbox/errors"
 	"googlemaps.github.io/maps"
 	"os"
@@ -14,6 +13,7 @@ import (
 	"fmt"
 	"cloud.google.com/go/firestore"
 	"google.golang.org/appengine"
+	"strings"
 )
 
 // Description of Precision
@@ -129,9 +129,9 @@ func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureS
 		return nil, err
 	}
 
-	ecoID := liveProcessor.ecoRegionCache.EcoID(lat, lng)
-	if !ecoID.Valid() {
-		return nil, errors.Wrapf(ErrInvalidEcoRegion,"EcoID not found for coordinates [%.3f, %.3f]", lat, lng)
+	ecoID, err := liveProcessor.ecoRegionCache.EcoID(lat, lng)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not find EcoRegion [%.3f, %.3f]", lat, lng)
 	}
 
 	if err := liveProcessor.queueElevation(lat, lng); err != nil {
@@ -226,7 +226,7 @@ func init() {
 }
 
 func elevationKey(lat, lng float64) string {
-	return fmt.Sprintf("%.4f|%.4f", lat, lng)
+	return fmt.Sprintf("%.4f,%.4f", lat, lng)
 }
 
 func (Ω *geoFeaturesProcessor) elevationQueueStatus(lat, lng float64) (queued, fetched bool) {
@@ -247,25 +247,24 @@ func (Ω *geoFeaturesProcessor) queueElevation(lat, lng float64) error {
 	Ω.Lock()
 	Ω.elevationsQueued[k] = maps.LatLng{lat, lng}
 	Ω.Unlock()
-	if len(Ω.elevationsQueued) >= 500 {
+	if len(Ω.elevationsQueued) >= 10 {
 		return Ω.flushElevations()
 	}
 	return nil
 }
 
 func (Ω *geoFeaturesProcessor) getElevation(lat, lng float64) (*float64, error) {
-	_, fetched := Ω.elevationQueueStatus(lat, lng)
+	queued, fetched := Ω.elevationQueueStatus(lat, lng)
 
 	if !fetched {
 		return nil, nil
 	}
-	//if !fetched && queued {
-	//	return nil, nil
-	//}
-	//if !fetched && !queued {
-	// The elevation fetcher does not return all coordinates, unfortunately.
-	//	return nil, errors.Newf("Trying to get coordinates neither fetched or queued [%s]", elevationKey(lat, lng))
-	//}
+	if !fetched && queued {
+		return nil, nil
+	}
+	if !fetched && !queued {
+		return nil, errors.Newf("Trying to get coordinates neither fetched or queued [%s] with %d previously fetched", elevationKey(lat, lng), len(Ω.elevationsFetched))
+	}
 	return utils.FloatPtr(Ω.elevationsFetched[elevationKey(lat, lng)]), nil
 }
 
@@ -273,23 +272,43 @@ func (Ω *geoFeaturesProcessor) flushElevations() error {
 	Ω.Lock()
 	defer Ω.Unlock()
 
-	locs := []maps.LatLng{}
+	locs := []string{}
 	for _, k := range Ω.elevationsQueued {
-		locs = append(locs, k)
+		locs = append(locs, elevationKey(k.Lat, k.Lng))
+	}
+	if len(locs) == 0 {
+		return nil
 	}
 
-	eleReq := maps.ElevationRequest{Locations: locs}
-
-	resolvedElevations, err := Ω.mapClient.Elevation(context.Background(), &eleReq)
-	if err != nil {
-		return errors.Wrap(err, "could not fetch elevations")
-	}
-	for _, e := range resolvedElevations {
-		k := elevationKey(e.Location.Lat, e.Location.Lng)
-		Ω.elevationsFetched[k] = e.Elevation
+	var res struct {
+		Results []struct {
+			Lat float64 `json:"latitude"`
+			Lng float64 `json:"longitude"`
+			Elevation float64 `json:"elevation"` // Meters
+		} `json:"results"`
 	}
 
-	fmt.Println("Flushing Elevations", len(Ω.elevationsQueued), len(Ω.elevationsFetched), len(locs), len(resolvedElevations))
+	if err := utils.RequestJSON("https://api.open-elevation.com/api/v1/lookup?locations=" + strings.Join(locs, "|"), &res); err != nil {
+		return errors.Wrap(err, "Could not fetch elevation api")
+	}
+
+	//resolvedElevations, err := Ω.mapClient.Elevation(context.Background(), &eleReq)
+	//if err != nil {
+	//	return errors.Wrap(err, "could not fetch elevations")
+	//}
+	//for _, e := range resolvedElevations {
+	//	k := elevationKey(e.Location.Lat, e.Location.Lng)
+	//	Ω.elevationsFetched[k] = e.Elevation
+	//}
+	for _, r := range res.Results {
+		k := elevationKey(r.Lat, r.Lng)
+		if r.Elevation == 0 {
+			fmt.Println("Elevation key [%s] not resolved", k)
+		}
+		Ω.elevationsFetched[k] = r.Elevation
+	}
+
+	//fmt.Println("Flushing Elevations", len(Ω.elevationsQueued), len(Ω.elevationsFetched), len(locs), len(resolvedElevations))
 	Ω.elevationsQueued = map[string]maps.LatLng{}
 	return nil
 }

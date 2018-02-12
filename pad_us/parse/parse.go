@@ -63,7 +63,10 @@ func main() {
 
 	processor.Stats["After Name Filter"] = filtered_unit_names.Count()
 
-	name_grouped := filtered_unit_names.GroupByProperties("Unit_Nm", "Loc_Nm")
+	name_grouped, err := filtered_unit_names.GroupByProperties("Unit_Nm", "Loc_Nm")
+	if err != nil {
+		panic(err)
+	}
 
 	processor.Stats["After Name Group"] = len(name_grouped)
 

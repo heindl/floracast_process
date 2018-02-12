@@ -2,8 +2,9 @@ package ecoregions
 
 import (
 	"bitbucket.org/heindl/processors/terra"
-	"gopkg.in/tomb.v2"
 	"sync"
+	"github.com/dropbox/godropbox/errors"
+	"fmt"
 )
 
 type EcoRegionsCache struct {
@@ -11,6 +12,7 @@ type EcoRegionsCache struct {
 }
 
 type EcoRegion struct {
+	REALM Realm
 	EcoName      string  // Ecoregion Name
 	EcoCode      EcoCode // This is an alphanumeric code that is similar to eco_ID but a little easier to interpret. The first 2 characters (letters) are the realm the ecoregion is in. The 2nd 2 characters are the biome and the last 2 characters are the ecoregion number.
 	EcoNum       EcoNum  // A unique number for each ecoregion within each biome nested within each realm.
@@ -43,26 +45,53 @@ func NewEcoRegionsCache() (*EcoRegionsCache, error) {
 	return &EcoRegionsCache{&fc}, nil
 }
 
-func (Ω *EcoRegionsCache) EcoID(lat, lng float64) EcoID {
 
-	var id EcoID
+var SignalDone = errors.New("EcoRegion Found")
+var ErrNotFound = errors.New("EcoRegion Not Found")
+func (Ω *EcoRegionsCache) EcoID(lat, lng float64) (EcoID, error) {
 
-	tmb := tomb.Tomb{}
-	tmb.Go(func() error {
-		for _, _feature := range Ω.fc.Features() {
-			feature := _feature
-			tmb.Go(func() error {
-				if feature.Contains(lat, lng) {
-					b, _ := feature.GetPropertyInt("ECO_ID")
-					id = EcoID(b)
+	//var id EcoID
+
+	//tmb := tomb.Tomb{}
+	//tmb.Go(func() error {
+		for _, _f := range Ω.fc.Features() {
+			f := _f
+			//tmb.Go(func() error {
+				i, err := f.GetPropertyInt("ECO_ID")
+				if err != nil {
+					return EcoID(0), errors.Wrapf(err, "Could not get ECO_ID property [%.4f, %.4f]", lat, lng)
 				}
-				return nil
-			})
+				id := EcoID(i)
+
+				if !id.Valid() {
+					return EcoID(0), errors.Newf("Invalid EcoID [%d] exists in features", id)
+				}
+				f.
+				containsFeature := f.Contains(lat, lng)
+				fmt.Println(containsFeature, id, id.Name())
+				if containsFeature{
+					b, err := Ω.fc.GeoJSON()
+					if err != nil {
+						return EcoID(0), err
+					}
+					fmt.Println(string(b))
+					return id, nil
+					//tmb.Kill(SignalDone)
+				}
+				//return nil
+			//})
 		}
-		return nil
-	})
+		//return nil
+	//})
 
-	_ = tmb.Wait()
+	//if err := tmb.Wait(); err != nil && err != SignalDone {
+	//	return EcoID(0), err
+	//}
 
-	return id
+	//if !id.Valid() {
+	//	return EcoID(0), ErrNotFound
+	//}
+
+	//return id, nil
+	return EcoID(0), ErrNotFound
 }

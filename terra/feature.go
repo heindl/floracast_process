@@ -47,6 +47,9 @@ func (Ω *Feature) Valid() bool {
 	if Ω.multiPolygon.Empty() {
 		return false
 	}
+	if Ω.multiPolygon.Area() == 0 {
+		return false
+	}
 	return true
 }
 
