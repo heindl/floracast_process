@@ -16,7 +16,7 @@ func TestTaxonFetcher(t *testing.T) {
 	SkipConvey("should fetch occurrences", t, func() {
 		res, err := FetchOccurrences(context.Background(), datasources.TargetID("8229116"), nil)
 		So(err, ShouldBeNil)
-		fmt.Println("Result", res.Count())
+		fmt.Println("Result", len(res))
 
 	})
 

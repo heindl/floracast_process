@@ -3,31 +3,20 @@ package canonicalname
 import (
 	"github.com/dropbox/godropbox/errors"
 	"strings"
-	"encoding/json"
 	"bitbucket.org/heindl/processors/utils"
 )
 
-// The canonical name is the scientific name of the species, subspecies, variety, etc. Anything under Genus.
+// The canonical Name is the scientific Name of the species, subspecies, variety, etc. Anything under Genus.
 type CanonicalName struct {
-	name string
-	rank string
+	Name string `json:"ScientificName" firestore:"ScientificName"`
+	Rank string `json:"Rank,omitempty" firestore:"Rank,omitempty"`
 }
 
 func (a *CanonicalName) ScientificName() string {
 	if a == nil {
 		return ""
 	}
-	return a.name
-}
-
-func (a *CanonicalName) MarshalJSON() ([]byte, error) {
-	if a == nil {
-		return nil, nil
-	}
-	return json.Marshal(map[string]interface{}{
-		"ScientificName": a.name,
-		"Rank": a.rank,
-	})
+	return a.Name
 }
 
 func NewCanonicalName(name string, rank string) (*CanonicalName, error) {
@@ -48,13 +37,13 @@ func NewCanonicalName(name string, rank string) (*CanonicalName, error) {
 
 	// TODO: Consider removing some words like ".var" to improve consistency and matching.
 	return &CanonicalName{
-		name: s,
-		rank: rank,
+		Name: s,
+		Rank: rank,
 		}, nil
 }
 
 func (a *CanonicalName) Equals(b *CanonicalName) bool {
-	return a.name == b.name
+	return a.Name == b.Name
 }
 
 type CanonicalNames []*CanonicalName
@@ -62,7 +51,7 @@ type CanonicalNames []*CanonicalName
 func (Ω CanonicalNames) ScientificNames() []string {
 	res := []string{}
 	for _, c := range Ω {
-		res = utils.AddStringToSet(res, c.name)
+		res = utils.AddStringToSet(res, c.Name)
 	}
 	return res
 }

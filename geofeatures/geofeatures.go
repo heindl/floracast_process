@@ -119,6 +119,8 @@ func validateCoordinates(geopoint *appengine.GeoPoint) error {
 	return nil
 }
 
+var ErrInvalidEcoRegion = errors.New("Invalid EcoRegion")
+
 func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureSet, error) {
 
 	geopoint := appengine.GeoPoint{Lat: lat, Lng: lng}
@@ -126,13 +128,24 @@ func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureS
 	if err := validateCoordinates(&geopoint); err != nil {
 		return nil, err
 	}
+
+	ecoID := liveProcessor.ecoRegionCache.EcoID(lat, lng)
+	if !ecoID.Valid() {
+		return nil, errors.Wrapf(ErrInvalidEcoRegion,"EcoID not found for coordinates [%.3f, %.3f]", lat, lng)
+	}
+
 	if err := liveProcessor.queueElevation(lat, lng); err != nil {
 		return nil, err
 	}
-	return &GeoFeatureSet{geopoint: &geopoint, coordinatesEstimated: coordinatesEstimated}, nil
+	return &GeoFeatureSet{
+		geopoint: &geopoint,
+		coordinatesEstimated: coordinatesEstimated,
+		biome: ecoID.Biome(),
+		ecoNum: ecoID.EcoNum(),
+		}, nil
 }
 
-func (Ω GeoFeatureSet) ToMap() (map[string]interface{}, error) {
+func (Ω *GeoFeatureSet) ToMap() (map[string]interface{}, error) {
 
 	if err := validateCoordinates(Ω.geopoint); err != nil {
 		return nil, err
@@ -158,16 +171,15 @@ func (Ω GeoFeatureSet) ToMap() (map[string]interface{}, error) {
 		return nil, errors.Newf("Elevation still not generated after flush [%s]", elevationKey(Ω.geopoint.Lat, Ω.geopoint.Lng))
 	}
 
-	ecoID := liveProcessor.ecoRegionCache.EcoID(Ω.geopoint.Lat, Ω.geopoint.Lng)
-	if !ecoID.Valid() {
-		return nil, InvalidEcoRegion
+	if !Ω.biome.Valid() || !Ω.ecoNum.Valid() {
+		return nil, errors.New("Invalid EcoID")
 	}
 
 	return map[string]interface{}{
 		keyGeoPoint: Ω.geopoint,
 		keyCoordinatesEstimated: Ω.coordinatesEstimated,
-		keyBiome:       ecoID.Biome(),
-		keyEcoNum:      ecoID.EcoNum(),
+		keyBiome:       Ω.biome,
+		keyEcoNum:      Ω.ecoNum,
 		keyS2Tokens:    terra.NewPoint(Ω.geopoint.Lat, Ω.geopoint.Lng).S2TokenMap(),
 		keyElevation:   elevation,
 		keyCoordinate: Ω.CoordinateKey(),
@@ -242,13 +254,18 @@ func (Ω *geoFeaturesProcessor) queueElevation(lat, lng float64) error {
 }
 
 func (Ω *geoFeaturesProcessor) getElevation(lat, lng float64) (*float64, error) {
-	queued, fetched := Ω.elevationQueueStatus(lat, lng)
-	if !fetched && queued {
+	_, fetched := Ω.elevationQueueStatus(lat, lng)
+
+	if !fetched {
 		return nil, nil
 	}
-	if !fetched && !queued {
-		return nil, errors.Newf("Trying to get coordinates neither fetched or queued [%s]", elevationKey(lat, lng))
-	}
+	//if !fetched && queued {
+	//	return nil, nil
+	//}
+	//if !fetched && !queued {
+	// The elevation fetcher does not return all coordinates, unfortunately.
+	//	return nil, errors.Newf("Trying to get coordinates neither fetched or queued [%s]", elevationKey(lat, lng))
+	//}
 	return utils.FloatPtr(Ω.elevationsFetched[elevationKey(lat, lng)]), nil
 }
 
@@ -276,8 +293,6 @@ func (Ω *geoFeaturesProcessor) flushElevations() error {
 	Ω.elevationsQueued = map[string]maps.LatLng{}
 	return nil
 }
-
-var InvalidEcoRegion = errors.New("Invalid EcoRegion")
 //
 //
 //func (Ω *geoFeaturesProcessor) processElevationBatch(cxt context.Context, locations ...PredictableLocation) error {

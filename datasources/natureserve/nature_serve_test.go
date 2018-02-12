@@ -418,6 +418,8 @@ func TestTaxonFetcher(t *testing.T) {
 			"merulius guyanensis",
 		}
 
+		names = []string{"morchella deliciosa", "cantharellus cibarius"}
+
 		usages, err := FetchNameUsages(context.Background(), names, nil)
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(usages))

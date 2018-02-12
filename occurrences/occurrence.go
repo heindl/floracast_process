@@ -279,7 +279,7 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b *Occurrence) error {
 
 // TODO: Should periodically check all occurrences for consistency.
 
-func (Ω OccurrenceAggregation) Upload(cxt context.Context, florastore store.FloraStore) error {
+func (Ω *OccurrenceAggregation) Upload(cxt context.Context, florastore store.FloraStore) error {
 
 	limiter := ratelimit.New(100)
 
@@ -386,4 +386,8 @@ func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) err
 
 	return nil
 
+}
+
+func (Ω *OccurrenceAggregation) MarshalJSON() ([]byte, error) {
+	return json.Marshal(Ω.list)
 }

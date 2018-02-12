@@ -4,11 +4,10 @@ import (
 	"context"
 	"bitbucket.org/heindl/processors/datasources"
 	"bitbucket.org/heindl/processors/nameusage/canonicalname"
-	"bitbucket.org/heindl/processors/nameusage/nameusagesource"
 	"bitbucket.org/heindl/processors/nameusage/nameusage"
 )
 
-func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.TargetIDs) ([]*nameusage.NameUsage, error) {
+func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 
 	nameTaxa, err := FetchTaxaFromSearch(cxt, names...)
 	if err != nil {
@@ -22,7 +21,7 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.
 
 	taxa := append(nameTaxa, uidTaxa...)
 
-	res := []*nameusage.NameUsage{}
+	res := []nameusage.NameUsage{}
 
 	for _, txn := range taxa {
 
@@ -31,7 +30,7 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.
 			return nil, err
 		}
 
-		usageSource, err := nameusagesource.NewSource(datasources.TypeNatureServe, datasources.TargetID(txn.ID), canonicalName)
+		usageSource, err := nameusage.NewSource(datasources.TypeNatureServe, datasources.TargetID(txn.ID), canonicalName)
 		if err != nil {
 			return nil, err
 		}

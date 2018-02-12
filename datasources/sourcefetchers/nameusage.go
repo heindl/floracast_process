@@ -8,9 +8,10 @@ import (
 	"bitbucket.org/heindl/processors/datasources/gbif"
 	"bitbucket.org/heindl/processors/datasources/natureserve"
 	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/processors/datasources/mushroomobserver"
 )
 
-func FetchNameUsages(ctx context.Context, sourceType datasources.SourceType, scientificNames []string, targetIDs datasources.TargetIDs) ([]*nameusage.NameUsage, error) {
+func FetchNameUsages(ctx context.Context, sourceType datasources.SourceType, scientificNames []string, targetIDs datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 	switch sourceType {
 	case datasources.TypeGBIF:
 		return gbif.FetchNamesUsages(ctx, scientificNames, targetIDs)
@@ -19,7 +20,7 @@ func FetchNameUsages(ctx context.Context, sourceType datasources.SourceType, sci
 	case datasources.TypeNatureServe:
 		return natureserve.FetchNameUsages(ctx, scientificNames, targetIDs)
 	case datasources.TypeMushroomObserver:
-		return natureserve.FetchNameUsages(ctx, scientificNames, targetIDs)
+		return mushroomobserver.FetchNameUsages(ctx, scientificNames, targetIDs)
 	default:
 		return nil, errors.Newf("Unsupported SourceType [%s] for NameUsages", sourceType)
 	}

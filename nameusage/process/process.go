@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"bitbucket.org/heindl/processors/store"
 	"bitbucket.org/heindl/processors/datasources/sourcefetchers"
-	"fmt"
 )
 
 const minimumOccurrenceCount = 100
@@ -100,14 +99,20 @@ func InitialAggregation(cxt context.Context, inaturalistTaxonIDs ...int) (*aggre
 	// Order is obviously extremely important here.
 	for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF, datasources.TypeNatureServe} {
 
-		ids := snowball.TargetIDs(srcType)
+		ids, err := snowball.TargetIDs(srcType)
+		if err != nil {
+			return nil, err
+		}
 		if srcType == datasources.TypeINaturalist {
 			ids = targetIDs
 		}
 
-		fmt.Println("ids", ids, snowball.ScientificNames())
+		sciNames, err := snowball.ScientificNames()
+		if err != nil {
+			return nil, err
+		}
 
-		usages, err := sourcefetchers.FetchNameUsages(cxt, srcType, snowball.ScientificNames(), ids)
+		usages, err := sourcefetchers.FetchNameUsages(cxt, srcType, sciNames, ids)
 		if err != nil {
 			return nil, err
 		}
@@ -130,14 +135,23 @@ func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*oc
 		return nil, err
 	}
 
-	filteredAggregation, err := aggregation.Filter(func(u *nameusage.NameUsage) bool {
-		return u.TotalOccurrenceCount() < 100
+	filteredAggregation, err := aggregation.Filter(func(u nameusage.NameUsage) (bool, error) {
+		i, err := u.Occurrences()
+		if err != nil {
+			return false, err
+		}
+		return i < 100, nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	usages, err := sourcefetchers.FetchNameUsages(cxt, datasources.TypeMushroomObserver, filteredAggregation.ScientificNames(), nil)
+	sciNames, err := filteredAggregation.ScientificNames()
+	if err != nil {
+		return nil, err
+	}
+
+	usages, err := sourcefetchers.FetchNameUsages(cxt, datasources.TypeMushroomObserver, sciNames, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -155,12 +169,28 @@ func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*oc
 }
 
 func occurrenceFetcher(oAggr *occurrences.OccurrenceAggregation, srcTypes ...datasources.SourceType) aggregate.EachFunction {
-	return func(ctx context.Context, usage *nameusage.NameUsage) error {
+	return func(ctx context.Context, usage nameusage.NameUsage) error {
 
 		usageOccurrenceAggr := occurrences.OccurrenceAggregation{}
 
-		for _, src := range usage.Sources(srcTypes...) {
-			srcOccurrenceAggregation, err := occurrences.FetchOccurrences(ctx, src.SourceType(), src.TargetID(), src.LastFetchedAt())
+		srcs, err := usage.Sources(srcTypes...)
+		if err != nil {
+			return err
+		}
+
+		for _, src := range srcs {
+
+			srcType, err := src.SourceType()
+			if err != nil {
+				return err
+			}
+
+			targetID, err := src.TargetID()
+			if err != nil {
+				return err
+			}
+
+			srcOccurrenceAggregation, err := occurrences.FetchOccurrences(ctx, srcType, targetID, src.LastFetchedAt())
 			if err != nil {
 				return err
 			}

@@ -12,7 +12,6 @@ import (
 	"context"
 	"bitbucket.org/heindl/processors/datasources"
 	"bitbucket.org/heindl/processors/nameusage/canonicalname"
-	"bitbucket.org/heindl/processors/nameusage/nameusagesource"
 	"bitbucket.org/heindl/processors/nameusage/nameusage"
 )
 
@@ -29,12 +28,12 @@ type MushroomObserverQueryResult struct {
 
 var lmtr = utils.NewLimiter(10)
 
-func MatchCanonicalNames(cxt context.Context, names []string, sources datasources.TargetIDs) ([]*nameusage.NameUsage, error) {
+func FetchNameUsages(cxt context.Context, names []string, sources datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 
 	//TODO: If names are three, consider adding var. "Cantharellus cibarius var. cibarius"
 	// Only if missing in parent.
 
-	usageResponse := []*nameusage.NameUsage{}
+	usageResponse := []nameusage.NameUsage{}
 	locker := sync.Mutex{}
 
 	tmb := tomb.Tomb{}
@@ -78,7 +77,7 @@ func MatchCanonicalNames(cxt context.Context, names []string, sources datasource
 							return err
 						}
 
-						src, err := nameusagesource.NewSource(datasources.TypeMushroomObserver, targetID, cn)
+						src, err := nameusage.NewSource(datasources.TypeMushroomObserver, targetID, cn)
 						if err != nil {
 							return err
 						}

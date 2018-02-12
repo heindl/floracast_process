@@ -26,7 +26,7 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 	locker := sync.Mutex{}
 	taxa := []*Taxon{}
 
-	limit := utils.NewLimiter(1)
+	limit := utils.NewLimiter(100)
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func()error {
@@ -35,14 +35,12 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 			tmb.Go(func() error {
 				done := limit.Go()
 				defer done()
-				fmt.Println("SEARCHING TAXA")
 				local_taxa, err := searchName(cxt, name)
 				if err != nil {
 					return err
 				}
 				locker.Lock()
 				defer locker.Unlock()
-				fmt.Println("APPENDING TAXA")
 				taxa = append(taxa, local_taxa...)
 				return nil
 			})
@@ -64,8 +62,6 @@ func searchName(cxt context.Context, name string) ([]*Taxon, error) {
 		natureServeAPIKey,
 		url2.QueryEscape(name),
 	)
-
-	fmt.Println(url)
 
 	searchResults := SpeciesSearchReport{}
 	if err := utils.RequestXML(url, &searchResults); err != nil {

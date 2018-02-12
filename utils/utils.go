@@ -6,6 +6,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"os"
 	"io/ioutil"
+	"fmt"
 )
 
 func GetFileContents(path string) []byte {
@@ -44,6 +45,7 @@ func ContainsInt(haystack []int, needle int) bool {
 func JsonOrSpew(o interface{}) string {
 	j, err := json.Marshal(o)
 	if err != nil {
+		fmt.Println("MARSHAL ERROR", err)
 		return spew.Sprintf("%+v", o)
 	}
 	var response bytes.Buffer

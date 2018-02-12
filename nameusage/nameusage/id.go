@@ -13,7 +13,7 @@ type NameUsageID string
 type NameUsageIDs []NameUsageID
 
 func (Ω NameUsageID) Valid() bool {
-	return len(Ω.String()) < nameUsageIDLength
+	return len(Ω.String()) == nameUsageIDLength
 }
 
 func (Ω NameUsageID) String() string {
@@ -75,9 +75,13 @@ func nameUsageIDsFromStrings(æ []string) (NameUsageIDs, error) {
 const nameUsageIDLength = 25
 
 func newNameUsageID() (NameUsageID, error) {
-	id, err := gostrgen.RandGen(nameUsageIDLength, gostrgen.Lower|gostrgen.Digit|gostrgen.Upper, "", "")
+	rand, err := gostrgen.RandGen(nameUsageIDLength, gostrgen.Lower|gostrgen.Digit|gostrgen.Upper, "", "")
 	if err != nil {
 		return "", errors.Wrap(err, "Could not generate name usage id")
+	}
+	id := NameUsageID(rand)
+	if !id.Valid() {
+		return "", errors.Newf("Creating invalid NameUsageID [%s]", id)
 	}
 	return NameUsageID(id), nil
 }

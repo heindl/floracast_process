@@ -8,6 +8,9 @@ import (
 	"context"
 	"time"
 	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/processors/geofeatures"
+	"gopkg.in/tomb.v2"
 )
 
 type OccurrenceProvider interface {
@@ -58,25 +61,51 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 
 	aggregation := OccurrenceAggregation{}
 
-	for _, p := range provided {
-		o, err := NewOccurrence(sourceType, targetID, p.SourceOccurrenceID())
-		if err != nil {
-			return nil, err
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _p := range provided {
+			p := _p
+			tmb.Go(func() error {
+				o, err := NewOccurrence(sourceType, targetID, p.SourceOccurrenceID())
+				if err != nil {
+					return err
+				}
+				lng, err := p.Lng()
+				if err != nil {
+					return errors.Wrap(err, "Could not get Occurrence Longitude")
+				}
+				lat, err := p.Lat()
+				if err != nil {
+					return errors.Wrap(err, "Could not get Occurrence Latitude")
+				}
+				err = o.SetGeospatial(lat, lng, p.DateString(), p.CoordinatesEstimated())
+				if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidCoordinate) {
+					//fmt.Println(fmt.Sprintf("Invalid Coordinate [%.4f, %.4f] from SourceType [%s, %s]", lat, lng, sourceType, targetID))
+					return nil
+				}
+				if err != nil && utils.ContainsError(err, ErrInvalidDate) {
+					return nil
+				}
+				if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidEcoRegion) {
+					return nil
+				}
+				if err != nil {
+					return errors.Wrap(err, "Could not set Occurrence Geospatial")
+				}
+				err = aggregation.AddOccurrence(o)
+				if err != nil && err == ErrCollision {
+					return nil
+				}
+				if err != nil {
+					return err
+				}
+				return nil
+			})
 		}
-		lng, err := p.Lng()
-		if err != nil {
-			return nil, errors.Wrap(err, "Could not get Occurrence Longitude")
-		}
-		lat, err := p.Lat()
-		if err != nil {
-			return nil, errors.Wrap(err, "Could not get Occurrence Latitude")
-		}
-		if err := o.SetGeospatial(lat, lng, p.DateString(), p.CoordinatesEstimated()); err != nil {
-			return nil, errors.Wrap(err, "Could not set Occurrence Geospatial")
-		}
-		if err := aggregation.AddOccurrence(o); err != nil && err != ErrCollision {
-			return nil, err
-		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
 	}
 
 	return &aggregation, nil

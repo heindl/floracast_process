@@ -14,11 +14,28 @@ type photo struct {
 	Rank int
 }
 
-func photos(ctx context.Context, usage *nameusage.NameUsage) ([]*photo, error) {
+func photos(ctx context.Context, usage nameusage.NameUsage) ([]*photo, error) {
 
 	photos := []*photo{}
-	for _, src := range usage.Sources(datasources.TypeGBIF, datasources.TypeINaturalist) {
-		fetchedPhotos, err := sourcefetchers.FetchPhotos(ctx, src.SourceType(), src.TargetID())
+
+	srcs, err := usage.Sources(datasources.TypeGBIF, datasources.TypeINaturalist)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, src := range srcs {
+
+		srcType, err := src.SourceType()
+		if err != nil {
+			return nil, err
+		}
+
+		targetID, err := src.TargetID()
+		if err != nil {
+			return nil, err
+		}
+
+		fetchedPhotos, err := sourcefetchers.FetchPhotos(ctx, srcType, targetID)
 		if err != nil {
 			return nil, err
 		}
@@ -52,11 +69,28 @@ type description struct {
 	Text string `json:""`
 }
 
-func descriptions(ctx context.Context, usage *nameusage.NameUsage) ([]*description, error) {
+func descriptions(ctx context.Context, usage nameusage.NameUsage) ([]*description, error) {
 
 	res := []*description{}
-	for _, src := range usage.Sources(datasources.TypeGBIF, datasources.TypeINaturalist) {
-		fetchedDescriptions, err := sourcefetchers.FetchDescriptions(ctx, src.SourceType(), src.TargetID())
+
+	srcs, err := usage.Sources(datasources.TypeGBIF, datasources.TypeINaturalist)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, src := range srcs {
+
+		srcType, err := src.SourceType()
+		if err != nil {
+			return nil, err
+		}
+
+		targetID, err := src.TargetID()
+		if err != nil {
+			return nil, err
+		}
+
+		fetchedDescriptions, err := sourcefetchers.FetchDescriptions(ctx, srcType, targetID)
 		if err != nil {
 			return nil, err
 		}

@@ -17,11 +17,17 @@ type materializedTaxon struct {
 	ModifiedAt time.Time `json:""`
 }
 
-func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage *nameusage.NameUsage, deletedUsageIDs nameusage.NameUsageIDs) error {
+func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs nameusage.NameUsageIDs) error {
 	if err := clearMaterializedTaxa(ctx, florastore, deletedUsageIDs); err != nil {
 		return err
 	}
-	docRef := florastore.FirestoreCollection(store.CollectionTaxa).Doc(usage.ID().String())
+
+	id, err := usage.ID()
+	if err != nil {
+		return nil
+	}
+
+	docRef := florastore.FirestoreCollection(store.CollectionTaxa).Doc(id.String())
 	materialized, err := materialize(ctx, usage)
 	if err != nil {
 		return err
@@ -49,7 +55,7 @@ func clearMaterializedTaxa(ctx context.Context, florastore store.FloraStore, all
 	return nil
 }
 
-func materialize(ctx context.Context, usage *nameusage.NameUsage) (map[string]interface{}, error) {
+func materialize(ctx context.Context, usage nameusage.NameUsage) (map[string]interface{}, error) {
 
 	name, err := usage.CommonName()
 	if err != nil {

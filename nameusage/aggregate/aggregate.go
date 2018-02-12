@@ -2,7 +2,6 @@ package aggregate
 
 import (
 	"sync"
-	"encoding/json"
 	"gopkg.in/tomb.v2"
 	"context"
 	"bitbucket.org/heindl/processors/nameusage/canonicalname"
@@ -11,14 +10,15 @@ import (
 	"bitbucket.org/heindl/processors/store"
 	"bitbucket.org/heindl/processors/algolia"
 	"bitbucket.org/heindl/processors/taxa"
+	"bitbucket.org/heindl/processors/utils"
 )
 
 type Aggregate struct {
-	list []*nameusage.NameUsage
+	list []nameusage.NameUsage
 	sync.Mutex
 }
 
-type EachFunction func(ctx context.Context, usage *nameusage.NameUsage) error
+type EachFunction func(ctx context.Context, usage nameusage.NameUsage) error
 
 func (Ω *Aggregate) Each(ctx context.Context, handler EachFunction) error {
 	tmb := tomb.Tomb{}
@@ -35,12 +35,16 @@ func (Ω *Aggregate) Each(ctx context.Context, handler EachFunction) error {
 }
 
 
-type FilterFunction func(usage *nameusage.NameUsage) bool
+type FilterFunction func(usage nameusage.NameUsage) (bool, error)
 
 func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 	res := Aggregate{}
 	for _, u := range Ω.list {
-		if shouldFilter(u) {
+		should, err := shouldFilter(u)
+		if err != nil {
+			return nil,err
+		}
+		if should {
 			continue
 		}
 		if err := res.AddUsage(u); err != nil {
@@ -52,7 +56,7 @@ func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 
 func (Ω *Aggregate) Upload(cxt context.Context, florastore store.FloraStore) error {
 
-	return Ω.Each(cxt, func(ctx context.Context, usage *nameusage.NameUsage) error {
+	return Ω.Each(cxt, func(ctx context.Context, usage nameusage.NameUsage) error {
 		deletedUsageIDs, err := usage.Upload(ctx, florastore)
 		if err != nil {
 			return err
@@ -65,32 +69,53 @@ func (Ω *Aggregate) Upload(cxt context.Context, florastore store.FloraStore) er
 
 }
 
-func (Ω *Aggregate) ScientificNames() []string {
+func (Ω *Aggregate) Count() int {
+	return len(Ω.list)
+}
+
+func (Ω *Aggregate) Occurrences() (int, error) {
+	res := 0
+	for _, l := range Ω.list {
+		i, err := l.Occurrences()
+		if err != nil {
+			return 0, err
+		}
+		res += i
+	}
+	return res, nil
+}
+
+func (Ω *Aggregate) ScientificNames() ([]string, error) {
 	res := canonicalname.CanonicalNames{}
 	for _, l := range Ω.list {
 		res = res.AddToSet(l.CanonicalName())
-		res = res.AddToSet(l.Synonyms()...)
+		synonyms, err := l.Synonyms()
+		if err != nil {
+			return nil, err
+		}
+		res = res.AddToSet(synonyms...)
 	}
-	return res.ScientificNames()
+	return res.ScientificNames(), nil
 }
 
-func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (res datasources.TargetIDs) {
+func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (res datasources.TargetIDs, err error) {
 	for _, usage := range Ω.list {
-		for _, src := range usage.Sources(sourceTypes...) {
-			res = append(res, src.TargetID())
+		srcs, err := usage.Sources(sourceTypes...)
+		if err != nil {
+			return nil, err
+		}
+		for _, src := range srcs {
+			targetID, err := src.TargetID()
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, targetID)
 		}
 	}
 	return
 }
 
-func (Ω *Aggregate) MarshalJSON() ([]byte, error) {
-	if Ω == nil {
-		return nil, nil
-	}
-	return json.Marshal(Ω.list)
-}
-
-func (Ω *Aggregate) AddUsage(usages ...*nameusage.NameUsage) error {
+func (Ω *Aggregate) AddUsage(usages ...nameusage.NameUsage) error {
 	Ω.Lock()
 	defer Ω.Unlock()
 
@@ -104,7 +129,11 @@ ResetLoop:
 				if k == i {
 					continue
 				}
-				if Ω.list[i].ShouldCombine(Ω.list[k]) {
+				combine, err := Ω.list[i].ShouldCombine(Ω.list[k])
+				if err != nil {
+					return err
+				}
+				if combine {
 					changed = true
 					var err error
 					Ω.list[i], err = Ω.list[i].Combine(Ω.list[k])
@@ -124,11 +153,15 @@ ResetLoop:
 	return nil
 }
 
-func (Ω *Aggregate) HasCanonicalName(name *canonicalname.CanonicalName) bool {
+func (Ω *Aggregate) HasCanonicalName(name canonicalname.CanonicalName) (bool, error) {
 	for i := range Ω.list {
-		if Ω.list[i].HasScientificName(name.ScientificName()) {
-			return true
+		names, err := Ω.list[i].AllScientificNames()
+		if err != nil {
+			return false, err
+		}
+		if utils.ContainsString(names, name.ScientificName()) {
+			return true, err
 		}
 	}
-	return false
+	return false, nil
 }

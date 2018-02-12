@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"bitbucket.org/heindl/processors/utils"
 	"github.com/dropbox/godropbox/errors"
-	"encoding/json"
 	"time"
 )
 
-func (Ω *NameUsage) Upload(ctx context.Context, florastore store.FloraStore) (deletedUsageIDs NameUsageIDs, err error) {
+func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (deletedUsageIDs NameUsageIDs, err error) {
 
-	docRef := florastore.FirestoreCollection(store.CollectionNameUsages).Doc(Ω.ID().String())
+	id, err := Ω.ID()
+	if err != nil {
+		return nil, err
+	}
+
+	docRef := florastore.FirestoreCollection(store.CollectionNameUsages).Doc(id.String())
 
 	deletedUsageIDs, err = Ω.matchInStore(ctx, florastore)
 	if err != nil {
@@ -23,16 +27,23 @@ func (Ω *NameUsage) Upload(ctx context.Context, florastore store.FloraStore) (d
 		return nil, err
 	}
 
-	m, err := Ω.toMap()
+	Ω.ModifiedAt = time.Now()
+	Ω.SciNames = map[string]bool{}
+
+	sciNames, err := Ω.AllScientificNames()
 	if err != nil {
 		return nil, err
 	}
-	if _, err := docRef.Set(ctx, m); err != nil {
+
+	for _, s := range sciNames {
+		Ω.SciNames[s] = true
+	}
+
+	if _, err := docRef.Set(ctx, Ω); err != nil {
 		return nil, err
 	}
 
 	return deletedUsageIDs, nil
-
 }
 
 func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsageIDs NameUsageIDs) error {
@@ -52,16 +63,19 @@ func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsage
 	return nil
 }
 
-func (Ω *NameUsage) matchInStore(ctx context.Context, florastore store.FloraStore) (NameUsageIDs, error) {
+func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) (NameUsageIDs, error) {
 
-	names := Ω.AllScientificNames()
+	names, err := Ω.AllScientificNames()
+	if err != nil {
+		return nil, err
+	}
 
 	col := florastore.FirestoreCollection(store.CollectionNameUsages)
 
 	wait := store.NewFirestoreLimiter()
 	list, err := utils.ForEachStringToStrings(names, func(name string) ([]string, error){
 		<-wait
-		synonymMatch := fmt.Sprintf("%s.%s", storeKeyScientificNames.String())
+		synonymMatch := fmt.Sprintf("%s.%s", storeKeyScientificName)
 		snaps, err := col.Where(synonymMatch, "==", true).Documents(ctx).GetAll()
 		if err != nil {
 			return nil, err
@@ -83,48 +97,78 @@ func (Ω *NameUsage) matchInStore(ctx context.Context, florastore store.FloraSto
 	return res, err
 }
 
+//
+//type storeKey string
+//
+//func (Ω storeKey) String() string {
+//	return string(Ω)
+//}
 
-type storeKey string
-
-func (Ω storeKey) String() string {
-	return string(Ω)
-}
-
-const (
-	storeKeyCanonicalName   = storeKey("CanonicalName")
-	storeKeyScientificNames = storeKey("ScientificNames")
-	storeKeyOccurrences     = storeKey("Occurrences")
-	storeKeySources     = storeKey("Sources")
-	storeKeyModifiedAt     = storeKey("ModifiedAt")
-	storeKeyCreatedAt     = storeKey("CreatedAt")
-)
-
-func (Ω *NameUsage) toMap() (map[storeKey]interface{}, error) {
-
-	synonymMap := map[string]bool{}
-	for _, s := range Ω.AllScientificNames() {
-		synonymMap[s] = true
-	}
-
-	m := map[storeKey]interface{}{
-		storeKeyCanonicalName:   Ω.CanonicalName().ScientificName(),
-		storeKeyScientificNames: synonymMap,
-		storeKeyOccurrences:     Ω.TotalOccurrenceCount(),
-		storeKeySources:               Ω.sources,
-		storeKeyModifiedAt: time.Now(),
-		storeKeyCreatedAt: Ω.createdAt,
-	}
-
-	return m, nil
-}
-
-func (Ω *NameUsage) MarshalJSON() ([]byte, error) {
-	if Ω == nil {
-		return nil, nil
-	}
-	m, err := Ω.toMap()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(m)
-}
+//const (
+//	storeKeyCanonicalName   = storeKey("CanonicalName")
+//	storeKeyScientificNames = storeKey("ScientificNames")
+//	storeKeyOccurrences     = storeKey("Occurrences")
+//	storeKeySources     = storeKey("Sources")
+//	storeKeyModifiedAt     = storeKey("ModifiedAt")
+//	storeKeyCreatedAt     = storeKey("CreatedAt")
+//)
+//
+//func (Ω *usage) toMap() (map[storeKey]interface{}, error) {
+//
+//	synonymMap := map[string]bool{}
+//	for _, s := range Ω.AllScientificNames() {
+//		synonymMap[s] = true
+//	}
+//
+//	m := map[storeKey]interface{}{
+//		storeKeyCanonicalName:   Ω.CanonicalName().ScientificName(),
+//		storeKeyScientificNames: synonymMap,
+//		storeKeyOccurrences:     Ω.TotalOccurrenceCount(),
+//		storeKeySources:               Ω.sources,
+//		storeKeyModifiedAt: time.Now(),
+//		storeKeyCreatedAt: Ω.createdAt,
+//	}
+//
+//	return m, nil
+//}
+//
+//func fromMap(æ map[string]interface{}) (*NameUsage, error) {
+//
+//	u := &NameUsage{
+//		id:
+//	}
+//
+//	m := map[storeKey]interface{}{
+//		storeKeyCanonicalName:   Ω.CanonicalName().ScientificName(),
+//		storeKeyScientificNames: synonymMap,
+//		storeKeyOccurrences:     Ω.TotalOccurrenceCount(),
+//		storeKeySources:               Ω.sources,
+//		storeKeyModifiedAt: time.Now(),
+//		storeKeyCreatedAt: Ω.createdAt,
+//	}
+//
+//	var stuff map[string]string
+//	err := json.Unmarshal(b, &stuff)
+//	if err != nil {
+//		return err
+//	}
+//	for key, value := range stuff {
+//		numericKey, err := strconv.Atoi(key)
+//		if err != nil {
+//			return err
+//		}
+//		this[numericKey] = value
+//	}
+//	return nil
+//}
+//
+//func (Ω *NameUsage) MarshalJSON() ([]byte, error) {
+//	if Ω == nil {
+//		return nil, nil
+//	}
+//	m, err := Ω.toMap()
+//	if err != nil {
+//		return nil, err
+//	}
+//	return json.Marshal(m)
+//}

@@ -11,7 +11,7 @@ import (
 	"context"
 )
 
-func UploadNameUsageObjects(ctx context.Context, floracastStore store.FloraStore, usage *nameusage.NameUsage, deletedUsages nameusage.NameUsageIDs) error {
+func UploadNameUsageObjects(ctx context.Context, floracastStore store.FloraStore, usage nameusage.NameUsage, deletedUsages nameusage.NameUsageIDs) error {
 
 	index, err := floracastStore.AlgoliaIndex(nameUsageIndex)
 	if err != nil {
@@ -83,9 +83,14 @@ const (
 	KeyReferenceCount  = ObjectKey("ReferenceCount")
 )
 
-func generateNameUsageObjects(ctx context.Context, usage *nameusage.NameUsage) (AlgoliaObjects, error) {
+func generateNameUsageObjects(ctx context.Context, usage nameusage.NameUsage) (AlgoliaObjects, error) {
 
-	if usage.TotalOccurrenceCount() == 0 {
+	usageOccurrenceCount, err := usage.Occurrences()
+	if err != nil {
+		return nil, err
+	}
+
+	if usageOccurrenceCount == 0 {
 		// Note that the algolia generation should only be called after occurrences fetched.
 		// The occurrence count allows us to sort search results in Autocomplete.
 		return nil, errors.New("Expected name usage provided to Algolia to have occurrences")
@@ -97,16 +102,25 @@ func generateNameUsageObjects(ctx context.Context, usage *nameusage.NameUsage) (
 	}
 	usageCommonName = strings.Title(usageCommonName)
 
-	usageOccurrenceCount := usage.TotalOccurrenceCount()
 
 	// TODO: Generate thumbnail from image
 	thumbnail := ""
 
 	res := AlgoliaObjects{}
 
-	for _, ref := range usage.ScientificNameReferenceLedger() {
+	sciNameRefLedger, err := usage.ScientificNameReferenceLedger()
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := usage.ID()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ref := range sciNameRefLedger {
 		res = append(res, AlgoliaObject{
-			KeyNameUsageID:     usage.ID(),
+			KeyNameUsageID:     id,
 			KeyScientificName:  utils.CapitalizeString(ref.Name),
 			KeyCommonName:      usageCommonName,
 			KeyThumbnail:       thumbnail,
@@ -115,9 +129,14 @@ func generateNameUsageObjects(ctx context.Context, usage *nameusage.NameUsage) (
 		})
 	}
 
-	for _, ref := range usage.CommonNameReferenceLedger() {
+	commonNameRefLedger, err := usage.CommonNameReferenceLedger()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ref := range commonNameRefLedger {
 		res = append(res, AlgoliaObject{
-			KeyNameUsageID:     usage.ID(),
+			KeyNameUsageID:     id,
 			KeyScientificName:  utils.CapitalizeString(usage.CanonicalName().ScientificName()),
 			KeyCommonName:      strings.Title(ref.Name),
 			KeyThumbnail:       thumbnail,
