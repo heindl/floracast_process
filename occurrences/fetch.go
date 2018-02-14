@@ -12,6 +12,7 @@ import (
 	"bitbucket.org/heindl/processors/geofeatures"
 	"gopkg.in/tomb.v2"
 	"fmt"
+	"bitbucket.org/heindl/processors/ecoregions"
 )
 
 type OccurrenceProvider interface {
@@ -87,7 +88,7 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 				if err != nil && utils.ContainsError(err, ErrInvalidDate) {
 					return nil
 				}
-				if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidEcoRegion) {
+				if err != nil && utils.ContainsError(err, ecoregions.ErrNotFound) {
 					fmt.Println(fmt.Sprintf("Invalid EcoRegion [%.4f, %.4f]", lat, lng))
 					return nil
 				}

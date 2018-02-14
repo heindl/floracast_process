@@ -1,0 +1,7142 @@
+[
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.333|-99.312",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:36.79787-05:00",
+    "EcoNum": 10,
+    "Elevation": 2906,
+    "FormattedDate": "19611120",
+    "GeoPoint": {
+      "Lat": 19.332778,
+      "Lng": -99.311944
+    },
+    "ModifiedAt": "2018-02-13T10:10:36.797873-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d204": true,
+      "85d21": true,
+      "85d24": true,
+      "85d3": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420872953",
+    "SourceType": "27",
+    "TargetID": "6284792"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.310|-99.327",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:36.79787-05:00",
+    "EcoNum": 10,
+    "Elevation": 3130,
+    "FormattedDate": "19601218",
+    "GeoPoint": {
+      "Lat": 19.310278,
+      "Lng": -99.326667
+    },
+    "ModifiedAt": "2018-02-13T10:10:36.797874-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdfc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869444",
+    "SourceType": "27",
+    "TargetID": "6284792"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "30.360|-97.867",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.418231-05:00",
+    "EcoNum": 6,
+    "Elevation": 219,
+    "FormattedDate": "20170315",
+    "GeoPoint": {
+      "Lat": 30.360448,
+      "Lng": -97.867136
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.418232-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "864": true,
+      "865": true,
+      "865b": true,
+      "865b3": true,
+      "865b34": true,
+      "865b4": true,
+      "865c": true,
+      "87": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802617511",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "49.016|-117.832",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.522414-05:00",
+    "EcoNum": 18,
+    "Elevation": 708,
+    "FormattedDate": "20120525",
+    "GeoPoint": {
+      "Lat": 49.016341,
+      "Lng": -117.832165
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.522415-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "53": true,
+      "534": true,
+      "5362c": true,
+      "5362c4": true,
+      "5362d": true,
+      "5363": true,
+      "5364": true,
+      "537": true,
+      "54": true
+    },
+    "SourceOccurrenceID": "1143570030",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "47.750|-123.751",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.658203-05:00",
+    "EcoNum": 6,
+    "Elevation": 1665,
+    "FormattedDate": "20170501",
+    "GeoPoint": {
+      "Lat": 47.750087,
+      "Lng": -123.751022
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.658204-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "548c": true,
+      "548e3": true,
+      "548e3c": true,
+      "548e4": true,
+      "548f": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1580490736",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.452|-98.739",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.674458-05:00",
+    "EcoNum": 10,
+    "Elevation": 3415,
+    "FormattedDate": "19951207",
+    "GeoPoint": {
+      "Lat": 19.452222,
+      "Lng": -98.738611
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.67446-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1d": true,
+      "85d1dc": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1418799003",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "19.542|-96.925",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.67788-05:00",
+    "EcoNum": 46,
+    "Elevation": 1475,
+    "FormattedDate": "19920128",
+    "GeoPoint": {
+      "Lat": 19.541667,
+      "Lng": -96.925
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.677881-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85db": true,
+      "85db2c": true,
+      "85db3": true,
+      "85db4": true,
+      "85dc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869503",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.175|-98.592",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.679912-05:00",
+    "EcoNum": 10,
+    "Elevation": 3549,
+    "FormattedDate": "19921117",
+    "GeoPoint": {
+      "Lat": 19.175,
+      "Lng": -98.591667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.679914-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce3": true,
+      "85ce34": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1421833867",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.957|-79.619",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.515317-05:00",
+    "EcoNum": 7,
+    "Elevation": 354,
+    "FormattedDate": "20160526",
+    "GeoPoint": {
+      "Lat": 43.957416,
+      "Lng": -79.619224
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.515318-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "882ac": true,
+      "882ad": true,
+      "882adc": true,
+      "882b": true,
+      "882c": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1270047778",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "42.664|-80.480",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.517304-05:00",
+    "EcoNum": 14,
+    "Elevation": 221,
+    "FormattedDate": "20160505",
+    "GeoPoint": {
+      "Lat": 42.664261,
+      "Lng": -80.480347
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.517305-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "882c": true,
+      "882d": true,
+      "882dc": true,
+      "882dcc": true,
+      "882dd": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1703233892",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.254|-81.833",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.649529-05:00",
+    "EcoNum": 14,
+    "Elevation": 184,
+    "FormattedDate": "20170519",
+    "GeoPoint": {
+      "Lat": 43.254393,
+      "Lng": -81.832781
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.649531-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "882c": true,
+      "882f": true,
+      "882f3": true,
+      "882f3c": true,
+      "882f4": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1805408728",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "42.415|-83.362",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.698351-05:00",
+    "EcoNum": 14,
+    "Elevation": 202,
+    "FormattedDate": "20120505",
+    "GeoPoint": {
+      "Lat": 42.415012,
+      "Lng": -83.361624
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.698352-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "8824": true,
+      "8824b": true,
+      "8824b4": true,
+      "8824c": true,
+      "8825": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1269541044",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.058|-99.317",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.705781-05:00",
+    "EcoNum": 10,
+    "Elevation": 2837,
+    "FormattedDate": "19640930",
+    "GeoPoint": {
+      "Lat": 19.058333,
+      "Lng": -99.316667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.705783-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cde4": true,
+      "85cdf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420873228",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "18.990|-99.239",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.78262-05:00",
+    "EcoNum": 10,
+    "Elevation": 1985,
+    "FormattedDate": "19810810",
+    "GeoPoint": {
+      "Lat": 18.989722,
+      "Lng": -99.238611
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.782622-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cde4": true,
+      "85cdf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870020",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "18.990|-99.239",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.78536-05:00",
+    "EcoNum": 10,
+    "Elevation": 1985,
+    "FormattedDate": "19811025",
+    "GeoPoint": {
+      "Lat": 18.989722,
+      "Lng": -99.238611
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.785362-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cde4": true,
+      "85cdf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870058",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.452|-98.739",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.506549-05:00",
+    "EcoNum": 10,
+    "Elevation": 3415,
+    "FormattedDate": "19950813",
+    "GeoPoint": {
+      "Lat": 19.452222,
+      "Lng": -98.738611
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.50655-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1d": true,
+      "85d1dc": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1418799023",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "18.990|-99.239",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.536697-05:00",
+    "EcoNum": 10,
+    "Elevation": 1985,
+    "FormattedDate": "19770715",
+    "GeoPoint": {
+      "Lat": 18.989722,
+      "Lng": -99.238611
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.536699-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cde4": true,
+      "85cdf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870191",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.058|-99.317",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.984837-05:00",
+    "EcoNum": 10,
+    "Elevation": 2837,
+    "FormattedDate": "19660821",
+    "GeoPoint": {
+      "Lat": 19.058333,
+      "Lng": -99.316667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.984839-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cde4": true,
+      "85cdf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420873316",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.333|-99.312",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.989395-05:00",
+    "EcoNum": 10,
+    "Elevation": 2906,
+    "FormattedDate": "19610911",
+    "GeoPoint": {
+      "Lat": 19.332778,
+      "Lng": -99.311944
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.989401-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d204": true,
+      "85d21": true,
+      "85d24": true,
+      "85d3": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420872794",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.333|-99.312",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.99946-05:00",
+    "EcoNum": 10,
+    "Elevation": 2906,
+    "FormattedDate": "19660901",
+    "GeoPoint": {
+      "Lat": 19.332778,
+      "Lng": -99.311944
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.999462-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d204": true,
+      "85d21": true,
+      "85d24": true,
+      "85d3": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420872892",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.309|-99.386",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.039961-05:00",
+    "EcoNum": 10,
+    "Elevation": 3004,
+    "FormattedDate": "19611105",
+    "GeoPoint": {
+      "Lat": 19.308611,
+      "Lng": -99.386111
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.039963-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdf4": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420874385",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.309|-99.386",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.048966-05:00",
+    "EcoNum": 10,
+    "Elevation": 3004,
+    "FormattedDate": "19600811",
+    "GeoPoint": {
+      "Lat": 19.308611,
+      "Lng": -99.386111
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.048968-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdf4": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420874069",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.309|-99.386",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.051883-05:00",
+    "EcoNum": 10,
+    "Elevation": 3004,
+    "FormattedDate": "19601002",
+    "GeoPoint": {
+      "Lat": 19.308611,
+      "Lng": -99.386111
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.051885-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdf4": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420874324",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "39.471|-105.135",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.801971-05:00",
+    "EcoNum": 11,
+    "Elevation": 1732,
+    "FormattedDate": "19710530",
+    "GeoPoint": {
+      "Lat": 39.47075,
+      "Lng": -105.135321
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.801972-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "874": true,
+      "876b": true,
+      "876b4": true,
+      "876b64": true,
+      "876b7": true,
+      "876c": true,
+      "877": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1450595807",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "42.452|-76.474",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.815989-05:00",
+    "EcoNum": 1,
+    "Elevation": 245,
+    "FormattedDate": "19660219",
+    "GeoPoint": {
+      "Lat": 42.452016,
+      "Lng": -76.473659
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.81599-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89d": true,
+      "89d084": true,
+      "89d09": true,
+      "89d0c": true,
+      "89d1": true,
+      "89d4": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1795883699",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.209|-92.766",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.480233-05:00",
+    "EcoNum": 15,
+    "Elevation": 236,
+    "FormattedDate": "20150524",
+    "GeoPoint": {
+      "Lat": 45.20945,
+      "Lng": -92.76555
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.480236-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "52b": true,
+      "52b2b": true,
+      "52b2bc": true,
+      "52b2c": true,
+      "52b3": true,
+      "52b4": true,
+      "52c": true,
+      "53": true,
+      "54": true
+    },
+    "SourceOccurrenceID": "1291092516",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.068|-98.683",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.818784-05:00",
+    "EcoNum": 10,
+    "Elevation": 3356,
+    "FormattedDate": "19720601",
+    "GeoPoint": {
+      "Lat": 19.068056,
+      "Lng": -98.683333
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.818786-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce3": true,
+      "85ce3c": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869768",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "38.855|-77.323",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.41933-05:00",
+    "EcoNum": 13,
+    "Elevation": 133,
+    "FormattedDate": "20160417",
+    "GeoPoint": {
+      "Lat": 38.854721,
+      "Lng": -77.32331
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.419331-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89b": true,
+      "89b4": true,
+      "89b64": true,
+      "89b64c": true,
+      "89b65": true,
+      "89b7": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1265580153",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.316|-99.305",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.48339-05:00",
+    "EcoNum": 10,
+    "Elevation": 2906,
+    "FormattedDate": "19720902",
+    "GeoPoint": {
+      "Lat": 19.315833,
+      "Lng": -99.304722
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.483392-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdfc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870630",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "40.234|-105.293",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.838038-05:00",
+    "EcoNum": 11,
+    "Elevation": 1682,
+    "FormattedDate": "19940507",
+    "GeoPoint": {
+      "Lat": 40.234408,
+      "Lng": -105.292763
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.83804-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "874": true,
+      "876b": true,
+      "876bc": true,
+      "876be4": true,
+      "876bf": true,
+      "876c": true,
+      "877": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1450598448",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 2,
+    "CoordinateKey": "20.747|-103.523",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.839709-05:00",
+    "EcoNum": 4,
+    "Elevation": 1659,
+    "FormattedDate": "19940919",
+    "GeoPoint": {
+      "Lat": 20.746944,
+      "Lng": -103.522778
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.839711-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "8428a4": true,
+      "8428b": true,
+      "8428c": true,
+      "8429": true,
+      "842c": true,
+      "843": true,
+      "844": true,
+      "85": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1418739354",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "37.600|-89.195",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.853411-05:00",
+    "EcoNum": 4,
+    "Elevation": 169,
+    "FormattedDate": "20160409",
+    "GeoPoint": {
+      "Lat": 37.599891,
+      "Lng": -89.194841
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.853412-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "887": true,
+      "8874": true,
+      "8877": true,
+      "88774": true,
+      "88776c": true,
+      "88777": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1453149087",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.409|-99.121",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.955626-05:00",
+    "EcoNum": 2,
+    "Elevation": 2236,
+    "FormattedDate": "19660729",
+    "GeoPoint": {
+      "Lat": 19.408889,
+      "Lng": -99.121389
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.955628-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1f": true,
+      "85d1fc": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420873737",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.817|-81.180",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.956913-05:00",
+    "EcoNum": 13,
+    "Elevation": 297,
+    "FormattedDate": "20140428",
+    "GeoPoint": {
+      "Lat": 35.817422,
+      "Lng": -81.180358
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.956914-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8851": true,
+      "88513": true,
+      "88513c": true,
+      "88514": true,
+      "8854": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802612591",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "35.241|-97.431",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.002231-05:00",
+    "EcoNum": 3,
+    "Elevation": 370,
+    "FormattedDate": "20140419",
+    "GeoPoint": {
+      "Lat": 35.240631,
+      "Lng": -97.4311
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.002232-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87b": true,
+      "87b24": true,
+      "87b244": true,
+      "87b25": true,
+      "87b3": true,
+      "87b4": true,
+      "87c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802622973",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 6,
+    "CoordinateKey": "48.467|-71.263",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.671926-05:00",
+    "EcoNum": 5,
+    "Elevation": 105,
+    "FormattedDate": "19960531",
+    "GeoPoint": {
+      "Lat": 48.466834,
+      "Lng": -71.263421
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.671928-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc02c": true,
+      "4cc03": true,
+      "4cc04": true,
+      "4cc1": true,
+      "4cc4": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412707038",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.278|-99.374",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.007549-05:00",
+    "EcoNum": 10,
+    "Elevation": 3075,
+    "FormattedDate": "19821021",
+    "GeoPoint": {
+      "Lat": 19.278333,
+      "Lng": -99.373611
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.007551-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdf4": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420873823",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 6,
+    "CoordinateKey": "48.467|-71.263",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.700613-05:00",
+    "EcoNum": 5,
+    "Elevation": 105,
+    "FormattedDate": "19840526",
+    "GeoPoint": {
+      "Lat": 48.466834,
+      "Lng": -71.263421
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.700615-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc02c": true,
+      "4cc03": true,
+      "4cc04": true,
+      "4cc1": true,
+      "4cc4": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412707122",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "46.882|-71.176",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.932065-05:00",
+    "EcoNum": 7,
+    "Elevation": 76,
+    "FormattedDate": "20060507",
+    "GeoPoint": {
+      "Lat": 46.881808,
+      "Lng": -71.17635
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.932066-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cb": true,
+      "4cb8b": true,
+      "4cb8bc": true,
+      "4cb8c": true,
+      "4cb9": true,
+      "4cbc": true,
+      "4cc": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135069942",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "8.886|-82.771",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.993285-05:00",
+    "EcoNum": 30,
+    "Elevation": 1380,
+    "FormattedDate": "20050822",
+    "GeoPoint": {
+      "Lat": 8.885995,
+      "Lng": -82.771129
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.993287-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa4": true,
+      "8fa5": true,
+      "8fa5c": true,
+      "8fa5cc": true,
+      "8fa5d": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253961744",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "8.898|-82.758",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.010996-05:00",
+    "EcoNum": 30,
+    "Elevation": 1583,
+    "FormattedDate": "20050826",
+    "GeoPoint": {
+      "Lat": 8.897719,
+      "Lng": -82.758371
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.010998-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa4": true,
+      "8fa5": true,
+      "8fa5c": true,
+      "8fa5cc": true,
+      "8fa5d": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253961746",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.274|-99.709",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.96221-05:00",
+    "EcoNum": 2,
+    "Elevation": 2743,
+    "FormattedDate": "19811211",
+    "GeoPoint": {
+      "Lat": 19.274167,
+      "Lng": -99.708889
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.962211-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cd8c": true,
+      "85cd9": true,
+      "85cdc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420873865",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.508|-97.192",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.014453-05:00",
+    "EcoNum": 10,
+    "Elevation": 3141,
+    "FormattedDate": "19910901",
+    "GeoPoint": {
+      "Lat": 19.508333,
+      "Lng": -97.191667
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.014454-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85dac": true,
+      "85dad": true,
+      "85dad4": true,
+      "85db": true,
+      "85dc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1439003893",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.258|-98.733",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.014044-05:00",
+    "EcoNum": 10,
+    "Elevation": 3143,
+    "FormattedDate": "19801010",
+    "GeoPoint": {
+      "Lat": 19.258333,
+      "Lng": -98.733333
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.014045-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce24": true,
+      "85ce3": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870373",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.508|-97.192",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.994111-05:00",
+    "EcoNum": 10,
+    "Elevation": 3141,
+    "FormattedDate": "19910918",
+    "GeoPoint": {
+      "Lat": 19.508333,
+      "Lng": -97.191667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.994112-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85dac": true,
+      "85dad": true,
+      "85dad4": true,
+      "85db": true,
+      "85dc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1418368382",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.610|-73.706",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.540035-05:00",
+    "EcoNum": 7,
+    "Elevation": 32,
+    "FormattedDate": "19910508",
+    "GeoPoint": {
+      "Lat": 45.609608,
+      "Lng": -73.705867
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.540037-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc924": true,
+      "4cc93": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "617548186",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "46.900|-71.179",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.538025-05:00",
+    "EcoNum": 6,
+    "Elevation": 127,
+    "FormattedDate": "20060522",
+    "GeoPoint": {
+      "Lat": 46.899638,
+      "Lng": -71.178526
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.538026-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cb": true,
+      "4cb8b": true,
+      "4cb8bc": true,
+      "4cb8c": true,
+      "4cb9": true,
+      "4cbc": true,
+      "4cc": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135069967",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "42.132|-87.795",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.8988-05:00",
+    "EcoNum": 4,
+    "Elevation": 199,
+    "FormattedDate": "20170504",
+    "GeoPoint": {
+      "Lat": 42.132292,
+      "Lng": -87.795378
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.898801-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "880c": true,
+      "880f": true,
+      "880fc": true,
+      "880fc4": true,
+      "880fd": true,
+      "881": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500354038",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.877|-73.210",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.016896-05:00",
+    "EcoNum": 7,
+    "Elevation": 22,
+    "FormattedDate": "19890521",
+    "GeoPoint": {
+      "Lat": 45.876777,
+      "Lng": -73.209987
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.016897-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc8c": true,
+      "4cc8f": true,
+      "4cc8f4": true,
+      "4cc9": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "617554640",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.241|-75.393",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.794902-05:00",
+    "EcoNum": 7,
+    "Elevation": 70,
+    "FormattedDate": "19760521",
+    "GeoPoint": {
+      "Lat": 45.240938,
+      "Lng": -75.392949
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.794903-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4ccc": true,
+      "4ccd": true,
+      "4ccdc": true,
+      "4ccdd": true,
+      "4ccddc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412704671",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.067|-74.363",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.996915-05:00",
+    "EcoNum": 7,
+    "Elevation": 75,
+    "FormattedDate": "20050522",
+    "GeoPoint": {
+      "Lat": 45.067166999056774,
+      "Lng": -74.36291699999998
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.996916-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4ccb": true,
+      "4ccbc": true,
+      "4ccbf": true,
+      "4ccbfc": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135068460",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.299|-99.367",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.017632-05:00",
+    "EcoNum": 10,
+    "Elevation": 3047,
+    "FormattedDate": "19751004",
+    "GeoPoint": {
+      "Lat": 19.298889,
+      "Lng": -99.366667
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.017633-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdfc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420874084",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "47.924|-117.358",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.99561-05:00",
+    "EcoNum": 18,
+    "Elevation": 570,
+    "FormattedDate": "20170430",
+    "GeoPoint": {
+      "Lat": 47.924309,
+      "Lng": -117.357974
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.995612-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "53": true,
+      "534": true,
+      "5361": true,
+      "5361c": true,
+      "5361f": true,
+      "5361fc": true,
+      "5364": true,
+      "537": true,
+      "54": true
+    },
+    "SourceOccurrenceID": "1562892466",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "46.900|-71.179",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.016882-05:00",
+    "EcoNum": 6,
+    "Elevation": 127,
+    "FormattedDate": "20060604",
+    "GeoPoint": {
+      "Lat": 46.899638,
+      "Lng": -71.178526
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.016883-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cb": true,
+      "4cb8b": true,
+      "4cb8bc": true,
+      "4cb8c": true,
+      "4cb9": true,
+      "4cbc": true,
+      "4cc": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135070126",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.192|-98.576",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.844711-05:00",
+    "EcoNum": 10,
+    "Elevation": 3286,
+    "FormattedDate": "19921117",
+    "GeoPoint": {
+      "Lat": 19.191667,
+      "Lng": -98.576389
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.844712-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce2c": true,
+      "85ce3": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870260",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.637|-103.618",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.839596-05:00",
+    "EcoNum": 10,
+    "Elevation": 2496,
+    "FormattedDate": "19940225",
+    "GeoPoint": {
+      "Lat": 19.636944,
+      "Lng": -103.617778
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.839597-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "8424": true,
+      "8425": true,
+      "84254": true,
+      "84257": true,
+      "84257c": true,
+      "843": true,
+      "844": true,
+      "85": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1438826628",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "37.516|-88.755",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.688781-05:00",
+    "EcoNum": 4,
+    "Elevation": 159,
+    "FormattedDate": "20170409",
+    "GeoPoint": {
+      "Lat": 37.51628,
+      "Lng": -88.755371
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.688782-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "887": true,
+      "8870b": true,
+      "8870b4": true,
+      "8870c": true,
+      "8871": true,
+      "8874": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1457628547",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.893|-93.385",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.695452-05:00",
+    "EcoNum": 15,
+    "Elevation": 264,
+    "FormattedDate": "20140526",
+    "GeoPoint": {
+      "Lat": 44.892575,
+      "Lng": -93.385351
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.695453-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87f4": true,
+      "87f624": true,
+      "87f63": true,
+      "87f64": true,
+      "87f7": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1453280047",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.092|-99.742",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.861845-05:00",
+    "EcoNum": 10,
+    "Elevation": 4215,
+    "FormattedDate": "19871108",
+    "GeoPoint": {
+      "Lat": 19.091667,
+      "Lng": -99.741667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.861846-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cd9": true,
+      "85cd9c": true,
+      "85cdc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420873035",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "48.767|-123.167",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.876449-05:00",
+    "EcoNum": 24,
+    "Elevation": 136,
+    "FormattedDate": "20080426",
+    "GeoPoint": {
+      "Lat": 48.766667,
+      "Lng": -123.166667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.87645-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "5484": true,
+      "5485": true,
+      "54858c": true,
+      "54859": true,
+      "5485c": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "918990372",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "20.080|-98.336",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.877231-05:00",
+    "EcoNum": 10,
+    "Elevation": 2309,
+    "FormattedDate": "19771007",
+    "GeoPoint": {
+      "Lat": 20.079722,
+      "Lng": -98.335556
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.877234-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d04": true,
+      "85d05": true,
+      "85d054": true,
+      "85d1": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869638",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "30.382|-97.790",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.043629-05:00",
+    "EcoNum": 6,
+    "Elevation": 218,
+    "FormattedDate": "20150404",
+    "GeoPoint": {
+      "Lat": 30.382223,
+      "Lng": -97.790387
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.043632-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "864": true,
+      "865": true,
+      "865b": true,
+      "865b3": true,
+      "865b34": true,
+      "865b4": true,
+      "865c": true,
+      "87": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1322997087",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "46.840|-122.294",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.695695-05:00",
+    "EcoNum": 8,
+    "Elevation": 522,
+    "FormattedDate": "20120331",
+    "GeoPoint": {
+      "Lat": 46.840203,
+      "Lng": -122.294231
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.695697-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "5491": true,
+      "54913": true,
+      "54913c": true,
+      "54914": true,
+      "5494": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1453541738",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "49.767|-119.733",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.883179-05:00",
+    "EcoNum": 22,
+    "Elevation": 342,
+    "FormattedDate": "20060520",
+    "GeoPoint": {
+      "Lat": 49.766667,
+      "Lng": -119.733333
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.88318-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "54824": true,
+      "54827": true,
+      "548274": true,
+      "5483": true,
+      "5484": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "918991394",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.810|-82.153",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.429527-05:00",
+    "EcoNum": 7,
+    "Elevation": 212,
+    "FormattedDate": "20030525",
+    "GeoPoint": {
+      "Lat": 45.809578,
+      "Lng": -82.153192
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.429528-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4d": true,
+      "4d3": true,
+      "4d321": true,
+      "4d321c": true,
+      "4d324": true,
+      "4d33": true,
+      "4d34": true,
+      "4d4": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412709340",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "20.185|-98.740",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.900327-05:00",
+    "EcoNum": 3,
+    "Elevation": 2904,
+    "FormattedDate": "19740915",
+    "GeoPoint": {
+      "Lat": 20.185,
+      "Lng": -98.739722
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.900328-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d10c": true,
+      "85d11": true,
+      "85d14": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871533",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "20.789|-103.845",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.83982-05:00",
+    "EcoNum": 10,
+    "Elevation": 2832,
+    "FormattedDate": "19941016",
+    "GeoPoint": {
+      "Lat": 20.788889,
+      "Lng": -103.845
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.839822-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "8424": true,
+      "84261": true,
+      "842614": true,
+      "84264": true,
+      "8427": true,
+      "843": true,
+      "844": true,
+      "85": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1418732938",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.392|-92.669",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.905895-05:00",
+    "EcoNum": 15,
+    "Elevation": 222,
+    "FormattedDate": "20160520",
+    "GeoPoint": {
+      "Lat": 45.391807,
+      "Lng": -92.669364
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.905897-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "52b": true,
+      "52b29": true,
+      "52b294": true,
+      "52b2c": true,
+      "52b3": true,
+      "52b4": true,
+      "52c": true,
+      "53": true,
+      "54": true
+    },
+    "SourceOccurrenceID": "1500217412",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.660|-83.582",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.908849-05:00",
+    "EcoNum": 3,
+    "Elevation": 663,
+    "FormattedDate": "20170409",
+    "GeoPoint": {
+      "Lat": 35.66038,
+      "Lng": -83.582004
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.908851-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8859": true,
+      "88594": true,
+      "88595": true,
+      "885954": true,
+      "885c": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802617141",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "48.773|-123.164",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.908938-05:00",
+    "EcoNum": 24,
+    "Elevation": 347,
+    "FormattedDate": "20160418",
+    "GeoPoint": {
+      "Lat": 48.772737,
+      "Lng": -123.164078
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.908939-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "5484": true,
+      "5485": true,
+      "5485c": true,
+      "5485f": true,
+      "5485f4": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1265582374",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "47.795|-79.890",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.903028-05:00",
+    "EcoNum": 6,
+    "Elevation": 219,
+    "FormattedDate": "20170611",
+    "GeoPoint": {
+      "Lat": 47.795225,
+      "Lng": -79.890347
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.903029-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4d": true,
+      "4d24": true,
+      "4d2424": true,
+      "4d243": true,
+      "4d244": true,
+      "4d25": true,
+      "4d3": true,
+      "4d4": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1802622692",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.417|-99.375",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.918187-05:00",
+    "EcoNum": 10,
+    "Elevation": 3182,
+    "FormattedDate": "19660701",
+    "GeoPoint": {
+      "Lat": 19.416667,
+      "Lng": -99.375
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.918189-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d20c": true,
+      "85d21": true,
+      "85d24": true,
+      "85d3": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870407",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "30.378|-97.782",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.868474-05:00",
+    "EcoNum": 6,
+    "Elevation": 177,
+    "FormattedDate": "20140317",
+    "GeoPoint": {
+      "Lat": 30.378424,
+      "Lng": -97.78167
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.868475-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "864": true,
+      "8644": true,
+      "8644c": true,
+      "8644cc": true,
+      "8644d": true,
+      "8645": true,
+      "865": true,
+      "87": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "899950761",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.129|-98.998",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.746239-05:00",
+    "EcoNum": 10,
+    "Elevation": 3312,
+    "FormattedDate": "20151111",
+    "GeoPoint": {
+      "Lat": 19.128791,
+      "Lng": -98.998422
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.746241-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce1": true,
+      "85ce14": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1322997608",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.914|-82.509",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.919527-05:00",
+    "EcoNum": 14,
+    "Elevation": 180,
+    "FormattedDate": "20140516",
+    "GeoPoint": {
+      "Lat": 41.914499,
+      "Lng": -82.509157
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.919528-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "883a9": true,
+      "883a94": true,
+      "883ac": true,
+      "883b": true,
+      "883c": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1024181305",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.561|-99.414",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.781527-05:00",
+    "EcoNum": 10,
+    "Elevation": 2810,
+    "FormattedDate": "19610501",
+    "GeoPoint": {
+      "Lat": 19.561111,
+      "Lng": -99.414444
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.781528-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d21": true,
+      "85d214": true,
+      "85d24": true,
+      "85d3": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420874222",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "20.185|-98.740",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.923008-05:00",
+    "EcoNum": 3,
+    "Elevation": 2904,
+    "FormattedDate": "19781029",
+    "GeoPoint": {
+      "Lat": 20.185,
+      "Lng": -98.739722
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.923009-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d10c": true,
+      "85d11": true,
+      "85d14": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871928",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.274|-99.704",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.923614-05:00",
+    "EcoNum": 2,
+    "Elevation": 2743,
+    "FormattedDate": "19811127",
+    "GeoPoint": {
+      "Lat": 19.274167,
+      "Lng": -99.704444
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.923619-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cd8c": true,
+      "85cd9": true,
+      "85cdc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871054",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "20.185|-98.740",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.924522-05:00",
+    "EcoNum": 3,
+    "Elevation": 2904,
+    "FormattedDate": "19771016",
+    "GeoPoint": {
+      "Lat": 20.185,
+      "Lng": -98.739722
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.924524-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d10c": true,
+      "85d11": true,
+      "85d14": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871554",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "53.569|-114.447",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.880254-05:00",
+    "EcoNum": 2,
+    "Elevation": 738,
+    "FormattedDate": "20120611",
+    "GeoPoint": {
+      "Lat": 53.569014,
+      "Lng": -114.44694
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.880255-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "53": true,
+      "539": true,
+      "539c": true,
+      "539f": true,
+      "539fa4": true,
+      "539fb": true,
+      "539fc": true,
+      "53c": true,
+      "54": true
+    },
+    "SourceOccurrenceID": "1227774986",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "46.932|-121.653",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.915128-05:00",
+    "EcoNum": 8,
+    "Elevation": 1734,
+    "FormattedDate": "20120331",
+    "GeoPoint": {
+      "Lat": 46.932366,
+      "Lng": -121.652889
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.915129-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "5490c": true,
+      "5490cc": true,
+      "5490d": true,
+      "5491": true,
+      "5494": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1453548028",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "32.590|-95.176",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.926776-05:00",
+    "EcoNum": 23,
+    "Elevation": 101,
+    "FormattedDate": "20110324",
+    "GeoPoint": {
+      "Lat": 32.590064,
+      "Lng": -95.175961
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.926778-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "864": true,
+      "8649": true,
+      "8649c": true,
+      "8649d": true,
+      "8649dc": true,
+      "864c": true,
+      "865": true,
+      "87": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1562931316",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "20.185|-98.740",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.935526-05:00",
+    "EcoNum": 3,
+    "Elevation": 2904,
+    "FormattedDate": "19751019",
+    "GeoPoint": {
+      "Lat": 20.185,
+      "Lng": -98.739722
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.935528-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d10c": true,
+      "85d11": true,
+      "85d14": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871650",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.877|-73.210",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.508964-05:00",
+    "EcoNum": 7,
+    "Elevation": 22,
+    "FormattedDate": "19920517",
+    "GeoPoint": {
+      "Lat": 45.876777,
+      "Lng": -73.209987
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.508966-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc8c": true,
+      "4cc8f": true,
+      "4cc8f4": true,
+      "4cc9": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "617548882",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "10.078|-84.092",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.93362-05:00",
+    "EcoNum": 19,
+    "Elevation": 1862,
+    "FormattedDate": "20030921",
+    "GeoPoint": {
+      "Lat": 10.077778,
+      "Lng": -84.091667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.933622-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa0c": true,
+      "8fa0ec": true,
+      "8fa0f": true,
+      "8fa1": true,
+      "8fa4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253947492",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "38.970|-77.044",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.486887-05:00",
+    "EcoNum": 13,
+    "Elevation": 69,
+    "FormattedDate": "20170421",
+    "GeoPoint": {
+      "Lat": 38.970464,
+      "Lng": -77.043931
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.486888-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89b": true,
+      "89b4": true,
+      "89b7": true,
+      "89b7c": true,
+      "89b7cc": true,
+      "89b7d": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500294475",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.510|-73.663",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.529488-05:00",
+    "EcoNum": 7,
+    "Elevation": 39,
+    "FormattedDate": "19890522",
+    "GeoPoint": {
+      "Lat": 45.509625,
+      "Lng": -73.662984
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.529489-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc91": true,
+      "4cc91c": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "617554652",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.402|-75.697",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.532698-05:00",
+    "EcoNum": 7,
+    "Elevation": 74,
+    "FormattedDate": "19620615",
+    "GeoPoint": {
+      "Lat": 45.401612,
+      "Lng": -75.696754
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.532699-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4ccc": true,
+      "4cce04": true,
+      "4cce1": true,
+      "4cce4": true,
+      "4ccf": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412704724",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.519|-76.022",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.545672-05:00",
+    "EcoNum": 7,
+    "Elevation": 95,
+    "FormattedDate": "20040511",
+    "GeoPoint": {
+      "Lat": 44.519163,
+      "Lng": -76.02225
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.545673-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4ccc": true,
+      "4ccd": true,
+      "4ccd4": true,
+      "4ccd6c": true,
+      "4ccd7": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1703156746",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "19.642|-97.092",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.90025-05:00",
+    "EcoNum": 46,
+    "Elevation": 2448,
+    "FormattedDate": "19910701",
+    "GeoPoint": {
+      "Lat": 19.641667,
+      "Lng": -97.091667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.900251-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85db": true,
+      "85db24": true,
+      "85db3": true,
+      "85db4": true,
+      "85dc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1439005643",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.208|-75.230",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.657103-05:00",
+    "EcoNum": 7,
+    "Elevation": 87,
+    "FormattedDate": "20170524",
+    "GeoPoint": {
+      "Lat": 45.208278,
+      "Lng": -75.230384
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.657105-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4ccc": true,
+      "4ccd": true,
+      "4ccdc": true,
+      "4ccdd": true,
+      "4ccdd4": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1563421058",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "40.496|-80.540",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.495241-05:00",
+    "EcoNum": 2,
+    "Elevation": 374,
+    "FormattedDate": "20170417",
+    "GeoPoint": {
+      "Lat": 40.49613,
+      "Lng": -80.540152
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.495243-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8834": true,
+      "88343": true,
+      "88343c": true,
+      "88344": true,
+      "8835": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802617919",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.485|-74.079",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.69862-05:00",
+    "EcoNum": 7,
+    "Elevation": 125,
+    "FormattedDate": "19890527",
+    "GeoPoint": {
+      "Lat": 45.485445,
+      "Lng": -74.079213
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.698621-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc93": true,
+      "4cc934": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "617554659",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.039|-74.814",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.517103-05:00",
+    "EcoNum": 3,
+    "Elevation": 220,
+    "FormattedDate": "20160508",
+    "GeoPoint": {
+      "Lat": 41.03889,
+      "Lng": -74.81361
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.517104-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89c3": true,
+      "89c34": true,
+      "89c37": true,
+      "89c37c": true,
+      "89c4": true,
+      "89d": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1453101913",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.214|-81.663",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.523808-05:00",
+    "EcoNum": 14,
+    "Elevation": 370,
+    "FormattedDate": "20120501",
+    "GeoPoint": {
+      "Lat": 41.214367,
+      "Lng": -81.662985
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.523809-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8830c": true,
+      "8830d": true,
+      "8830dc": true,
+      "8831": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "891079383",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.607|-78.038",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.701169-05:00",
+    "EcoNum": 6,
+    "Elevation": 256,
+    "FormattedDate": "20100516",
+    "GeoPoint": {
+      "Lat": 44.60706,
+      "Lng": -78.03841
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.70117-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cd": true,
+      "4cd4": true,
+      "4cd4b": true,
+      "4cd4bc": true,
+      "4cd4c": true,
+      "4cd5": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1453269208",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "8.939|-82.820",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.548415-05:00",
+    "EcoNum": 30,
+    "Elevation": 1378,
+    "FormattedDate": "19990116",
+    "GeoPoint": {
+      "Lat": 8.939461,
+      "Lng": -82.820093
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.548417-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa4": true,
+      "8fa5": true,
+      "8fa5c": true,
+      "8fa5cc": true,
+      "8fa5d": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253939962",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "46.882|-71.176",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.798578-05:00",
+    "EcoNum": 7,
+    "Elevation": 76,
+    "FormattedDate": "20060522",
+    "GeoPoint": {
+      "Lat": 46.881808,
+      "Lng": -71.17635
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.79858-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cb": true,
+      "4cb8b": true,
+      "4cb8bc": true,
+      "4cb8c": true,
+      "4cb9": true,
+      "4cbc": true,
+      "4cc": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135070017",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.335|-75.724",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.826576-05:00",
+    "EcoNum": 7,
+    "Elevation": 85,
+    "FormattedDate": "19740525",
+    "GeoPoint": {
+      "Lat": 45.334924,
+      "Lng": -75.724058
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.826578-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4ccc": true,
+      "4cce04": true,
+      "4cce1": true,
+      "4cce4": true,
+      "4ccf": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412704759",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "9.452|-83.524",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.539982-05:00",
+    "EcoNum": 67,
+    "Elevation": 3289,
+    "FormattedDate": "19990914",
+    "GeoPoint": {
+      "Lat": 9.451944,
+      "Lng": -83.524444
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.539983-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa4": true,
+      "8fa6b": true,
+      "8fa6b4": true,
+      "8fa6c": true,
+      "8fa7": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253927685",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.994|-78.899",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.645004-05:00",
+    "EcoNum": 13,
+    "Elevation": 124,
+    "FormattedDate": "19680407",
+    "GeoPoint": {
+      "Lat": 35.994033,
+      "Lng": -78.898619
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.645006-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89ac": true,
+      "89acc": true,
+      "89ace4": true,
+      "89acf": true,
+      "89ad": true,
+      "89b": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1796663681",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "39.674|-83.837",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.650402-05:00",
+    "EcoNum": 14,
+    "Elevation": 312,
+    "FormattedDate": "20170422",
+    "GeoPoint": {
+      "Lat": 39.673882,
+      "Lng": -83.837375
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.650403-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "8840a4": true,
+      "8840b": true,
+      "8840c": true,
+      "8841": true,
+      "8844": true,
+      "885": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500300080",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "34.898|-83.246",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.513798-05:00",
+    "EcoNum": 3,
+    "Elevation": 539,
+    "FormattedDate": "20160408",
+    "GeoPoint": {
+      "Lat": 34.897828,
+      "Lng": -83.246235
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.5138-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8858c": true,
+      "8858e4": true,
+      "8858f": true,
+      "8859": true,
+      "885c": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1265569163",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.157|-76.032",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.871861-05:00",
+    "EcoNum": 7,
+    "Elevation": 136,
+    "FormattedDate": "19610522",
+    "GeoPoint": {
+      "Lat": 45.157226,
+      "Lng": -76.032263
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.871863-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cd": true,
+      "4cd20c": true,
+      "4cd21": true,
+      "4cd24": true,
+      "4cd3": true,
+      "4cd4": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412704736",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.382|-81.547",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.684042-05:00",
+    "EcoNum": 14,
+    "Elevation": 280,
+    "FormattedDate": "20160520",
+    "GeoPoint": {
+      "Lat": 41.38229,
+      "Lng": -81.546742
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.684044-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8830c": true,
+      "8830e4": true,
+      "8830f": true,
+      "8831": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1291076263",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "8.975|-82.771",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.800127-05:00",
+    "EcoNum": 67,
+    "Elevation": 1997,
+    "FormattedDate": "19990216",
+    "GeoPoint": {
+      "Lat": 8.975062,
+      "Lng": -82.77091
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.800128-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa4": true,
+      "8fa5": true,
+      "8fa5c": true,
+      "8fa5d": true,
+      "8fa5d4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253929949",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "9.979|-83.850",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.812001-05:00",
+    "EcoNum": 19,
+    "Elevation": 3215,
+    "FormattedDate": "20030617",
+    "GeoPoint": {
+      "Lat": 9.979171,
+      "Lng": -83.850004
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.812003-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa0c": true,
+      "8fa0d": true,
+      "8fa0dc": true,
+      "8fa1": true,
+      "8fa4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253947800",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.390|-73.766",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.924233-05:00",
+    "EcoNum": 7,
+    "Elevation": 22,
+    "FormattedDate": "20080523",
+    "GeoPoint": {
+      "Lat": 45.38951699905688,
+      "Lng": -73.766367
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.924234-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc91": true,
+      "4cc914": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135067900",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.279|-81.375",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.855269-05:00",
+    "EcoNum": 14,
+    "Elevation": 310,
+    "FormattedDate": "20170430",
+    "GeoPoint": {
+      "Lat": 41.279433,
+      "Lng": -81.374703
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.855272-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8831": true,
+      "88311": true,
+      "88311c": true,
+      "88314": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500336085",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "38.926|-77.047",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.857826-05:00",
+    "EcoNum": 13,
+    "Elevation": 35,
+    "FormattedDate": "20130506",
+    "GeoPoint": {
+      "Lat": 38.926041,
+      "Lng": -77.047329
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.857827-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89b": true,
+      "89b4": true,
+      "89b7": true,
+      "89b7b": true,
+      "89b7b4": true,
+      "89b7c": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1563414671",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "38.962|-82.211",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.859145-05:00",
+    "EcoNum": 2,
+    "Elevation": 233,
+    "FormattedDate": "20120323",
+    "GeoPoint": {
+      "Lat": 38.962078,
+      "Lng": -82.210693
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.859147-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "884884": true,
+      "88489": true,
+      "8848c": true,
+      "8849": true,
+      "884c": true,
+      "885": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "891074374",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "10.108|-84.123",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.881096-05:00",
+    "EcoNum": 67,
+    "Elevation": 2287,
+    "FormattedDate": "20040802",
+    "GeoPoint": {
+      "Lat": 10.108364,
+      "Lng": -84.122572
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.881099-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa0c": true,
+      "8fa0f": true,
+      "8fa0f4": true,
+      "8fa1": true,
+      "8fa4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253955125",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "8.956|-82.742",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.884017-05:00",
+    "EcoNum": 67,
+    "Elevation": 2121,
+    "FormattedDate": "19990214",
+    "GeoPoint": {
+      "Lat": 8.956001,
+      "Lng": -82.741858
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.884019-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa4": true,
+      "8fa5": true,
+      "8fa5c": true,
+      "8fa5d": true,
+      "8fa5d4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253929884",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "40.994|-81.798",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.897532-05:00",
+    "EcoNum": 14,
+    "Elevation": 343,
+    "FormattedDate": "20170424",
+    "GeoPoint": {
+      "Lat": 40.993555,
+      "Lng": -81.798356
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.897534-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8830c": true,
+      "8830cc": true,
+      "8830d": true,
+      "8831": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500310445",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.329|-99.184",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.93841-05:00",
+    "EcoNum": 2,
+    "Elevation": 2282,
+    "FormattedDate": "19760915",
+    "GeoPoint": {
+      "Lat": 19.328611,
+      "Lng": -99.183611
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.938412-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce04": true,
+      "85ce1": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870289",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "41.785|-87.581",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.907054-05:00",
+    "EcoNum": 4,
+    "Elevation": 186,
+    "FormattedDate": "20160514",
+    "GeoPoint": {
+      "Lat": 41.784994,
+      "Lng": -87.581303
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.907057-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "880c": true,
+      "880e2c": true,
+      "880e3": true,
+      "880e4": true,
+      "880f": true,
+      "881": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1269558380",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "34.230|-96.686",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.948951-05:00",
+    "EcoNum": 4,
+    "Elevation": 200,
+    "FormattedDate": "20160411",
+    "GeoPoint": {
+      "Lat": 34.229567,
+      "Lng": -96.686382
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.948953-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "864": true,
+      "864c": true,
+      "864cb": true,
+      "864cb4": true,
+      "864cc": true,
+      "864d": true,
+      "865": true,
+      "87": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1265568525",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "39.905|-79.462",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.856264-05:00",
+    "EcoNum": 2,
+    "Elevation": 453,
+    "FormattedDate": "20140503",
+    "GeoPoint": {
+      "Lat": 39.90483,
+      "Lng": -79.462197
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.856265-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8834": true,
+      "8835": true,
+      "88353": true,
+      "883534": true,
+      "88354": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "899979827",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.212|-97.986",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.949993-05:00",
+    "EcoNum": 10,
+    "Elevation": 3177,
+    "FormattedDate": "20140919",
+    "GeoPoint": {
+      "Lat": 19.212292,
+      "Lng": -97.985687
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.949994-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cf": true,
+      "85cfc": true,
+      "85cfe4": true,
+      "85cff": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1315064002",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.202|-81.583",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.522144-05:00",
+    "EcoNum": 14,
+    "Elevation": 224,
+    "FormattedDate": "20140517",
+    "GeoPoint": {
+      "Lat": 41.202071,
+      "Lng": -81.583129
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.522145-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8830c": true,
+      "8830d": true,
+      "8830dc": true,
+      "8831": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1269586618",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.502|-73.149",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.522069-05:00",
+    "EcoNum": 7,
+    "Elevation": 83,
+    "FormattedDate": "20150601",
+    "GeoPoint": {
+      "Lat": 44.501717,
+      "Lng": -73.149
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.52207-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cca4": true,
+      "4cca7": true,
+      "4cca74": true,
+      "4ccb": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1092910207",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "36.333|-118.732",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.934531-05:00",
+    "EcoNum": 27,
+    "Elevation": 1827,
+    "FormattedDate": "20170430",
+    "GeoPoint": {
+      "Lat": 36.332733,
+      "Lng": -118.73168
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.934535-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "809": true,
+      "8094": true,
+      "8095": true,
+      "80954": true,
+      "80955": true,
+      "809554": true,
+      "80c": true,
+      "81": true,
+      "84": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500341704",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.291|-98.670",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.914563-05:00",
+    "EcoNum": 10,
+    "Elevation": 3318,
+    "FormattedDate": "20130920",
+    "GeoPoint": {
+      "Lat": 19.290814,
+      "Lng": -98.669736
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.914565-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce24": true,
+      "85ce3": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "911499464",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "41.672|-91.514",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.916623-05:00",
+    "EcoNum": 5,
+    "Elevation": 231,
+    "FormattedDate": "20120331",
+    "GeoPoint": {
+      "Lat": 41.672487,
+      "Lng": -91.513753
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.916625-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87e4": true,
+      "87e44": true,
+      "87e46c": true,
+      "87e47": true,
+      "87e5": true,
+      "87f": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1584399797",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.177|-99.859",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.863734-05:00",
+    "EcoNum": 10,
+    "Elevation": 3133,
+    "FormattedDate": "19840923",
+    "GeoPoint": {
+      "Lat": 19.1775,
+      "Lng": -99.858611
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.863735-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cd84": true,
+      "85cd9": true,
+      "85cdc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871254",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "36.018|-81.689",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.953451-05:00",
+    "EcoNum": 3,
+    "Elevation": 413,
+    "FormattedDate": "20120407",
+    "GeoPoint": {
+      "Lat": 36.01777,
+      "Lng": -81.689169
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.953453-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8850c": true,
+      "8850e4": true,
+      "8850f": true,
+      "8851": true,
+      "8854": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1453149396",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.154|-80.205",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.632788-05:00",
+    "EcoNum": 7,
+    "Elevation": 457,
+    "FormattedDate": "19720524",
+    "GeoPoint": {
+      "Lat": 44.153731,
+      "Lng": -80.20487
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.632791-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "882a4": true,
+      "882a5": true,
+      "882a5c": true,
+      "882b": true,
+      "882c": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1412704753",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "45.128|-116.690",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.943837-05:00",
+    "EcoNum": 5,
+    "Elevation": 1705,
+    "FormattedDate": "20170604",
+    "GeoPoint": {
+      "Lat": 45.127879,
+      "Lng": -116.690279
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.943839-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "54a4": true,
+      "54a69": true,
+      "54a69c": true,
+      "54a6c": true,
+      "54a7": true,
+      "54b": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1802622694",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.070|-99.370",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.958819-05:00",
+    "EcoNum": 10,
+    "Elevation": 3023,
+    "FormattedDate": "19820731",
+    "GeoPoint": {
+      "Lat": 19.069722,
+      "Lng": -99.370278
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.958821-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdec": true,
+      "85cdf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420873545",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.528|-72.394",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.927961-05:00",
+    "EcoNum": 10,
+    "Elevation": 94,
+    "FormattedDate": "20160512",
+    "GeoPoint": {
+      "Lat": 43.52786,
+      "Lng": -72.393508
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.927962-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89e1": true,
+      "89e1c": true,
+      "89e1d": true,
+      "89e1dc": true,
+      "89e4": true,
+      "89f": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1269557255",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "42.302|-81.852",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.963336-05:00",
+    "EcoNum": 14,
+    "Elevation": 179,
+    "FormattedDate": "20160520",
+    "GeoPoint": {
+      "Lat": 42.301546,
+      "Lng": -81.851578
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.963337-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "882c": true,
+      "882f": true,
+      "882fc": true,
+      "882fd": true,
+      "882fdc": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1668813920",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "20.190|-98.675",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.968687-05:00",
+    "EcoNum": 3,
+    "Elevation": 2617,
+    "FormattedDate": "19751008",
+    "GeoPoint": {
+      "Lat": 20.189722,
+      "Lng": -98.675278
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.968689-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d10c": true,
+      "85d11": true,
+      "85d14": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870097",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.365|-98.692",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.656917-05:00",
+    "EcoNum": 10,
+    "Elevation": 3356,
+    "FormattedDate": "19760606",
+    "GeoPoint": {
+      "Lat": 19.365278,
+      "Lng": -98.6925
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.656918-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1d": true,
+      "85d1dc": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869806",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.504|-98.967",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.9408-05:00",
+    "EcoNum": 2,
+    "Elevation": 2237,
+    "FormattedDate": "19730908",
+    "GeoPoint": {
+      "Lat": 19.504444,
+      "Lng": -98.966667
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.940802-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1e4": true,
+      "85d1f": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870255",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "47.420|-117.531",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.902726-05:00",
+    "EcoNum": 13,
+    "Elevation": 700,
+    "FormattedDate": "20170520",
+    "GeoPoint": {
+      "Lat": 47.420258,
+      "Lng": -117.530824
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.902727-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "549c": true,
+      "549e4": true,
+      "549e4c": true,
+      "549e5": true,
+      "549f": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1571074618",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "33.384|-84.610",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.957218-05:00",
+    "EcoNum": 13,
+    "Elevation": 244,
+    "FormattedDate": "20140413",
+    "GeoPoint": {
+      "Lat": 33.383866,
+      "Lng": -84.61008
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.95722-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "88c": true,
+      "88f": true,
+      "88f4": true,
+      "88f4c": true,
+      "88f4c4": true,
+      "88f4d": true,
+      "88f5": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802614708",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.773|-93.094",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.941524-05:00",
+    "EcoNum": 15,
+    "Elevation": 288,
+    "FormattedDate": "20170525",
+    "GeoPoint": {
+      "Lat": 44.773272,
+      "Lng": -93.094383
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.941526-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87f4": true,
+      "87f7": true,
+      "87f7c": true,
+      "87f7cc": true,
+      "87f7d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802626758",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "39.126|-88.179",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.971674-05:00",
+    "EcoNum": 4,
+    "Elevation": 179,
+    "FormattedDate": "20170509",
+    "GeoPoint": {
+      "Lat": 39.126278,
+      "Lng": -88.179359
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.971675-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "887": true,
+      "8873": true,
+      "8873b": true,
+      "8873b4": true,
+      "8873c": true,
+      "8874": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802664027",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "44.769|-116.420",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.97193-05:00",
+    "EcoNum": 5,
+    "Elevation": 945,
+    "FormattedDate": "20170615",
+    "GeoPoint": {
+      "Lat": 44.768623,
+      "Lng": -116.41986
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.971932-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "54a4": true,
+      "54a5": true,
+      "54a5c": true,
+      "54a5d": true,
+      "54a5d4": true,
+      "54b": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1571141088",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "29.615|-98.685",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.973074-05:00",
+    "EcoNum": 6,
+    "Elevation": 347,
+    "FormattedDate": "20161121",
+    "GeoPoint": {
+      "Lat": 29.615094,
+      "Lng": -98.684918
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.973076-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "864": true,
+      "865": true,
+      "865c": true,
+      "865c4": true,
+      "865c6c": true,
+      "865c7": true,
+      "865d": true,
+      "87": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1453233681",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "37.108|-82.586",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.97756-05:00",
+    "EcoNum": 2,
+    "Elevation": 552,
+    "FormattedDate": "20130429",
+    "GeoPoint": {
+      "Lat": 37.107778,
+      "Lng": -82.585556
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.977562-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "8844": true,
+      "8845": true,
+      "88453": true,
+      "884534": true,
+      "88454": true,
+      "885": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "891145519",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.483|-77.296",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.95122-05:00",
+    "EcoNum": 7,
+    "Elevation": 146,
+    "FormattedDate": "20130517",
+    "GeoPoint": {
+      "Lat": 44.482817,
+      "Lng": -77.296188
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.951221-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cd": true,
+      "4cd3": true,
+      "4cd33": true,
+      "4cd33c": true,
+      "4cd34": true,
+      "4cd4": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1802768931",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.677|-73.256",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.913479-05:00",
+    "EcoNum": 7,
+    "Elevation": 272,
+    "FormattedDate": "20130514",
+    "GeoPoint": {
+      "Lat": 43.676601,
+      "Lng": -73.255665
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.91348-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89e01": true,
+      "89e01c": true,
+      "89e04": true,
+      "89e1": true,
+      "89e4": true,
+      "89f": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1227774020",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "46.907|-122.281",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.983296-05:00",
+    "EcoNum": 24,
+    "Elevation": 230,
+    "FormattedDate": "20120331",
+    "GeoPoint": {
+      "Lat": 46.906876,
+      "Lng": -122.28051
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.983298-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "5491": true,
+      "549124": true,
+      "54913": true,
+      "54914": true,
+      "5494": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1453542754",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.736|-73.210",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.529591-05:00",
+    "EcoNum": 7,
+    "Elevation": 215,
+    "FormattedDate": "20100510",
+    "GeoPoint": {
+      "Lat": 43.736238,
+      "Lng": -73.210352
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.529592-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89e01": true,
+      "89e01c": true,
+      "89e04": true,
+      "89e1": true,
+      "89e4": true,
+      "89f": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "923908968",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "18.128|-96.843",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.918084-05:00",
+    "EcoNum": 46,
+    "Elevation": 1595,
+    "FormattedDate": "19650801",
+    "GeoPoint": {
+      "Lat": 18.1275,
+      "Lng": -96.843056
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.918086-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85c4": true,
+      "85c43": true,
+      "85c43c": true,
+      "85c44": true,
+      "85c5": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1418272263",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.817|-81.180",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.955516-05:00",
+    "EcoNum": 13,
+    "Elevation": 297,
+    "FormattedDate": "20090413",
+    "GeoPoint": {
+      "Lat": 35.817422,
+      "Lng": -81.180358
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.955517-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8851": true,
+      "88513": true,
+      "88513c": true,
+      "88514": true,
+      "8854": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802612592",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.446|-75.652",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.98502-05:00",
+    "EcoNum": 7,
+    "Elevation": 66,
+    "FormattedDate": "20090513",
+    "GeoPoint": {
+      "Lat": 45.446044,
+      "Lng": -75.651913
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.985021-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4ccc": true,
+      "4cce04": true,
+      "4cce1": true,
+      "4cce4": true,
+      "4ccf": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1143526847",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "36.935|-82.599",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.986533-05:00",
+    "EcoNum": 2,
+    "Elevation": 746,
+    "FormattedDate": "20140405",
+    "GeoPoint": {
+      "Lat": 36.935151,
+      "Lng": -82.599125
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.986535-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "885ac": true,
+      "885acc": true,
+      "885ad": true,
+      "885b": true,
+      "885c": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1065576679",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.342|-99.325",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.959287-05:00",
+    "EcoNum": 10,
+    "Elevation": 2868,
+    "FormattedDate": "19610911",
+    "GeoPoint": {
+      "Lat": 19.341667,
+      "Lng": -99.325
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.959289-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d204": true,
+      "85d21": true,
+      "85d24": true,
+      "85d3": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1421827549",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.363|-73.777",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.991947-05:00",
+    "EcoNum": 7,
+    "Elevation": 24,
+    "FormattedDate": "20080524",
+    "GeoPoint": {
+      "Lat": 45.363332999056865,
+      "Lng": -73.776833
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.991949-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc91": true,
+      "4cc914": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135067832",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 6,
+    "CoordinateKey": "48.467|-71.263",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.530015-05:00",
+    "EcoNum": 5,
+    "Elevation": 105,
+    "FormattedDate": "19840524",
+    "GeoPoint": {
+      "Lat": 48.466834,
+      "Lng": -71.263421
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.530017-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc02c": true,
+      "4cc03": true,
+      "4cc04": true,
+      "4cc1": true,
+      "4cc4": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412707030",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.616|-73.063",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.946062-05:00",
+    "EcoNum": 10,
+    "Elevation": 162,
+    "FormattedDate": "20160519",
+    "GeoPoint": {
+      "Lat": 43.61588,
+      "Lng": -73.063467
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.946063-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89e024": true,
+      "89e03": true,
+      "89e04": true,
+      "89e1": true,
+      "89e4": true,
+      "89f": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1291663279",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "39.862|-76.342",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.962862-05:00",
+    "EcoNum": 11,
+    "Elevation": 104,
+    "FormattedDate": "20110430",
+    "GeoPoint": {
+      "Lat": 39.862391,
+      "Lng": -76.342363
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.962863-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89c4": true,
+      "89c62c": true,
+      "89c63": true,
+      "89c64": true,
+      "89c7": true,
+      "89d": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1703159689",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "19.158|-96.975",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.989057-05:00",
+    "EcoNum": 46,
+    "Elevation": 1322,
+    "FormattedDate": "19831120",
+    "GeoPoint": {
+      "Lat": 19.158333,
+      "Lng": -96.975
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.98906-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85c4": true,
+      "85c4c": true,
+      "85c4d": true,
+      "85c4dc": true,
+      "85c5": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1418367069",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.465|-73.921",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.992361-05:00",
+    "EcoNum": 7,
+    "Elevation": 24,
+    "FormattedDate": "19800529",
+    "GeoPoint": {
+      "Lat": 45.465391,
+      "Lng": -73.920995
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.992362-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc93": true,
+      "4cc93c": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412709171",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "53.255|-132.075",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.99224-05:00",
+    "EcoNum": 25,
+    "Elevation": 27,
+    "FormattedDate": "20110424",
+    "GeoPoint": {
+      "Lat": 53.255206,
+      "Lng": -132.074971
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.992242-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "544": true,
+      "546c": true,
+      "546cc": true,
+      "546cd": true,
+      "546cdc": true,
+      "546d": true,
+      "547": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1306576135",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "9.979|-83.850",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.993681-05:00",
+    "EcoNum": 19,
+    "Elevation": 3215,
+    "FormattedDate": "20031012",
+    "GeoPoint": {
+      "Lat": 9.979171,
+      "Lng": -83.850004
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.993683-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa0c": true,
+      "8fa0d": true,
+      "8fa0dc": true,
+      "8fa1": true,
+      "8fa4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253947491",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.429|-99.144",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.994477-05:00",
+    "EcoNum": 2,
+    "Elevation": 2243,
+    "FormattedDate": "19900308",
+    "GeoPoint": {
+      "Lat": 19.429167,
+      "Lng": -99.144444
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.994479-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1f": true,
+      "85d1fc": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871050",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "40.700|-82.551",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.82329-05:00",
+    "EcoNum": 14,
+    "Elevation": 393,
+    "FormattedDate": "20170423",
+    "GeoPoint": {
+      "Lat": 40.700235,
+      "Lng": -82.55084
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.823291-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8839": true,
+      "8839c": true,
+      "8839c4": true,
+      "8839d": true,
+      "883c": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1668877472",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "47.902|-117.548",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.967356-05:00",
+    "EcoNum": 22,
+    "Elevation": 652,
+    "FormattedDate": "20170422",
+    "GeoPoint": {
+      "Lat": 47.901979,
+      "Lng": -117.548001
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.967357-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "549c": true,
+      "549e04": true,
+      "549e1": true,
+      "549e4": true,
+      "549f": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1562889972",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "54.142|-119.933",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.96789-05:00",
+    "EcoNum": 1,
+    "Elevation": 1428,
+    "FormattedDate": "20060619",
+    "GeoPoint": {
+      "Lat": 54.141667,
+      "Lng": -119.933333
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.967892-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "53": true,
+      "5384": true,
+      "5385": true,
+      "53853": true,
+      "53853c": true,
+      "53854": true,
+      "539": true,
+      "53c": true,
+      "54": true
+    },
+    "SourceOccurrenceID": "918995642",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "42.696|-83.168",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.913259-05:00",
+    "EcoNum": 14,
+    "Elevation": 271,
+    "FormattedDate": "20140520",
+    "GeoPoint": {
+      "Lat": 42.695558,
+      "Lng": -83.167877
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.91326-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "8824": true,
+      "8824c": true,
+      "8824ec": true,
+      "8824f": true,
+      "8825": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1457577781",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.779|-81.284",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.998507-05:00",
+    "EcoNum": 13,
+    "Elevation": 322,
+    "FormattedDate": "20130415",
+    "GeoPoint": {
+      "Lat": 35.778902,
+      "Lng": -81.284244
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.998509-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8851": true,
+      "88513": true,
+      "88513c": true,
+      "88514": true,
+      "8854": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1453152202",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "34.675|-82.823",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.018543-05:00",
+    "EcoNum": 13,
+    "Elevation": 247,
+    "FormattedDate": "20150410",
+    "GeoPoint": {
+      "Lat": 34.675217,
+      "Lng": -82.822967
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.018544-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "88584": true,
+      "88585": true,
+      "88585c": true,
+      "8859": true,
+      "885c": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802612608",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "39.012|-77.255",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.418894-05:00",
+    "EcoNum": 13,
+    "Elevation": 94,
+    "FormattedDate": "20170420",
+    "GeoPoint": {
+      "Lat": 39.011937,
+      "Lng": -77.255416
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.418895-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89b": true,
+      "89b4": true,
+      "89b63": true,
+      "89b634": true,
+      "89b64": true,
+      "89b7": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500314258",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "40.964|-81.331",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.953344-05:00",
+    "EcoNum": 14,
+    "Elevation": 354,
+    "FormattedDate": "20120413",
+    "GeoPoint": {
+      "Lat": 40.963669,
+      "Lng": -81.331219
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.953346-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8831": true,
+      "88313": true,
+      "883134": true,
+      "88314": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "891075944",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "42.448|-92.381",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.999761-05:00",
+    "EcoNum": 5,
+    "Elevation": 288,
+    "FormattedDate": "20120411",
+    "GeoPoint": {
+      "Lat": 42.447804,
+      "Lng": -92.381362
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.999763-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87e4": true,
+      "87e5": true,
+      "87e54": true,
+      "87e55": true,
+      "87e554": true,
+      "87f": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1802625082",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "47.635|-122.338",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.02032-05:00",
+    "EcoNum": 24,
+    "Elevation": 1,
+    "FormattedDate": "20120427",
+    "GeoPoint": {
+      "Lat": 47.635471,
+      "Lng": -122.338303
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.020321-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "54901": true,
+      "549014": true,
+      "54904": true,
+      "5491": true,
+      "5494": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1453543583",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.303|-99.299",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.00186-05:00",
+    "EcoNum": 10,
+    "Elevation": 3348,
+    "FormattedDate": "19810315",
+    "GeoPoint": {
+      "Lat": 19.303333,
+      "Lng": -99.298889
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.001862-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdfc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870765",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.374|-98.081",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.958938-05:00",
+    "EcoNum": 10,
+    "Elevation": 2479,
+    "FormattedDate": "19831113",
+    "GeoPoint": {
+      "Lat": 19.374167,
+      "Lng": -98.081389
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.95894-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cf": true,
+      "85cfc": true,
+      "85cfe4": true,
+      "85cff": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870905",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "19.150|-96.966",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.00219-05:00",
+    "EcoNum": 46,
+    "Elevation": 1296,
+    "FormattedDate": "19831120",
+    "GeoPoint": {
+      "Lat": 19.15,
+      "Lng": -96.965556
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.002191-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85c4": true,
+      "85c4c": true,
+      "85c4d": true,
+      "85c4dc": true,
+      "85c5": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869268",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "10.108|-84.123",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.004524-05:00",
+    "EcoNum": 67,
+    "Elevation": 2287,
+    "FormattedDate": "20080729",
+    "GeoPoint": {
+      "Lat": 10.108364,
+      "Lng": -84.122572
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.004526-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa0c": true,
+      "8fa0f": true,
+      "8fa0f4": true,
+      "8fa1": true,
+      "8fa4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253974048",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 6,
+    "CoordinateKey": "48.428|-71.866",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.920753-05:00",
+    "EcoNum": 5,
+    "Elevation": 116,
+    "FormattedDate": "19830606",
+    "GeoPoint": {
+      "Lat": 48.427958,
+      "Lng": -71.866303
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.920754-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc1": true,
+      "4cc1c": true,
+      "4cc1d": true,
+      "4cc1dc": true,
+      "4cc4": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412707026",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "48.777|-123.589",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.997833-05:00",
+    "EcoNum": 10,
+    "Elevation": 107,
+    "FormattedDate": "20160328",
+    "GeoPoint": {
+      "Lat": 48.777404,
+      "Lng": -123.588724
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.997834-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "548c": true,
+      "548f": true,
+      "548f4": true,
+      "548f44": true,
+      "548f5": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1265546607",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "37.355|-88.910",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.020147-05:00",
+    "EcoNum": 4,
+    "Elevation": 118,
+    "FormattedDate": "20160331",
+    "GeoPoint": {
+      "Lat": 37.354637,
+      "Lng": -88.910315
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.020149-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "887": true,
+      "8874": true,
+      "8877": true,
+      "88774": true,
+      "88775": true,
+      "887754": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1265561367",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "10.069|-84.079",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.548092-05:00",
+    "EcoNum": 19,
+    "Elevation": 1856,
+    "FormattedDate": "20040802",
+    "GeoPoint": {
+      "Lat": 10.068549,
+      "Lng": -84.078809
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.548094-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa0c": true,
+      "8fa0ec": true,
+      "8fa0f": true,
+      "8fa1": true,
+      "8fa4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253955121",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.610|-73.706",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.027513-05:00",
+    "EcoNum": 7,
+    "Elevation": 32,
+    "FormattedDate": "20020519",
+    "GeoPoint": {
+      "Lat": 45.609608,
+      "Lng": -73.705867
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.027514-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc924": true,
+      "4cc93": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "617553423",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "48.075|-123.823",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.016245-05:00",
+    "EcoNum": 10,
+    "Elevation": 681,
+    "FormattedDate": "20170415",
+    "GeoPoint": {
+      "Lat": 48.074894,
+      "Lng": -123.822636
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.016246-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "548c": true,
+      "548e4": true,
+      "548e5": true,
+      "548e54": true,
+      "548f": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1802618277",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "39.059|-77.026",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.027932-05:00",
+    "EcoNum": 13,
+    "Elevation": 107,
+    "FormattedDate": "20170408",
+    "GeoPoint": {
+      "Lat": 39.058534,
+      "Lng": -77.025851
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.027933-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89b": true,
+      "89b4": true,
+      "89b7": true,
+      "89b7c": true,
+      "89b7cc": true,
+      "89b7d": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1457622178",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "39.471|-82.737",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.824707-05:00",
+    "EcoNum": 2,
+    "Elevation": 233,
+    "FormattedDate": "20170410",
+    "GeoPoint": {
+      "Lat": 39.471461,
+      "Lng": -82.736741
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.824709-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "8844": true,
+      "8847": true,
+      "88479": true,
+      "88479c": true,
+      "8847c": true,
+      "885": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1457631883",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "46.907|-71.312",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.029401-05:00",
+    "EcoNum": 6,
+    "Elevation": 199,
+    "FormattedDate": "20060602",
+    "GeoPoint": {
+      "Lat": 46.907478,
+      "Lng": -71.312257
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.029402-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cb": true,
+      "4cb8a4": true,
+      "4cb8b": true,
+      "4cb8c": true,
+      "4cb9": true,
+      "4cbc": true,
+      "4cc": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1135070042",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 6,
+    "CoordinateKey": "48.428|-71.866",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.869599-05:00",
+    "EcoNum": 5,
+    "Elevation": 116,
+    "FormattedDate": "19830605",
+    "GeoPoint": {
+      "Lat": 48.427958,
+      "Lng": -71.866303
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.869601-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc1": true,
+      "4cc1c": true,
+      "4cc1d": true,
+      "4cc1dc": true,
+      "4cc4": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1412707054",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 2,
+    "CoordinateKey": "18.928|-99.239",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.987312-05:00",
+    "EcoNum": 5,
+    "Elevation": 1566,
+    "FormattedDate": "19820807",
+    "GeoPoint": {
+      "Lat": 18.927778,
+      "Lng": -99.238889
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.987313-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdd": true,
+      "85cddc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869738",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 1,
+    "CoordinateKey": "9.892|-83.978",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.025904-05:00",
+    "EcoNum": 19,
+    "Elevation": 1544,
+    "FormattedDate": "20081205",
+    "GeoPoint": {
+      "Lat": 9.891686,
+      "Lng": -83.977745
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.025906-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "8c": true,
+      "8f": true,
+      "8fa0c": true,
+      "8fa0e4": true,
+      "8fa0f": true,
+      "8fa1": true,
+      "8fa4": true,
+      "8fb": true,
+      "8fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1253975538",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.161|-81.120",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.028233-05:00",
+    "EcoNum": 13,
+    "Elevation": 217,
+    "FormattedDate": "20170406",
+    "GeoPoint": {
+      "Lat": 35.160975,
+      "Lng": -81.120388
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.028235-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8854": true,
+      "88569": true,
+      "885694": true,
+      "8856c": true,
+      "8857": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1457616464",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "38.435|-83.897",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.038666-05:00",
+    "EcoNum": 4,
+    "Elevation": 293,
+    "FormattedDate": "20170418",
+    "GeoPoint": {
+      "Lat": 38.434536,
+      "Lng": -83.896652
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.038668-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "8843": true,
+      "8843c": true,
+      "8843e4": true,
+      "8843f": true,
+      "8844": true,
+      "885": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1571166673",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "38.972|-77.044",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.042277-05:00",
+    "EcoNum": 13,
+    "Elevation": 75,
+    "FormattedDate": "20170421",
+    "GeoPoint": {
+      "Lat": 38.972144,
+      "Lng": -77.044236
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.042279-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89b": true,
+      "89b4": true,
+      "89b7": true,
+      "89b7c": true,
+      "89b7cc": true,
+      "89b7d": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500294621",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.575|-73.409",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.844721-05:00",
+    "EcoNum": 6,
+    "Elevation": 114,
+    "FormattedDate": "20160518",
+    "GeoPoint": {
+      "Lat": 43.57512,
+      "Lng": -73.409273
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.844722-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89e00c": true,
+      "89e01": true,
+      "89e04": true,
+      "89e1": true,
+      "89e4": true,
+      "89f": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1291663261",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "30.160|-97.807",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.997993-05:00",
+    "EcoNum": 6,
+    "Elevation": 204,
+    "FormattedDate": "20150328",
+    "GeoPoint": {
+      "Lat": 30.159573,
+      "Lng": -97.8072
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.997994-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "864": true,
+      "865": true,
+      "865b": true,
+      "865b4": true,
+      "865b4c": true,
+      "865b5": true,
+      "865c": true,
+      "87": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1088931029",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "36.141|-79.913",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.031171-05:00",
+    "EcoNum": 13,
+    "Elevation": 238,
+    "FormattedDate": "20150428",
+    "GeoPoint": {
+      "Lat": 36.141177,
+      "Lng": -79.912834
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.031173-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8853": true,
+      "88531": true,
+      "88531c": true,
+      "88534": true,
+      "8854": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1088963604",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "49.504|-119.591",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.96254-05:00",
+    "EcoNum": 22,
+    "Elevation": 347,
+    "FormattedDate": "20080518",
+    "GeoPoint": {
+      "Lat": 49.503911,
+      "Lng": -119.591347
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.962542-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "54824": true,
+      "548264": true,
+      "54827": true,
+      "5483": true,
+      "5484": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "918990377",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.524|-122.675",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.035135-05:00",
+    "EcoNum": 17,
+    "Elevation": 14,
+    "FormattedDate": "20070502",
+    "GeoPoint": {
+      "Lat": 45.52361,
+      "Lng": -122.675
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.035136-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "5494": true,
+      "5495": true,
+      "54950c": true,
+      "54951": true,
+      "54954": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "213255891",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.138|-85.907",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.039011-05:00",
+    "EcoNum": 2,
+    "Elevation": 313,
+    "FormattedDate": "20150411",
+    "GeoPoint": {
+      "Lat": 35.138339,
+      "Lng": -85.907358
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.039012-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "8861": true,
+      "8861a4": true,
+      "8861b": true,
+      "8861c": true,
+      "8864": true,
+      "887": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1099958155",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "40.964|-81.331",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.046255-05:00",
+    "EcoNum": 14,
+    "Elevation": 354,
+    "FormattedDate": "20170421",
+    "GeoPoint": {
+      "Lat": 40.963669,
+      "Lng": -81.331219
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.046259-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8831": true,
+      "88313": true,
+      "883134": true,
+      "88314": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1500297427",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.442|-99.156",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.048688-05:00",
+    "EcoNum": 2,
+    "Elevation": 2241,
+    "FormattedDate": "19600818",
+    "GeoPoint": {
+      "Lat": 19.441667,
+      "Lng": -99.155556
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.048689-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1f": true,
+      "85d1fc": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869896",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.330|-99.155",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.048927-05:00",
+    "EcoNum": 2,
+    "Elevation": 2261,
+    "FormattedDate": "19600829",
+    "GeoPoint": {
+      "Lat": 19.33,
+      "Lng": -99.155278
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.048929-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85ce04": true,
+      "85ce1": true,
+      "85ce4": true,
+      "85cf": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420869609",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.510|-73.663",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:42.995254-05:00",
+    "EcoNum": 7,
+    "Elevation": 39,
+    "FormattedDate": "19900507",
+    "GeoPoint": {
+      "Lat": 45.509625,
+      "Lng": -73.662984
+    },
+    "ModifiedAt": "2018-02-13T10:10:42.995255-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cc9": true,
+      "4cc91": true,
+      "4cc91c": true,
+      "4cc94": true,
+      "4ccc": true,
+      "4cd": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "617555641",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "40.876|-89.689",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.038348-05:00",
+    "EcoNum": 4,
+    "Elevation": 222,
+    "FormattedDate": "20170420",
+    "GeoPoint": {
+      "Lat": 40.876463,
+      "Lng": -89.689117
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.03835-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "880a4": true,
+      "880a44": true,
+      "880a5": true,
+      "880b": true,
+      "880c": true,
+      "881": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1640035661",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.256|-99.249",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.04914-05:00",
+    "EcoNum": 10,
+    "Elevation": 2925,
+    "FormattedDate": "19600925",
+    "GeoPoint": {
+      "Lat": 19.255556,
+      "Lng": -99.248889
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.049142-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdfc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420870995",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.350|-99.743",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.0485-05:00",
+    "EcoNum": 2,
+    "Elevation": 2678,
+    "FormattedDate": "19600828",
+    "GeoPoint": {
+      "Lat": 19.35,
+      "Lng": -99.743333
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.048502-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d24": true,
+      "85d27": true,
+      "85d27c": true,
+      "85d3": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871386",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 3,
+    "CoordinateKey": "19.299|-99.367",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.048575-05:00",
+    "EcoNum": 10,
+    "Elevation": 3047,
+    "FormattedDate": "19600103",
+    "GeoPoint": {
+      "Lat": 19.298889,
+      "Lng": -99.366667
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.048577-05:00",
+    "Realm": 6,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85cc": true,
+      "85cd": true,
+      "85cdc": true,
+      "85cdf": true,
+      "85cdfc": true,
+      "85d": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420874382",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "19.706|-99.145",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.052246-05:00",
+    "EcoNum": 2,
+    "Elevation": 2264,
+    "FormattedDate": "19601102",
+    "GeoPoint": {
+      "Lat": 19.706111,
+      "Lng": -99.145
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.052247-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "85": true,
+      "85c": true,
+      "85d": true,
+      "85d1": true,
+      "85d1c": true,
+      "85d1f": true,
+      "85d1f4": true,
+      "85d4": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1420871113",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.243|-73.058",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:10:43.054366-05:00",
+    "EcoNum": 10,
+    "Elevation": 735,
+    "FormattedDate": "20070526",
+    "GeoPoint": {
+      "Lat": 43.243409,
+      "Lng": -73.057882
+    },
+    "ModifiedAt": "2018-02-13T10:10:43.054367-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89e04": true,
+      "89e05": true,
+      "89e05c": true,
+      "89e1": true,
+      "89e4": true,
+      "89f": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1453103455",
+    "SourceType": "27",
+    "TargetID": "2594602"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.891|-93.175",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.232087-05:00",
+    "EcoNum": 15,
+    "Elevation": 212,
+    "FormattedDate": "20170318",
+    "GeoPoint": {
+      "Lat": 44.890569,
+      "Lng": -93.174792
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.232088-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87f4": true,
+      "87f62c": true,
+      "87f63": true,
+      "87f64": true,
+      "87f7": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8650256",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.282|-79.646",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.231759-05:00",
+    "EcoNum": 7,
+    "Elevation": 255,
+    "FormattedDate": "20170507",
+    "GeoPoint": {
+      "Lat": 44.2817533333,
+      "Lng": -79.6463783333
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.231761-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "882ab": true,
+      "882abc": true,
+      "882ac": true,
+      "882b": true,
+      "882c": true,
+      "883": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "9632827",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "42.575|-92.127",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.23217-05:00",
+    "EcoNum": 5,
+    "Elevation": 290,
+    "FormattedDate": "20150508",
+    "GeoPoint": {
+      "Lat": 42.5748503832,
+      "Lng": -92.1271526814
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.232172-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87fac": true,
+      "87facc": true,
+      "87fad": true,
+      "87fb": true,
+      "87fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8526780",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "42.574|-92.127",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.232215-05:00",
+    "EcoNum": 5,
+    "Elevation": 293,
+    "FormattedDate": "20140518",
+    "GeoPoint": {
+      "Lat": 42.5744532425,
+      "Lng": -92.1265296938
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.232217-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87fac": true,
+      "87facc": true,
+      "87fad": true,
+      "87fb": true,
+      "87fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8526766",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "37.349|-84.047",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.232592-05:00",
+    "EcoNum": 2,
+    "Elevation": 402,
+    "FormattedDate": "20160409",
+    "GeoPoint": {
+      "Lat": 37.34928,
+      "Lng": -84.0474695
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.232594-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "8843": true,
+      "88433": true,
+      "88433c": true,
+      "88434": true,
+      "8844": true,
+      "885": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8426850",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "42.570|-92.161",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.232907-05:00",
+    "EcoNum": 5,
+    "Elevation": 293,
+    "FormattedDate": "20150510",
+    "GeoPoint": {
+      "Lat": 42.5699952,
+      "Lng": -92.1609371
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.232908-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87fab": true,
+      "87fab4": true,
+      "87fac": true,
+      "87fb": true,
+      "87fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8336155",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 13,
+    "CoordinateKey": "39.392|-119.844",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.23301-05:00",
+    "EcoNum": 5,
+    "Elevation": 1874,
+    "FormattedDate": "20170513",
+    "GeoPoint": {
+      "Lat": 39.3918369497,
+      "Lng": -119.8444518819
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.233011-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "809": true,
+      "8099": true,
+      "80994": true,
+      "80996c": true,
+      "80997": true,
+      "809c": true,
+      "80c": true,
+      "81": true,
+      "84": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8217482",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "44.144|-94.003",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.232381-05:00",
+    "EcoNum": 5,
+    "Elevation": 295,
+    "FormattedDate": "20170510",
+    "GeoPoint": {
+      "Lat": 44.143611908,
+      "Lng": -94.0027770996
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.232382-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87f4": true,
+      "87f43": true,
+      "87f43c": true,
+      "87f44": true,
+      "87f5": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8503581",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "42.574|-92.126",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.232658-05:00",
+    "EcoNum": 5,
+    "Elevation": 293,
+    "FormattedDate": "20090519",
+    "GeoPoint": {
+      "Lat": 42.574274,
+      "Lng": -92.126369
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.232659-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87fac": true,
+      "87facc": true,
+      "87fad": true,
+      "87fb": true,
+      "87fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "8351299",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.746|-80.155",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.233621-05:00",
+    "EcoNum": 1,
+    "Elevation": 393,
+    "FormattedDate": "20170429",
+    "GeoPoint": {
+      "Lat": 41.745685718,
+      "Lng": -80.154640004
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.233622-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "88324": true,
+      "88325": true,
+      "88325c": true,
+      "8833": true,
+      "8834": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "7892216",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.093|-76.767",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.233355-05:00",
+    "EcoNum": 14,
+    "Elevation": 124,
+    "FormattedDate": "20170506",
+    "GeoPoint": {
+      "Lat": 43.0929445,
+      "Lng": -76.7665333333
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.233356-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89d": true,
+      "89d4": true,
+      "89d7": true,
+      "89d74": true,
+      "89d74c": true,
+      "89d75": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "7971160",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "42.577|-92.110",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.233642-05:00",
+    "EcoNum": 5,
+    "Elevation": 285,
+    "FormattedDate": "20150508",
+    "GeoPoint": {
+      "Lat": 42.5768304862,
+      "Lng": -92.110454119
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.233643-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87fac": true,
+      "87facc": true,
+      "87fad": true,
+      "87fb": true,
+      "87fc": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "7653728",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "41.180|-73.684",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.234003-05:00",
+    "EcoNum": 11,
+    "Elevation": 205,
+    "FormattedDate": "20170514",
+    "GeoPoint": {
+      "Lat": 41.1804094379,
+      "Lng": -73.6842726944
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.234005-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89c2b": true,
+      "89c2bc": true,
+      "89c2c": true,
+      "89c3": true,
+      "89c4": true,
+      "89d": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "7022707",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.834|-79.180",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.23409-05:00",
+    "EcoNum": 14,
+    "Elevation": 149,
+    "FormattedDate": "20170514",
+    "GeoPoint": {
+      "Lat": 43.8336145839,
+      "Lng": -79.1801792526
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.234092-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89c": true,
+      "89d": true,
+      "89d4": true,
+      "89d4c": true,
+      "89d4d": true,
+      "89d4dc": true,
+      "89d5": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "6754077",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.803|-93.489",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.234864-05:00",
+    "EcoNum": 15,
+    "Elevation": 222,
+    "FormattedDate": "20170514",
+    "GeoPoint": {
+      "Lat": 44.80334503,
+      "Lng": -93.48897189
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.234865-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87f4": true,
+      "87f61": true,
+      "87f61c": true,
+      "87f64": true,
+      "87f7": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "6210496",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "44.145|-94.001",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.235118-05:00",
+    "EcoNum": 5,
+    "Elevation": 299,
+    "FormattedDate": "20170513",
+    "GeoPoint": {
+      "Lat": 44.1451621202,
+      "Lng": -94.0013542771
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.235119-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87f4": true,
+      "87f43": true,
+      "87f43c": true,
+      "87f44": true,
+      "87f5": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "6198034",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "45.212|-88.460",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.235537-05:00",
+    "EcoNum": 16,
+    "Elevation": 346,
+    "FormattedDate": "20170506",
+    "GeoPoint": {
+      "Lat": 45.2115135193,
+      "Lng": -88.460067749
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.235539-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4d": true,
+      "4d4": true,
+      "4d5": true,
+      "4d53": true,
+      "4d533": true,
+      "4d533c": true,
+      "4d534": true,
+      "4d54": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "6117514",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.459|-83.067",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.235809-05:00",
+    "EcoNum": 3,
+    "Elevation": 1019,
+    "FormattedDate": "20170425",
+    "GeoPoint": {
+      "Lat": 35.4589550397,
+      "Lng": -83.0672967783
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.23581-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8859": true,
+      "88594": true,
+      "88597": true,
+      "885974": true,
+      "885c": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "6042263",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "40.736|-81.335",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.236227-05:00",
+    "EcoNum": 14,
+    "Elevation": 373,
+    "FormattedDate": "20170430",
+    "GeoPoint": {
+      "Lat": 40.73620224,
+      "Lng": -81.3354873657
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.236229-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "883": true,
+      "8834": true,
+      "8836c": true,
+      "8836c4": true,
+      "8836d": true,
+      "8837": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "6024713",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.734|-78.755",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.237629-05:00",
+    "EcoNum": 13,
+    "Elevation": 116,
+    "FormattedDate": "20170412",
+    "GeoPoint": {
+      "Lat": 35.7341050632,
+      "Lng": -78.7546414502
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.237631-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89ac": true,
+      "89ac8c": true,
+      "89ac9": true,
+      "89acc": true,
+      "89ad": true,
+      "89b": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "5666940",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.786|-93.128",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.238117-05:00",
+    "EcoNum": 15,
+    "Elevation": 271,
+    "FormattedDate": "20160505",
+    "GeoPoint": {
+      "Lat": 44.786221,
+      "Lng": -93.12767
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.238119-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87c": true,
+      "87f": true,
+      "87f4": true,
+      "87f63": true,
+      "87f634": true,
+      "87f64": true,
+      "87f7": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "4768632",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "42.884|-88.914",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.239512-05:00",
+    "EcoNum": 15,
+    "Elevation": 235,
+    "FormattedDate": "20160508",
+    "GeoPoint": {
+      "Lat": 42.8836116667,
+      "Lng": -88.914305
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.239514-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "8804": true,
+      "88064": true,
+      "88067": true,
+      "880674": true,
+      "8807": true,
+      "881": true,
+      "884": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "3856899",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.797|-72.175",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.239929-05:00",
+    "EcoNum": 11,
+    "Elevation": 229,
+    "FormattedDate": "20160606",
+    "GeoPoint": {
+      "Lat": 43.7968466667,
+      "Lng": -72.1750633333
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.239931-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cb": true,
+      "4cb4": true,
+      "4cb4b": true,
+      "4cb4bc": true,
+      "4cb4c": true,
+      "4cb5": true,
+      "4cc": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "3474665",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "37.478|-119.633",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.240137-05:00",
+    "EcoNum": 27,
+    "Elevation": 1566,
+    "FormattedDate": "20160424",
+    "GeoPoint": {
+      "Lat": 37.47767,
+      "Lng": -119.6327883333
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.240139-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "809": true,
+      "8094": true,
+      "80969": true,
+      "80969c": true,
+      "8096c": true,
+      "8097": true,
+      "80c": true,
+      "81": true,
+      "84": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "3382725",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "38.962|-77.197",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.242297-05:00",
+    "EcoNum": 13,
+    "Elevation": 105,
+    "FormattedDate": "20130427",
+    "GeoPoint": {
+      "Lat": 38.96221,
+      "Lng": -77.196718
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.242298-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89b": true,
+      "89b4": true,
+      "89b63": true,
+      "89b634": true,
+      "89b64": true,
+      "89b7": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "2615621",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "44.474|-76.431",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.243404-05:00",
+    "EcoNum": 6,
+    "Elevation": 137,
+    "FormattedDate": "20150512",
+    "GeoPoint": {
+      "Lat": 44.473542,
+      "Lng": -76.431241
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.243405-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cc": true,
+      "4cd": true,
+      "4cd2a4": true,
+      "4cd2b": true,
+      "4cd2c": true,
+      "4cd3": true,
+      "4cd4": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "1482791",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "36.007|-79.024",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.243816-05:00",
+    "EcoNum": 13,
+    "Elevation": 148,
+    "FormattedDate": "20150414",
+    "GeoPoint": {
+      "Lat": 36.006979,
+      "Lng": -79.024028
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.243818-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "89": true,
+      "89ac": true,
+      "89acc": true,
+      "89acd": true,
+      "89acdc": true,
+      "89ad": true,
+      "89b": true,
+      "89c": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1393876",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "48.120|-122.836",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.244258-05:00",
+    "EcoNum": 24,
+    "Elevation": 75,
+    "FormattedDate": "20150328",
+    "GeoPoint": {
+      "Lat": 48.120247,
+      "Lng": -122.835978
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.244259-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "548c": true,
+      "548f": true,
+      "548fc": true,
+      "548fec": true,
+      "548ff": true,
+      "549": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "1346006",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 8,
+    "CoordinateKey": "36.165|-97.063",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.244207-05:00",
+    "EcoNum": 3,
+    "Elevation": 289,
+    "FormattedDate": "20150406",
+    "GeoPoint": {
+      "Lat": 36.16525,
+      "Lng": -97.063394
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.244209-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "84": true,
+      "87": true,
+      "87b": true,
+      "87b1": true,
+      "87b10c": true,
+      "87b11": true,
+      "87b14": true,
+      "87b4": true,
+      "87c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "1378246",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "35.650|-83.581",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.24621-05:00",
+    "EcoNum": 3,
+    "Elevation": 708,
+    "FormattedDate": "20130501",
+    "GeoPoint": {
+      "Lat": 35.649975,
+      "Lng": -83.581474
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.246212-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "885": true,
+      "8859": true,
+      "88594": true,
+      "88595": true,
+      "885954": true,
+      "885c": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "265741",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "43.794|-72.373",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.246003-05:00",
+    "EcoNum": 10,
+    "Elevation": 482,
+    "FormattedDate": "20130526",
+    "GeoPoint": {
+      "Lat": 43.794,
+      "Lng": -72.3733333333
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.246005-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "4c": true,
+      "4cb": true,
+      "4cb4": true,
+      "4cb4c": true,
+      "4cb4c4": true,
+      "4cb4d": true,
+      "4cb5": true,
+      "4cc": true,
+      "4d": true,
+      "5": true
+    },
+    "SourceOccurrenceID": "279632",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 4,
+    "CoordinateKey": "37.323|-89.168",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.241212-05:00",
+    "EcoNum": 4,
+    "Elevation": 114,
+    "FormattedDate": "20160326",
+    "GeoPoint": {
+      "Lat": 37.322666,
+      "Lng": -89.168472
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.241214-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "884": true,
+      "887": true,
+      "8874": true,
+      "8877": true,
+      "88774": true,
+      "887764": true,
+      "88777": true,
+      "89": true,
+      "8c": true,
+      "9": true
+    },
+    "SourceOccurrenceID": "3049381",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "47.659|-117.426",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.246732-05:00",
+    "EcoNum": 22,
+    "Elevation": 569,
+    "FormattedDate": "20130427",
+    "GeoPoint": {
+      "Lat": 47.65878,
+      "Lng": -117.426047
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.246734-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "549c": true,
+      "549e1": true,
+      "549e1c": true,
+      "549e4": true,
+      "549f": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "247713",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  },
+  {
+    "Biome": 5,
+    "CoordinateKey": "46.784|-122.325",
+    "CoordinatesEstimated": false,
+    "CreatedAt": "2018-02-13T10:11:29.247265-05:00",
+    "EcoNum": 8,
+    "Elevation": 444,
+    "FormattedDate": "20120331",
+    "GeoPoint": {
+      "Lat": 46.7838405472,
+      "Lng": -122.3251779695
+    },
+    "ModifiedAt": "2018-02-13T10:11:29.247267-05:00",
+    "Realm": 5,
+    "S2Tokens": {
+      "5": true,
+      "54": true,
+      "549": true,
+      "5491": true,
+      "54913": true,
+      "54913c": true,
+      "54914": true,
+      "5494": true,
+      "54c": true,
+      "55": true
+    },
+    "SourceOccurrenceID": "68348",
+    "SourceType": "INAT",
+    "TargetID": "58682"
+  }
+]

@@ -4,7 +4,6 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"github.com/paulmach/go.geojson"
 	"strings"
-	"fmt"
 )
 
 type FeatureCollection struct {

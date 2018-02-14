@@ -11,18 +11,24 @@ import (
 	"context"
 )
 
-func UploadNameUsageObjects(ctx context.Context, floracastStore store.FloraStore, usage nameusage.NameUsage, deletedUsages nameusage.NameUsageIDs) error {
+func UploadNameUsageObjects(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsages ...nameusage.NameUsageID) error {
 
-	index, err := floracastStore.AlgoliaIndex(nameUsageIndex)
-	if err != nil {
-		return err
-	}
-
-	if err := clearNameUsageObjects(index, deletedUsages...); err != nil {
+	if err := deleteNameUsageObjects(florastore, deletedUsages...); err != nil {
 		return err
 	}
 	
 	objs, err := generateNameUsageObjects(ctx, usage)
+	if err != nil {
+		return err
+	}
+
+	return uploadNameUsageObjects(florastore, objs)
+
+}
+
+func uploadNameUsageObjects(florastore store.FloraStore, objs AlgoliaObjects) error {
+
+	index, err := florastore.AlgoliaIndex(nameUsageIndex)
 	if err != nil {
 		return err
 	}
@@ -33,33 +39,79 @@ func UploadNameUsageObjects(ctx context.Context, floracastStore store.FloraStore
 		}
 	}
 	return nil
-
 }
 
-func clearNameUsageObjects(index store.AlgoliaIndex, nameUsageIDs ...nameusage.NameUsageID) error {
+func deleteNameUsageObjects(florastore store.FloraStore, nameUsageIDs ...nameusage.NameUsageID) error {
 
-	for _, usageID := range nameUsageIDs {
-		if usageID == "" {
-			return errors.New("NameUsage ID required to delete Algolia objects")
-		}
-		if _, err := index.DeleteBy(algoliasearch.Map{
-			string(KeyNameUsageID): usageID,
-		}); err != nil {
-			return errors.Wrap(err, "Could not delete Algolia NameUsageObjects")
-		}
+	if len(nameUsageIDs) == 0 {
+		return nil
 	}
+
+	index, err := florastore.AlgoliaIndex(nameUsageIndex)
+	if err != nil {
+		return err
+	}
+	if _, err := index.DeleteBy(nameUsageIDFilter(nameUsageIDs...)); err != nil {
+		return errors.Wrap(err, "Could not delete Algolia NameUsage Objects")
+	}
+
 	return nil
+}
+
+func nameUsageIDFilter(nameUsageIDs ...nameusage.NameUsageID) algoliasearch.Map {
+	if len(nameUsageIDs) == 0 {
+		return nil
+	}
+	filterKeys := []string{}
+	for _, id := range nameUsageIDs {
+		filterKeys = append(filterKeys, fmt.Sprintf("%s:%s", KeyNameUsageID, id))
+	}
+	return algoliasearch.Map{
+		"filters": strings.Join(filterKeys, " OR "),
+	}
+}
+
+func countNameUsages(florastore store.FloraStore, nameUsageIDs ...nameusage.NameUsageID) (int, error) {
+	index, err := florastore.AlgoliaIndex(nameUsageIndex)
+	if err != nil {
+		return 0, err
+	}
+	count := 0
+
+	iter, err := index.BrowseAll(nameUsageIDFilter(nameUsageIDs...))
+	if err != nil && err != algoliasearch.NoMoreHitsErr {
+		return 0, errors.Wrap(err, "Could not browse Algolia NameUsage Index")
+	}
+
+	for {
+		if _, err := iter.Next(); err != nil && err != algoliasearch.NoMoreHitsErr {
+			return 0, err
+		} else if err != nil && err == algoliasearch.NoMoreHitsErr {
+			break
+		}
+		count += 1
+	}
+	return count, nil
+
 }
 
 
 const IndexNameUsage = "NameUsage"
+const IndexTestNameUsage = "TestNameUsage"
 
-func nameUsageIndex(client algoliasearch.Client) (algoliasearch.Index, error) {
+func nameUsageIndex(client algoliasearch.Client, isTest bool) (algoliasearch.Index, error) {
 
-	index := client.InitIndex(IndexNameUsage)
+	var index algoliasearch.Index
+	if isTest {
+		index = client.InitIndex(IndexTestNameUsage)
+	} else {
+		index = client.InitIndex(IndexNameUsage)
+	}
 
 	if _, err := index.SetSettings(algoliasearch.Map{
-		"distinct": KeyNameUsageID,
+		"distinct": true,
+		"attributeForDistinct": string(KeyNameUsageID),
+		"attributesForFaceting": []string{string(KeyNameUsageID)},
 		"customRanking": []string{
 			fmt.Sprintf("desc(%s)", KeyReferenceCount),
 		},

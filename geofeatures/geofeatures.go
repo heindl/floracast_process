@@ -33,6 +33,7 @@ import (
 type GeoFeatureSet struct {
 	coordinatesEstimated bool
 	biome     ecoregions.Biome
+	realm     ecoregions.Realm
 	ecoNum    ecoregions.EcoNum
 	elevation *float64
 	geopoint *appengine.GeoPoint
@@ -49,6 +50,7 @@ func (Ω GeoFeatureSet) Lng() float64 {
 const keyCoordinate = "CoordinateKey"
 const keyGeoPoint = "GeoPoint"
 const keyCoordinatesEstimated = "CoordinatesEstimated"
+const keyRealm = "Realm"
 const keyBiome = "Biome"
 const keyEcoNum = "EcoNum"
 const keyS2Tokens = "S2Tokens"
@@ -74,6 +76,7 @@ func NewGeoFeatureSetFromMap(m map[string]interface{}) (*GeoFeatureSet, error) {
 	gs := GeoFeatureSet{
 		coordinatesEstimated: m[keyCoordinatesEstimated].(bool),
 		biome: m[keyBiome].(ecoregions.Biome),
+		realm: m[keyRealm].(ecoregions.Realm),
 		ecoNum: m[keyEcoNum].(ecoregions.EcoNum),
 		elevation: utils.FloatPtr(m[keyElevation].(float64)),
 		geopoint: &geopoint,
@@ -119,8 +122,6 @@ func validateCoordinates(geopoint *appengine.GeoPoint) error {
 	return nil
 }
 
-var ErrInvalidEcoRegion = errors.New("Invalid EcoRegion")
-
 func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureSet, error) {
 
 	geopoint := appengine.GeoPoint{Lat: lat, Lng: lng}
@@ -141,6 +142,7 @@ func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureS
 		geopoint: &geopoint,
 		coordinatesEstimated: coordinatesEstimated,
 		biome: ecoID.Biome(),
+		realm: ecoID.Realm(),
 		ecoNum: ecoID.EcoNum(),
 		}, nil
 }
@@ -179,6 +181,7 @@ func (Ω *GeoFeatureSet) ToMap() (map[string]interface{}, error) {
 		keyGeoPoint: Ω.geopoint,
 		keyCoordinatesEstimated: Ω.coordinatesEstimated,
 		keyBiome:       Ω.biome,
+		keyRealm:       Ω.realm,
 		keyEcoNum:      Ω.ecoNum,
 		keyS2Tokens:    terra.NewPoint(Ω.geopoint.Lat, Ω.geopoint.Lng).S2TokenMap(),
 		keyElevation:   elevation,

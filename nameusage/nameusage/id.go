@@ -52,7 +52,8 @@ func (Ω NameUsageIDs) Batch(maxBatchSize float64) []NameUsageIDs {
 		if end > len(Ω) {
 			end = len(Ω) - 1
 		}
-		res = append([]NameUsageIDs{}, Ω[start:end])
+		o := Ω[start:end]
+		res = append(res, o)
 	}
 
 	return res

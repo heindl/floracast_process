@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	client, err := store.NewLiveFirestore()
+	client, err := store.newLiveFirestore()
 	if err != nil {
 		panic(err)
 	}

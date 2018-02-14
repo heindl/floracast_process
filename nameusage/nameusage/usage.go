@@ -95,6 +95,7 @@ func (Ω *usage) Sources(sourceTypes ...datasources.SourceType) (Sources, error)
 		if len(sourceTypes) > 0 && !datasources.HasDataSourceType(sourceTypes, srcType) {
 			continue
 		}
+
 		for targetID, src := range targets {
 			if !targetID.Valid(srcType) {
 				return nil, errors.Newf("Invalid TargetID [%s] with SourceType [%s]", targetID, srcType)
@@ -103,6 +104,7 @@ func (Ω *usage) Sources(sourceTypes ...datasources.SourceType) (Sources, error)
 			src.SrcType = srcType
 			res = append(res, src)
 		}
+
 	}
 	return res, nil
 }
@@ -115,7 +117,7 @@ func (Ω *usage) Occurrences(sourceTypes ...datasources.SourceType) (int, error)
 	}
 	count := 0
 	for _, src := range srcs {
-		count += src.OccurrenceCount()
+		count = count + src.OccurrenceCount()
 	}
 	return count, nil
 }
@@ -217,13 +219,16 @@ func (Ω *usage) AllScientificNames() ([]string, error){
 }
 
 func (Ω *usage) ScientificNameReferenceLedger() (NameReferenceLedger, error) {
-	ledger := NameReferenceLedger{}
 	srcs, err := Ω.Sources()
 	if err != nil {
 		return nil, err
 	}
+	ledger := NameReferenceLedger{}
 	for _, src := range srcs {
 		ledger = ledger.IncrementName(src.CanonicalName().ScientificName(), src.OccurrenceCount())
+		for _, synonym := range src.Synonyms() {
+			ledger = ledger.IncrementName(synonym.ScientificName(), 0)
+		}
 	}
 	sort.Sort(ledger)
 	return ledger, nil
@@ -240,7 +245,6 @@ func (Ω *usage) CommonNameReferenceLedger() (NameReferenceLedger, error) {
 			ledger = ledger.IncrementName(cn, src.OccurrenceCount())
 		}
 	}
-	sort.Sort(ledger)
 	return ledger, nil
 }
 

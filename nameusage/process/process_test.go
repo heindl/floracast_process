@@ -42,20 +42,17 @@ func TestNameUsageProcessor(t *testing.T) {
 
 	Convey("should fetch occurrences from name usages", t, func() {
 
-		b := utils.GetFileContents("./morchella_esculenta.json")
 		aggr := aggregate.Aggregate{}
-		So(json.Unmarshal(b, &aggr), ShouldBeNil)
+		So(json.Unmarshal(utils.GetMorchellaAggregateTestData(), &aggr), ShouldBeNil)
 
 		So(aggr.Count(), ShouldEqual, 1)
 
 		occurrenceAggr, err := OccurrenceFetch(context.Background(), &aggr)
 		So(err, ShouldBeNil)
 
-		fmt.Println("OccurrenceCount", occurrenceAggr.Count())
+		So(occurrenceAggr.Count(), ShouldEqual, 238)
 
-		So(occurrenceAggr.Count(), ShouldEqual, 178)
-
-		fmt.Println(utils.JsonOrSpew(occurrenceAggr))
+		fmt.Println(utils.JsonOrSpew(&aggr))
 
 	})
 }

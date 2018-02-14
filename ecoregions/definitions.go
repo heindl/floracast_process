@@ -29,20 +29,37 @@ func (Ω Biome) Valid() bool {
 	return ok
 }
 
-type Realm string //  Biogeographical Realm
-var RealmDefinitions = map[Realm]string{
-	Realm("AA"): "Australasia",
-	Realm("AN"): "Antarctic",
-	Realm("AT"): "Afrotropics",
-	Realm("IM"): "IndoMalay",
-	Realm("NA"): "Nearctic",
-	Realm("NT"): "Neotropics",
-	Realm("OC"): "Oceania",
-	Realm("PA"): "Palearctic",
-}
+type Realm int
 
 func (Ω Realm) Valid() bool {
-	_, ok := RealmDefinitions[Ω]
+	return Ω > 0 && Ω < 9
+}
+
+const (
+	RealmAustralasia Realm = iota + 1
+	RealmAntarctic
+	RealmAfrotropics
+	RealmIndoMalay
+	RealmNearctic
+	RealmNeotropics
+	RealmOceania
+	RealmPalearctic
+)
+
+type RealmCode string //  Biogeographical Realm
+var RealmCodeDefinitions = map[RealmCode]Realm{
+	RealmCode("AA"): RealmAustralasia,
+	RealmCode("AN"): RealmAntarctic,
+	RealmCode("AT"): RealmAfrotropics,
+	RealmCode("IM"): RealmIndoMalay,
+	RealmCode("NA"): RealmNearctic,
+	RealmCode("NT"): RealmNeotropics,
+	RealmCode("OC"): RealmOceania,
+	RealmCode("PA"): RealmPalearctic,
+}
+
+func (Ω RealmCode) Valid() bool {
+	_, ok := RealmCodeDefinitions[Ω]
 	return ok
 }
 

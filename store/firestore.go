@@ -27,7 +27,7 @@ func NewFirestoreLimiter() <-chan time.Time {
 
 // gcloud beta emulators datastore start --project=floracast-20c01 --store-on-disk=false
 
-func NewLiveFirestore(ctx context.Context) (*firestore.Client, error) {
+func newLiveFirestore(ctx context.Context) (*firestore.Client, error) {
 
 	projectID := os.Getenv("FIRESTORE_PROJECT_ID")
 	if projectID == "" {

@@ -51,12 +51,10 @@ func (Ω MultiPolygon) Contains(lat, lng float64) bool {
 func (Ω MultiPolygon) ReferencePoints() [][2]float64 {
 	res := [][2]float64{}
 	for _, polygon := range Ω {
-		for _, l := range polygon.Loops() {
-			rp := l.ReferencePoint()
-			//ll := s2.LatLngFromPoint(rp.Point).Normalized()
-			ll := s2.LatLngFromPoint(rp.Point)
-			res = append(res, [2]float64{ll.Lat.Degrees(), ll.Lng.Degrees()})
-		}
+		rp := polygon.ReferencePoint()
+		//ll := s2.LatLngFromPoint(rp.Point).Normalized()
+		ll := s2.LatLngFromPoint(rp.Point)
+		res = append(res, [2]float64{ll.Lat.Degrees(), ll.Lng.Degrees()})
 	}
 	return res
 }
@@ -210,9 +208,12 @@ func isPositivelyOriented(loop *s2.Loop) bool {
 	total := 0.0
 	for i := range vertices {
 		v1 := vertices[k]
+		v1LatLng := s2.LatLngFromPoint(v1)
 		v2 := vertices[i]
+		v2LatLng := s2.LatLngFromPoint(v2)
 		// Cross() -> x - y - z?
-		total += (v1.X*v2.Y - v2.X*v1.Y)
+		total += (v1LatLng.Lng.Degrees() * v2LatLng.Lat.Degrees() - v2LatLng.Lng.Degrees() * v1LatLng.Lat.Degrees())
+		//total += (v1.X * v2.Y - v2.X * v1.Y)
 		//total += points[i].Dot(points[k].Vector)
 		k = i
 	}

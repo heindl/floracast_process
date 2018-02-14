@@ -11,8 +11,6 @@ type Point struct {
 	latlng *s2.LatLng
 }
 
-
-
 var EPSILON float64 = 0.00001
 
 func CoordinatesEqual(a, b float64) bool {

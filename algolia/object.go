@@ -51,7 +51,8 @@ func (Ω AlgoliaObjects) batches(maxBatchSize float64) []AlgoliaObjects {
 		if end > len(Ω) {
 			end = len(Ω) - 1
 		}
-		res = append([]AlgoliaObjects{}, Ω[start:end])
+		o := Ω[start:end]
+		res = append(res, o)
 	}
 
 	return res

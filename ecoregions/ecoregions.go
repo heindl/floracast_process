@@ -4,11 +4,12 @@ import (
 	"bitbucket.org/heindl/processors/terra"
 	"sync"
 	"github.com/dropbox/godropbox/errors"
-	"fmt"
+	"gopkg.in/tomb.v2"
 )
 
 type EcoRegionsCache struct {
-	fc *terra.FeatureCollection
+	//fc *terra.FeatureCollection
+	fc []*terra.Feature
 }
 
 type EcoRegion struct {
@@ -36,13 +37,13 @@ func NewEcoRegionsCache() (*EcoRegionsCache, error) {
 	if err := terra.ParseGeoJSONFeatureCollection([]byte(ecoregions_geojson), callback); err != nil {
 		return nil, err
 	}
+	//
+	//fc := terra.FeatureCollection{}
+	//if err := fc.Append(fc_holder...); err != nil {
+	//	return nil, err
+	//}
 
-	fc := terra.FeatureCollection{}
-	if err := fc.Append(fc_holder...); err != nil {
-		return nil, err
-	}
-
-	return &EcoRegionsCache{&fc}, nil
+	return &EcoRegionsCache{fc_holder}, nil
 }
 
 
@@ -50,48 +51,34 @@ var SignalDone = errors.New("EcoRegion Found")
 var ErrNotFound = errors.New("EcoRegion Not Found")
 func (Ω *EcoRegionsCache) EcoID(lat, lng float64) (EcoID, error) {
 
-	//var id EcoID
+	var id EcoID
 
-	//tmb := tomb.Tomb{}
-	//tmb.Go(func() error {
-		for _, _f := range Ω.fc.Features() {
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _f := range Ω.fc {
 			f := _f
-			//tmb.Go(func() error {
-				i, err := f.GetPropertyInt("ECO_ID")
-				if err != nil {
-					return EcoID(0), errors.Wrapf(err, "Could not get ECO_ID property [%.4f, %.4f]", lat, lng)
-				}
-				id := EcoID(i)
-
-				if !id.Valid() {
-					return EcoID(0), errors.Newf("Invalid EcoID [%d] exists in features", id)
-				}
-				f.
-				containsFeature := f.Contains(lat, lng)
-				fmt.Println(containsFeature, id, id.Name())
-				if containsFeature{
-					b, err := Ω.fc.GeoJSON()
+			tmb.Go(func() error {
+				if f.Contains(lat, lng) {
+					i, err := f.GetPropertyInt("ECO_ID")
 					if err != nil {
-						return EcoID(0), err
+						return errors.Wrapf(err, "Could not get ECO_ID property [%.4f, %.4f]", lat, lng)
 					}
-					fmt.Println(string(b))
-					return id, nil
-					//tmb.Kill(SignalDone)
+					id = EcoID(i)
+					tmb.Kill(SignalDone)
 				}
-				//return nil
-			//})
+				return nil
+			})
 		}
-		//return nil
-	//})
+		return nil
+	})
 
-	//if err := tmb.Wait(); err != nil && err != SignalDone {
-	//	return EcoID(0), err
-	//}
+	if err := tmb.Wait(); err != nil && err != SignalDone {
+		return EcoID(0), err
+	}
 
-	//if !id.Valid() {
-	//	return EcoID(0), ErrNotFound
-	//}
+	if !id.Valid() {
+		return EcoID(0), ErrNotFound
+	}
 
-	//return id, nil
-	return EcoID(0), ErrNotFound
+	return id, nil
 }
