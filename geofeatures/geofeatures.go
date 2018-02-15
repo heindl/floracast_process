@@ -2,7 +2,6 @@ package geofeatures
 
 import (
 	"bitbucket.org/heindl/processors/ecoregions"
-	"bitbucket.org/heindl/processors/terra"
 	"bitbucket.org/heindl/processors/utils"
 	"github.com/dropbox/godropbox/errors"
 	"googlemaps.github.io/maps"
@@ -31,30 +30,30 @@ import (
 
 
 type GeoFeatureSet struct {
-	coordinatesEstimated bool
-	biome     ecoregions.Biome
-	realm     ecoregions.Realm
-	ecoNum    ecoregions.EcoNum
-	elevation *float64
-	geopoint *appengine.GeoPoint
+	CoordinatesEstimated bool `json:"" firestore:""`
+	Biome                ecoregions.Biome `json:"" firestore:""`
+	Realm                ecoregions.Realm `json:"" firestore:""`
+	EcoNum               ecoregions.EcoNum `json:"" firestore:""`
+	Elevation            *float64 `json:"" firestore:""`
+	Geopoint             *appengine.GeoPoint `json:"" firestore:""`
 }
 
 func (Ω GeoFeatureSet) Lat() float64 {
-	return Ω.geopoint.Lat
+	return Ω.Geopoint.Lat
 }
 
 func (Ω GeoFeatureSet) Lng() float64 {
-	return Ω.geopoint.Lng
+	return Ω.Geopoint.Lng
 }
 
 const keyCoordinate = "CoordinateKey"
-const keyGeoPoint = "GeoPoint"
-const keyCoordinatesEstimated = "CoordinatesEstimated"
-const keyRealm = "Realm"
-const keyBiome = "Biome"
-const keyEcoNum = "EcoNum"
-const keyS2Tokens = "S2Tokens"
-const keyElevation = "Elevation"
+//const keyGeoPoint = "GeoPoint"
+//const keyCoordinatesEstimated = "CoordinatesEstimated"
+//const keyRealm = "Realm"
+//const keyBiome = "Biome"
+//const keyEcoNum = "EcoNum"
+//const keyS2Tokens = "S2Tokens"
+//const keyElevation = "Elevation"
 
 func (Ω GeoFeatureSet) CoordinateKey() string {
 	// Intentionally reduce the precision of the coordinates to ensure we're not duplicating occurrences.
@@ -65,38 +64,38 @@ func (Ω GeoFeatureSet) CoordinateQuery(collection *firestore.CollectionRef) (fi
 	return collection.Where(keyCoordinate, "==", Ω.CoordinateKey()), nil
 }
 
-func NewGeoFeatureSetFromMap(m map[string]interface{}) (*GeoFeatureSet, error) {
-
-	geopoint := m[keyGeoPoint].(appengine.GeoPoint)
-
-	if err := validateCoordinates(&geopoint); err != nil {
-		return nil, err
-	}
-
-	gs := GeoFeatureSet{
-		coordinatesEstimated: m[keyCoordinatesEstimated].(bool),
-		biome: m[keyBiome].(ecoregions.Biome),
-		realm: m[keyRealm].(ecoregions.Realm),
-		ecoNum: m[keyEcoNum].(ecoregions.EcoNum),
-		elevation: utils.FloatPtr(m[keyElevation].(float64)),
-		geopoint: &geopoint,
-	}
-
-	if !gs.biome.Valid() {
-		return nil, errors.New("Invalid Biome")
-	}
-
-	if !gs.ecoNum.Valid() {
-		return nil, errors.New("Invalid EcoNum")
-	}
-
-	if gs.elevation == nil {
-		return nil, errors.New("Invalid Elevation")
-	}
-
-	return &gs, nil
-
-}
+//func NewGeoFeatureSetFromMap(m map[string]interface{}) (*GeoFeatureSet, error) {
+//
+//	geopoint := m[keyGeoPoint].(appengine.GeoPoint)
+//
+//	if err := validateCoordinates(&geopoint); err != nil {
+//		return nil, err
+//	}
+//
+//	gs := GeoFeatureSet{
+//		CoordinatesEstimated: m[keyCoordinatesEstimated].(bool),
+//		Biome:                m[keyBiome].(ecoregions.Biome),
+//		Realm:                m[keyRealm].(ecoregions.Realm),
+//		EcoNum:               m[keyEcoNum].(ecoregions.EcoNum),
+//		Elevation:            utils.FloatPtr(m[keyElevation].(float64)),
+//		Geopoint:             &geopoint,
+//	}
+//
+//	if !gs.Biome.Valid() {
+//		return nil, errors.New("Invalid Biome")
+//	}
+//
+//	if !gs.EcoNum.Valid() {
+//		return nil, errors.New("Invalid EcoNum")
+//	}
+//
+//	if gs.Elevation == nil {
+//		return nil, errors.New("Invalid Elevation")
+//	}
+//
+//	return &gs, nil
+//
+//}
 
 var ErrInvalidCoordinate = errors.New("Invalid Coordinate")
 
@@ -139,55 +138,55 @@ func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureS
 		return nil, err
 	}
 	return &GeoFeatureSet{
-		geopoint: &geopoint,
-		coordinatesEstimated: coordinatesEstimated,
-		biome: ecoID.Biome(),
-		realm: ecoID.Realm(),
-		ecoNum: ecoID.EcoNum(),
+		Geopoint:             &geopoint,
+		CoordinatesEstimated: coordinatesEstimated,
+		Biome:                ecoID.Biome(),
+		Realm:                ecoID.Realm(),
+		EcoNum:               ecoID.EcoNum(),
 		}, nil
 }
-
-func (Ω *GeoFeatureSet) ToMap() (map[string]interface{}, error) {
-
-	if err := validateCoordinates(Ω.geopoint); err != nil {
-		return nil, err
-	}
-
-	elevation, err := liveProcessor.getElevation(Ω.geopoint.Lat, Ω.geopoint.Lng)
-	if err != nil {
-		return nil, err
-	}
-
-	// Flush elevations. Assumes our entry has been queued.
-	if elevation == nil && len(liveProcessor.elevationsQueued) > 0 {
-		if err := liveProcessor.flushElevations(); err != nil {
-			return nil, err
-		}
-	}
-
-	elevation, err = liveProcessor.getElevation(Ω.geopoint.Lat, Ω.geopoint.Lng)
-	if err != nil {
-		return nil, err
-	}
-	if elevation == nil {
-		return nil, errors.Newf("Elevation still not generated after flush [%s]", elevationKey(Ω.geopoint.Lat, Ω.geopoint.Lng))
-	}
-
-	if !Ω.biome.Valid() || !Ω.ecoNum.Valid() {
-		return nil, errors.New("Invalid EcoID")
-	}
-
-	return map[string]interface{}{
-		keyGeoPoint: Ω.geopoint,
-		keyCoordinatesEstimated: Ω.coordinatesEstimated,
-		keyBiome:       Ω.biome,
-		keyRealm:       Ω.realm,
-		keyEcoNum:      Ω.ecoNum,
-		keyS2Tokens:    terra.NewPoint(Ω.geopoint.Lat, Ω.geopoint.Lng).S2TokenMap(),
-		keyElevation:   elevation,
-		keyCoordinate: Ω.CoordinateKey(),
-	}, nil
-}
+//
+//func (Ω *GeoFeatureSet) ToMap() (map[string]interface{}, error) {
+//
+//	if err := validateCoordinates(Ω.Geopoint); err != nil {
+//		return nil, err
+//	}
+//
+//	elevation, err := liveProcessor.getElevation(Ω.Geopoint.Lat, Ω.Geopoint.Lng)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// Flush elevations. Assumes our entry has been queued.
+//	if elevation == nil && len(liveProcessor.elevationsQueued) > 0 {
+//		if err := liveProcessor.flushElevations(); err != nil {
+//			return nil, err
+//		}
+//	}
+//
+//	elevation, err = liveProcessor.getElevation(Ω.Geopoint.Lat, Ω.Geopoint.Lng)
+//	if err != nil {
+//		return nil, err
+//	}
+//	if elevation == nil {
+//		return nil, errors.Newf("Elevation still not generated after flush [%s]", elevationKey(Ω.Geopoint.Lat, Ω.Geopoint.Lng))
+//	}
+//
+//	if !Ω.Biome.Valid() || !Ω.EcoNum.Valid() {
+//		return nil, errors.New("Invalid EcoID")
+//	}
+//
+//	return map[string]interface{}{
+//		keyGeoPoint: Ω.Geopoint,
+//		keyCoordinatesEstimated: Ω.CoordinatesEstimated,
+//		keyBiome:       Ω.Biome,
+//		keyRealm:       Ω.Realm,
+//		keyEcoNum:      Ω.EcoNum,
+//		keyS2Tokens:    terra.NewPoint(Ω.Geopoint.Lat, Ω.Geopoint.Lng).S2TokenMap(),
+//		keyElevation:   elevation,
+//		keyCoordinate: Ω.CoordinateKey(),
+//	}, nil
+//}
 
 
 func hasDecimalPlaces(i int, v float64) bool {
@@ -287,12 +286,12 @@ func (Ω *geoFeaturesProcessor) flushElevations() error {
 		Results []struct {
 			Lat float64 `json:"latitude"`
 			Lng float64 `json:"longitude"`
-			Elevation float64 `json:"elevation"` // Meters
+			Elevation float64 `json:"Elevation"` // Meters
 		} `json:"results"`
 	}
 
-	if err := utils.RequestJSON("https://api.open-elevation.com/api/v1/lookup?locations=" + strings.Join(locs, "|"), &res); err != nil {
-		return errors.Wrap(err, "Could not fetch elevation api")
+	if err := utils.RequestJSON("https://api.open-Elevation.com/api/v1/lookup?locations=" + strings.Join(locs, "|"), &res); err != nil {
+		return errors.Wrap(err, "Could not fetch Elevation api")
 	}
 
 	//resolvedElevations, err := Ω.mapClient.Elevation(context.Background(), &eleReq)
@@ -322,7 +321,7 @@ func (Ω *geoFeaturesProcessor) flushElevations() error {
 //
 //	// First batch and fetch elevations
 //	eleReq := maps.ElevationRequest{Locations: []maps.LatLng{}}
-//	// Gather lat/lng pairs for elevation fetch.
+//	// Gather lat/lng pairs for Elevation fetch.
 //	for _, o := range locations {
 //		eleReq.Locations = append(eleReq.Locations, maps.LatLng{o.Lat(), o.Lng()})
 //	}

@@ -49,8 +49,9 @@ func (Ω NameUsageIDs) Batch(maxBatchSize float64) []NameUsageIDs {
 	for i := 0.0; i <= batchCount - 1; i++ {
 		start := int(i * maxBatchSize)
 		end := int(((i + 1) * maxBatchSize) - 1)
+
 		if end > len(Ω) {
-			end = len(Ω) - 1
+			end = len(Ω)
 		}
 		o := Ω[start:end]
 		res = append(res, o)

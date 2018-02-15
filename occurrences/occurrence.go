@@ -18,7 +18,16 @@ import (
 	"encoding/json"
 )
 
-func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID, occurrenceID string) (*Occurrence, error) {
+type Occurrence interface{
+	SourceType() datasources.SourceType
+	TargetID() datasources.TargetID
+	LocationKey() (string, error)
+	SourceOccurrenceID() string
+	UpsertTransaction(florastore store.FloraStore) (store.FirestoreTransactionFunc, error)
+	SetGeospatial(lat, lng float64, date string, coordinatesEstimated bool) error
+}
+
+func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID, occurrenceID string) (Occurrence, error) {
 	if !srcType.Valid() {
 		return nil, errors.Newf("Invalid source type [%s]", srcType)
 	}
@@ -29,118 +38,52 @@ func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID
 		return nil, errors.Newf("Invalid occurrence id")
 	}
 
-	return &Occurrence{
-		sourceType: srcType,
-		targetID: targetID,
-		sourceOccurrenceID: occurrenceID,
-		createdAt: utils.TimePtr(time.Now()),
-		modifiedAt: utils.TimePtr(time.Now()),
+	return &occurrence{
+		SrcType: srcType,
+		TgtID: targetID,
+		SrcOccurrenceID: occurrenceID,
+		CreatedAt: utils.TimePtr(time.Now()),
+		ModifiedAt: utils.TimePtr(time.Now()),
 	}, nil
 }
 
-type Occurrence struct {
-	sourceType          datasources.SourceType
-	targetID            datasources.TargetID
-	sourceOccurrenceID  string
-	formattedDate       string
-	createdAt           *time.Time
-	modifiedAt          *time.Time
+type occurrence struct {
+	SrcType          datasources.SourceType `json:"SourceType" firestore:"SourceType"`
+	TgtID            datasources.TargetID `json:"TargetID" firestore:"TargetID"`
+	SrcOccurrenceID  string `json:"SourceOccurrenceID" firestore:"SourceOccurrenceID"`
+	FormattedDate       string `json:"" firestore:""`
+	CreatedAt           *time.Time `json:"" firestore:""`
+	ModifiedAt          *time.Time `json:"" firestore:""`
 	*geofeatures.GeoFeatureSet
 	fsDocumentReference *firestore.DocumentRef
-	fsTimeLocationQuery firestore.Query
 }
 
-func (Ω *Occurrence) SourceType() datasources.SourceType {
-	return Ω.sourceType
+func (Ω *occurrence) SourceType() datasources.SourceType {
+	return Ω.SrcType
 }
 
-func (Ω *Occurrence) TargetID() datasources.TargetID {
-	return Ω.targetID
+func (Ω *occurrence) TargetID() datasources.TargetID {
+	return Ω.TgtID
 }
 
-func (Ω *Occurrence) locationKey() (string, error) {
+func (Ω *occurrence) SourceOccurrenceID() string {
+	return Ω.SrcOccurrenceID
+}
+
+func (Ω *occurrence) LocationKey() (string, error) {
 	if Ω == nil || Ω.GeoFeatureSet == nil {
 		return "", errors.New("Nil Occurrence")
 	}
 	if Ω.GeoFeatureSet == nil {
 		return "", errors.New("Nil FeatureSet")
 	}
-	return Ω.GeoFeatureSet.CoordinateKey() + "|" + Ω.formattedDate, nil
-}
-
-const keySourceType = "SourceType"
-const keyTargetID = "TargetID"
-const keySourceOccurrenceID = "SourceOccurrenceID"
-const keyFormattedDate = "FormattedDate"
-const keyCreatedAt = "CreatedAt"
-const keyModifiedAt = "ModifiedAt"
-
-
-func (Ω *Occurrence) MarshalJSON() ([]byte, error) {
-	m, err := Ω.toMap()
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(m)
-}
-
-func (Ω *Occurrence) toMap() (map[string]interface{}, error) {
-
-	oc := map[string]interface{}{
-		keySourceType:    Ω.sourceType,
-		keyTargetID:   Ω.targetID,
-		keySourceOccurrenceID:       Ω.sourceOccurrenceID,
-		keyFormattedDate:      Ω.formattedDate,
-		keyCreatedAt:    Ω.createdAt,
-		keyModifiedAt:   Ω.modifiedAt,
-	}
-
-	gfs, err := Ω.GeoFeatureSet.ToMap()
-	if err != nil {
-		return nil, err
-	}
-
-	for k, v := range gfs {
-		if _, ok := oc[k]; ok {
-			return nil, errors.Newf("Occurrence field collides with GeoFeatureSet [%s]", k)
-		}
-		oc[k] = v
-	}
-
-	return oc, nil
-}
-
-func fromMap(m map[string]interface{}) (*Occurrence, error) {
-
-	o, err := NewOccurrence(
-		m[keySourceType].(datasources.SourceType),
-		m[keyTargetID].(datasources.TargetID),
-		m[keySourceOccurrenceID].(string),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	o.GeoFeatureSet, err = geofeatures.NewGeoFeatureSetFromMap(m)
-	if err != nil {
-		return nil, err
-	}
-
-	o.formattedDate = m[keyFormattedDate].(string)
-	if o.formattedDate == "" || len(o.formattedDate) != 8 {
-		return nil, errors.New("Invalid formatted date")
-	}
-
-	o.createdAt = utils.TimePtr(m[keyCreatedAt].(time.Time))
-	o.modifiedAt = utils.TimePtr(m[keyModifiedAt].(time.Time))
-
-	return o, nil
+	return Ω.GeoFeatureSet.CoordinateKey() + "|" + Ω.FormattedDate, nil
 }
 
 
 var ErrInvalidDate = errors.New("Invalid Date")
 
-func (Ω *Occurrence) SetGeospatial(lat, lng float64, date string, coordinatesEstimated bool) error {
+func (Ω *occurrence) SetGeospatial(lat, lng float64, date string, coordinatesEstimated bool) error {
 
 	var err error
 	// GeoFeatureSet placeholder should validate for decimal places.
@@ -179,7 +122,7 @@ func (Ω *Occurrence) SetGeospatial(lat, lng float64, date string, coordinatesEs
 	//	return errors.Newf("Locations [%s, %s] are not equal: %s", tz.String(), date.Location().String(), date)
 	//}
 
-	Ω.formattedDate = date
+	Ω.FormattedDate = date
 
 	return nil
 }
@@ -188,12 +131,12 @@ type OccurrenceAggregation struct {
 	collisions int
 	iterator_position int
 	sync.Mutex
-	list []*Occurrence
+	list []Occurrence
 }
 
 func NewOccurrenceAggregation() *OccurrenceAggregation {
 	oa := OccurrenceAggregation{
-		list: []*Occurrence{},
+		list: []Occurrence{},
 	}
 	return &oa
 }
@@ -227,40 +170,40 @@ func (Ω *OccurrenceAggregation) Merge(æ *OccurrenceAggregation) error {
 }
 
 var ErrCollision = errors.New("Occurrence Collision")
-func (Ω *OccurrenceAggregation) AddOccurrence(b *Occurrence) error {
+func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 
 	if b == nil {
 		return nil
 	}
 
-	bKey, err := b.locationKey()
+	bKey, err := b.LocationKey()
 	if err != nil {
 		return err
 	}
 
-	bSourceType := b.sourceType
+	bSourceType := b.SourceType()
 
 	Ω.Lock()
 	defer Ω.Unlock()
 
 	if Ω.list == nil {
-		Ω.list = []*Occurrence{}
+		Ω.list = []Occurrence{}
 	}
 
 	for i := range Ω.list {
-		aKey, err := Ω.list[i].locationKey()
+		aKey, err := Ω.list[i].LocationKey()
 		if err != nil {
 			return err
 		}
 		if aKey != bKey {
 			continue
 		}
-		aSourceType := Ω.list[i].sourceType
+		aSourceType := Ω.list[i].SourceType()
 
 		fmt.Println("Warning: Collision",
 			aKey,
-			"[" + fmt.Sprint(Ω.list[i].sourceType, ",", Ω.list[i].targetID, ",", Ω.list[i].sourceOccurrenceID) + "]",
-			"[" + fmt.Sprint(b.sourceType, ",", b.targetID, ",", b.sourceOccurrenceID) + "]")
+			"[" + fmt.Sprint(Ω.list[i].SourceType(), ",", Ω.list[i].TargetID(), ",", Ω.list[i].SourceOccurrenceID()) + "]",
+			"[" + fmt.Sprint(b.SourceType(), ",", b.TargetID(), ",", b.SourceOccurrenceID()) + "]")
 
 		if aSourceType != bSourceType && bSourceType == datasources.TypeGBIF {
 			Ω.list[i] = b
@@ -289,10 +232,11 @@ func (Ω *OccurrenceAggregation) Upload(cxt context.Context, florastore store.Fl
 			o := _o
 			limiter.Take()
 			tmb.Go(func() error{
-				if err := o.reference(florastore); err != nil {
+				transaction, err := o.UpsertTransaction(florastore)
+				if err != nil {
 					return err
 				}
-				return florastore.FirestoreTransaction(cxt, o.upsert)
+				return florastore.FirestoreTransaction(cxt, transaction)
 			})
 		}
 		return nil
@@ -300,94 +244,102 @@ func (Ω *OccurrenceAggregation) Upload(cxt context.Context, florastore store.Fl
 	return tmb.Wait()
 }
 
-func (Ω *Occurrence) reference(florastore store.FloraStore) error {
-	if !Ω.sourceType.Valid() || !Ω.targetID.Valid(Ω.sourceType) || strings.TrimSpace(Ω.sourceOccurrenceID) == "" {
-		return errors.Newf("Invalid firestore reference ID: %s, %s, %s", Ω.sourceType, Ω.targetID, Ω.sourceOccurrenceID)
-	}
-	id := fmt.Sprintf("%s-%s-%s", Ω.sourceType, Ω.targetID, Ω.sourceOccurrenceID)
-
-	col:= florastore.FirestoreCollection(store.CollectionOccurrences)
-
-	Ω.fsDocumentReference = col.Doc(id)
-	q, err := Ω.GeoFeatureSet.CoordinateQuery(col)
-	if err != nil {
-		return err
-	}
-	Ω.fsTimeLocationQuery = q.Where("FormattedDate", "==", Ω.formattedDate)
-	return nil
+func (Ω *occurrence) docRef(florastore store.FloraStore) *firestore.DocumentRef {
+	id := fmt.Sprintf("%s-%s-%s", Ω.SourceType(), Ω.TargetID(), Ω.SourceOccurrenceID())
+	return florastore.FirestoreCollection(store.CollectionOccurrences).Doc(id)
 }
 
-func (Ω *Occurrence) upsert(cxt context.Context, tx *firestore.Transaction) error {
-	if Ω.fsDocumentReference == nil {
-		return errors.New("Firebase document reference not set")
-	}
-	existingDoc, err := tx.Get(Ω.fsDocumentReference)
-	notFound := (err != nil && strings.Contains(err.Error(), "not found"))
-	if !notFound && err != nil {
-		return err
-	}
-	exists := !notFound
+func (Ω *occurrence) UpsertTransaction(florastore store.FloraStore) (store.FirestoreTransactionFunc, error) {
 
-	imbricates, err := tx.Documents(Ω.fsTimeLocationQuery).GetAll()
-	if err != nil {
-		return errors.Wrap(err, "Error searching for a list of possibly overlapping occurrences")
+	if !Ω.SrcType.Valid() || !Ω.TgtID.Valid(Ω.SrcType) || strings.TrimSpace(Ω.SrcOccurrenceID) == "" {
+		return nil, errors.Newf("Invalid firestore reference ID: %s, %s, %s", Ω.SourceType(), Ω.TargetID(), Ω.SourceOccurrenceID())
 	}
 
-	if len(imbricates) > 1 {
-		return errors.Newf("Unexpected: multiple imbricates found for occurrence with location [%f, %f, %s]", Ω.Lat(), Ω.Lng(), Ω.formattedDate)
-	}
+	return func(cxt context.Context, tx *firestore.Transaction) error {
 
-	isImbricative := len(imbricates) > 0
-
-	if exists && isImbricative {
-		// This suggests the location has changed somewhere. Update code if we see this.
-		return errors.Newf("Unexpected: occurrence with id [%s] exists and is imbricative to another doc [%s]", existingDoc.Ref.ID, imbricates[0].Ref.ID)
-	}
-
-	if isImbricative {
-
-		// TODO: Be wary of cases in which there are occurrence of two different species in the same spot. Not sure if this will come up.
-
-		fmt.Println(fmt.Sprintf("Warning: Imbricative Occurrence Locations [%s, %s]", existingDoc.Ref.ID, imbricates[0].Ref.ID))
-
-		imbricate, err := fromMap(imbricates[0].Data())
-		if err != nil {
+		existingDoc, err := tx.Get(Ω.docRef(florastore))
+		notFound := (err != nil && strings.Contains(err.Error(), "not found"))
+		if !notFound && err != nil {
 			return err
 		}
 
-		if Ω.sourceType != imbricate.sourceType && imbricate.sourceType == datasources.TypeGBIF {
-			// So we have something other than GBIF, and the GBIF record is already in the database.
-			// No opt to prefer the existing GBIF record.
-			return nil
+		exists := !notFound
+
+		q, err := Ω.CoordinateQuery(florastore.FirestoreCollection(store.CollectionOccurrences))
+		if err != nil {
+			return err
+		}
+		locationQuery := q.Where("FormattedDate", "==", Ω.FormattedDate)
+
+		imbricates, err := tx.Documents(locationQuery).GetAll()
+		if err != nil {
+			return errors.Wrap(err, "Error searching for a list of possibly overlapping occurrences")
 		}
 
-		// Condition 1: The two are the same source, but one of the locations has changed, so delete the old to be safe.
-		fmt.Println("Warning: Source type for imbricating locations are the same. Deleting the old one.")
-		// Condition 2: So this is a GBIF source, and that is not, which means need to delete the old one.
-
-		if err := tx.Delete(imbricates[0].Ref); err != nil {
-			return errors.Wrapf(err, "Unable to delete occurrence [%s]", imbricates[0].Ref.ID)
+		if len(imbricates) > 1 {
+			return errors.Newf("Unexpected: multiple imbricates found for occurrence with location [%f, %f, %s]", Ω.Lat(), Ω.Lng(), Ω.FormattedDate)
 		}
-	}
-	
-	updateDoc, err := Ω.toMap()
-	if err != nil {
-		return err
-	}
 
-	if exists {
-		delete(updateDoc, keyCreatedAt)
-	}
+		isImbricative := len(imbricates) > 0
 
-	// Should be safe to override with new record
-	if err := tx.Set(Ω.fsDocumentReference, updateDoc); err != nil {
-		return errors.Wrap(err, "Could not set")
-	}
+		if exists && isImbricative {
+			// This suggests the location has changed somewhere. Update code if we see this.
+			return errors.Newf("Unexpected: occurrence with id [%s] exists and is imbricative to another doc [%s]", existingDoc.Ref.ID, imbricates[0].Ref.ID)
+		}
 
-	return nil
+		if isImbricative {
 
+			// TODO: Be wary of cases in which there are occurrence of two different species in the same spot. Not sure if this will come up.
+
+			fmt.Println(fmt.Sprintf("Warning: Imbricative Occurrence Locations [%s, %s]", existingDoc.Ref.ID, imbricates[0].Ref.ID))
+
+			imbricate := occurrence{}
+			if err := imbricates[0].DataTo(&imbricate); err != nil {
+				return errors.Wrap(err, "Could not cast occurrence")
+			}
+
+			if Ω.SourceType() != imbricate.SourceType() && imbricate.SourceType() == datasources.TypeGBIF {
+				// So we have something other than GBIF, and the GBIF record is already in the database.
+				// No opt to prefer the existing GBIF record.
+				return nil
+			}
+
+			// Condition 1: The two are the same source, but one of the locations has changed, so delete the old to be safe.
+			fmt.Println("Warning: Source type for imbricating locations are the same. Deleting the old one.")
+			// Condition 2: So this is a GBIF source, and that is not, which means need to delete the old one.
+
+			if err := tx.Delete(imbricates[0].Ref); err != nil {
+				return errors.Wrapf(err, "Unable to delete occurrence [%s]", imbricates[0].Ref.ID)
+			}
+		}
+
+		if exists {
+			Ω.CreatedAt = nil
+		}
+
+		// Should be safe to override with new record
+		if err := tx.Set(Ω.docRef(florastore), Ω); err != nil {
+			return errors.Wrap(err, "Could not set")
+		}
+
+		return nil
+
+	}, nil
 }
 
 func (Ω *OccurrenceAggregation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(Ω.list)
+}
+
+func (Ω *OccurrenceAggregation) UnmarshalJSON(b []byte) error {
+	list := []*occurrence{}
+	if err := json.Unmarshal(b, &list); err != nil {
+		return err
+	}
+	res := []Occurrence{}
+	for _, o := range list {
+		res = append(res, Occurrence(o))
+	}
+	Ω.list = res
+	return nil
 }

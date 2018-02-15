@@ -23,7 +23,6 @@ func UploadNameUsageObjects(ctx context.Context, florastore store.FloraStore, us
 	}
 
 	return uploadNameUsageObjects(florastore, objs)
-
 }
 
 func uploadNameUsageObjects(florastore store.FloraStore, objs AlgoliaObjects) error {

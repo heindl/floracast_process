@@ -66,7 +66,7 @@ func (Ω *store) FirestoreCollection(æ FirestoreCollection) *firestore.Collecti
 	if Ω.isTest {
 		name = "Test"+name
 	}
-	return Ω.firestoreClient.Collection(string(æ))
+	return Ω.firestoreClient.Collection(name)
 }
 
 

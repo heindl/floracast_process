@@ -6,18 +6,20 @@ import (
 	"time"
 	"bitbucket.org/heindl/processors/store"
 	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/processors/utils"
+	"strings"
 )
 
 type materializedTaxon struct {
-	ScientificName string `json:""`
-	CommonName string `json:""`
-	Photos []photo `json:""`
-	Description description `json:""`
-	CreatedAt time.Time `json:""`
-	ModifiedAt time.Time `json:""`
+	ScientificName string    `json:",omitempty" firestore:",omitempty"`
+	CommonName string        `json:",omitempty" firestore:",omitempty"`
+	Photo *photo             `json:",omitempty" firestore:",omitempty"`
+	Description *description `json:",omitempty" firestore:",omitempty"`
+	CreatedAt time.Time      `json:"" firestore:""`
+	ModifiedAt time.Time     `json:"" firestore:""`
 }
 
-func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs nameusage.NameUsageIDs) error {
+func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.NameUsageID) error {
 	if err := clearMaterializedTaxa(ctx, florastore, deletedUsageIDs); err != nil {
 		return err
 	}
@@ -39,6 +41,7 @@ func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, us
 }
 
 func clearMaterializedTaxa(ctx context.Context, florastore store.FloraStore, allUsageIDs nameusage.NameUsageIDs) error {
+
 	for _, usageIDs := range allUsageIDs.Batch(500) {
 		if len(usageIDs) == 0 {
 			return nil
@@ -55,29 +58,31 @@ func clearMaterializedTaxa(ctx context.Context, florastore store.FloraStore, all
 	return nil
 }
 
-func materialize(ctx context.Context, usage nameusage.NameUsage) (map[string]interface{}, error) {
+func materialize(ctx context.Context, usage nameusage.NameUsage) (*materializedTaxon, error) {
 
-	name, err := usage.CommonName()
+	description, err := fetchDescription(ctx, usage)
 	if err != nil {
 		return nil, err
 	}
 
-	photos, err := photos(ctx, usage)
+	commonName, err := usage.CommonName()
 	if err != nil {
 		return nil, err
 	}
 
-	descriptions, err := descriptions(ctx, usage)
+	photo, err := fetchPhoto(ctx, usage)
 	if err != nil {
 		return nil, err
 	}
 
-	m := map[string]interface{}{
-		"ScientificName": usage.CanonicalName().ScientificName(),
-		"CommonName": name,
-		"Photos": photos,
-		"Descriptions": descriptions,
+	mt := materializedTaxon{
+		ScientificName: utils.CapitalizeString(usage.CanonicalName().ScientificName()),
+		CommonName: strings.Title(commonName),
+		Photo: photo,
+		Description: description,
+		CreatedAt: time.Now(),
+		ModifiedAt: time.Now(),
 	}
 
-	return m, nil
+	return &mt, nil
 }

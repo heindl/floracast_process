@@ -7,6 +7,7 @@ import (
 	"strings"
 	"github.com/sadbox/mediawiki"
 	"time"
+	"github.com/grokify/html-strip-tags-go"
 )
 
 func Citation(wikipedia_url string) (string, error) {
@@ -50,5 +51,5 @@ func Citation(wikipedia_url string) (string, error) {
 		fmt.Sprintf("<%s>", wikipedia_url),
 	}, ". ")
 
-	return c, nil
+	return strip.StripTags(c), nil
 }
