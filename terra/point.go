@@ -9,6 +9,7 @@ import (
 
 type Point struct {
 	latlng *s2.LatLng
+	properties map[string]interface{}
 }
 
 var EPSILON float64 = 0.00001
@@ -22,21 +23,24 @@ func CoordinatesEqual(a, b float64) bool {
 
 func NewPoint(lat, lng float64) Point {
 	ll := s2.LatLngFromDegrees(lat, lng)
-	return Point{&ll}
+	return Point{
+		latlng: &ll,
+		properties: map[string]interface{}{},
+		}
 }
 
-func (Ω Point) IsZero() bool {
+func (Ω *Point) IsZero() bool {
 	if Ω.latlng == nil || Ω.Latitude() == 0 || Ω.Longitude() == 0 {
 		return true
 	}
 	return false
 }
 
-func (Ω Point) Latitude() float64 {
+func (Ω *Point) Latitude() float64 {
 	return Ω.latlng.Lat.Degrees()
 }
 
-func (Ω Point) S2TokenMap() map[string]bool {
+func (Ω *Point) S2TokenMap() map[string]bool {
 	initial_cell_id := s2.CellIDFromLatLng(*Ω.latlng)
 	feature_array := map[string]bool{}
 	for i := 0; i < 10; i++ {
@@ -46,21 +50,32 @@ func (Ω Point) S2TokenMap() map[string]bool {
 	return feature_array
 }
 
-func (Ω Point) Longitude() float64 {
+func (Ω *Point) Longitude() float64 {
 	return Ω.latlng.Lng.Degrees()
 }
 
-func (Ω Point) AsArray() []float64 {
+func (Ω *Point) SetProperty(key string, value interface{}) error {
+	if key == "" {
+		return errors.New("Invalid Point property key")
+	}
+	if value == nil {
+		return errors.New("Invalid Point property value")
+	}
+	Ω.properties[key] = value
+	return nil
+}
+
+func (Ω *Point) AsArray() []float64 {
 	return []float64{Ω.Longitude(), Ω.Latitude()}
 }
 
-func (Ω Point) DistanceKilometers(np Point) float64 {
+func (Ω *Point) DistanceKilometers(np Point) float64 {
 	p1 := pmgeo.NewPointFromLatLng(Ω.Latitude(), Ω.Longitude())
 	p2 := pmgeo.NewPointFromLatLng(np.Latitude(), np.Longitude())
 	return p1.GeoDistanceFrom(p2) / 1000.0
 }
 
-type Points []Point
+type Points []*Point
 
 func (Ω Points) Centroid() Point {
 	pointset := &pmgeo.PointSet{}
@@ -72,10 +87,13 @@ func (Ω Points) Centroid() Point {
 }
 
 func (Ω Points) GeoJSON() ([]byte, error) {
-
 	fc := geojson.NewFeatureCollection()
 	for _, pt := range Ω {
-		fc = fc.AddFeature(geojson.NewPointFeature(pt.AsArray()))
+		f := geojson.NewPointFeature(pt.AsArray())
+		for k, v := range pt.properties {
+			f.SetProperty(k, v)
+		}
+		fc = fc.AddFeature(f)
 	}
 	b, err := fc.MarshalJSON()
 	if err != nil {

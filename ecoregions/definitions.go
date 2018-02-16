@@ -46,7 +46,7 @@ const (
 	RealmPalearctic
 )
 
-type RealmCode string //  Biogeographical Realm
+type RealmCode string //  Biogeographical realm
 var RealmCodeDefinitions = map[RealmCode]Realm{
 	RealmCode("AA"): RealmAustralasia,
 	RealmCode("AN"): RealmAntarctic,

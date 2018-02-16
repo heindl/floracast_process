@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"bitbucket.org/heindl/processors/store"
 	"bitbucket.org/heindl/processors/datasources/sourcefetchers"
+	"fmt"
 )
 
 const minimumOccurrenceCount = 100
-
 
 func main() {
 
@@ -52,13 +52,14 @@ func main() {
 		panic(err)
 	}
 
+	if err := nameUsageAggr.Upload(cxt, fc); err != nil {
+		panic(err)
+	}
+
 	if err := occurrenceAggr.Upload(cxt, fc); err != nil {
 		panic(err)
 	}
 
-	if err := nameUsageAggr.Upload(cxt, fc); err != nil {
-		panic(err)
-	}
 }
 
 
@@ -173,6 +174,8 @@ func occurrenceFetcher(oAggr *occurrences.OccurrenceAggregation, srcTypes ...dat
 
 		usageOccurrenceAggr := occurrences.OccurrenceAggregation{}
 
+		fmt.Println("SRCTYPES", srcTypes)
+
 		srcs, err := usage.Sources(srcTypes...)
 		if err != nil {
 			return err
@@ -194,6 +197,7 @@ func occurrenceFetcher(oAggr *occurrences.OccurrenceAggregation, srcTypes ...dat
 			if err != nil {
 				return err
 			}
+
 			if err := src.RegisterOccurrenceFetch(srcOccurrenceAggregation.Count()); err != nil {
 				return err
 			}

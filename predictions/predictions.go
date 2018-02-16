@@ -9,7 +9,6 @@ type Prediction struct {
 	// Date formatted "YYYYMMDD"
 	Location *appengine.GeoPoint `json:",omitempty"`
 	Date                  *time.Time         `json:",omitempty"`
-	CreatedAt             *time.Time         `json:",omitempty"`
 	FormattedDate         string             `json:",omitempty"`
 	Month                 time.Month         `json:",omitempty"`
 	PredictionValue       float64            `json:",omitempty"`

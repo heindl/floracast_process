@@ -36,8 +36,6 @@ type source struct {
 	CmmnNms        []string                     `json:"CommonNames,omitempty" firestore:"CommonNames,omitempty"`
 	Occurrences    int                          `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
 	LastFtchdAt      *time.Time                   `json:"LastFetchedAt,omitempty" firestore:"LastFetchedAt,omitempty"`
-	ModifiedAt *time.Time `json:",omitempty" firestore:",omitempty"`
-	CreatedAt *time.Time `json:",omitempty" firestore:",omitempty"`
 }
 
 type Sources []Source
@@ -109,8 +107,6 @@ func NewSource(sourceType datasources.SourceType, targetID datasources.TargetID,
 		SrcType:         sourceType,
 		TrgtID:           targetID,
 		CnnclNm:      canonicalName,
-		CreatedAt:          utils.TimePtr(time.Now()),
-		ModifiedAt:         utils.TimePtr(time.Now()),
 		}, nil
 }
 

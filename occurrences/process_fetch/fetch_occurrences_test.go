@@ -27,7 +27,7 @@ package main
 //		So(err, ShouldBeNil)
 //
 //		for _, o := range ocs {
-//			if o.Elevation == 0 {
+//			if o.elevation == 0 {
 //				fmt.Println(utils.JsonOrSpew(o))
 //			}
 //		}
@@ -96,8 +96,8 @@ package main
 //		}
 //		So(setElevations(list), ShouldBeNil)
 //
-//		So(list[0].Elevation, ShouldEqual, 4.377089023590088)
-//		So(list[1].Elevation, ShouldEqual, -59.19219207763672)
-//		So(list[2].Elevation, ShouldEqual, 241.1528778076172)
+//		So(list[0].elevation, ShouldEqual, 4.377089023590088)
+//		So(list[1].elevation, ShouldEqual, -59.19219207763672)
+//		So(list[2].elevation, ShouldEqual, 241.1528778076172)
 //	})
 //}

@@ -19,7 +19,7 @@ func TestNameUsageProcessor(t *testing.T) {
 		id1 := nameusage.NameUsageID("eM3R8X2YQyLJWiLMVIGzZaU1I")
 		id2 := nameusage.NameUsageID("aM3R8X2YQyLJWiLMVIGzZaU1I")
 
-		usage, err := nameusage.NameUsageFromJSON(id1, utils.GetMorchellaUsageTestData())
+		usage, err := nameusage.NameUsageFromJSON(id1, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
 
 		objs, err := generateNameUsageObjects(context.Background(), usage)
@@ -40,7 +40,7 @@ func TestNameUsageProcessor(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(c, ShouldEqual, 102)
 
-		usage, err = nameusage.NameUsageFromJSON(id2, utils.GetMorchellaUsageTestData())
+		usage, err = nameusage.NameUsageFromJSON(id2, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
 
 		So(UploadNameUsageObjects(context.Background(), florastore, usage, id1), ShouldBeNil)

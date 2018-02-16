@@ -13,11 +13,11 @@ type EcoRegionsCache struct {
 }
 
 type EcoRegion struct {
-	REALM Realm
-	EcoName      string  // Ecoregion Name
-	EcoCode      EcoCode // This is an alphanumeric code that is similar to eco_ID but a little easier to interpret. The first 2 characters (letters) are the realm the ecoregion is in. The 2nd 2 characters are the biome and the last 2 characters are the ecoregion number.
-	EcoNum       EcoNum  // A unique number for each ecoregion within each biome nested within each realm.
-	EcoID        EcoID   // This number is created by combining REALM, BIOME, and ECO_NUM, thus creating a unique numeric ID for each ecoregion.
+	Realm   Realm
+	EcoName string  // Ecoregion Name
+	EcoCode EcoCode // This is an alphanumeric code that is similar to eco_ID but a little easier to interpret. The first 2 characters (letters) are the realm the ecoregion is in. The 2nd 2 characters are the biome and the last 2 characters are the ecoregion number.
+	EcoNum  EcoNum  // A unique number for each ecoregion within each biome nested within each realm.
+	EcoID   EcoID   // This number is created by combining realm, BIOME, and ECO_NUM, thus creating a unique numeric ID for each ecoregion.
 	Biome        Biome
 	MultiPolygon terra.MultiPolygon
 }

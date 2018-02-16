@@ -3,7 +3,6 @@ package taxa
 import (
 	"bitbucket.org/heindl/processors/nameusage/nameusage"
 	"context"
-	"time"
 	"bitbucket.org/heindl/processors/store"
 	"github.com/dropbox/godropbox/errors"
 	"bitbucket.org/heindl/processors/utils"
@@ -15,8 +14,6 @@ type materializedTaxon struct {
 	CommonName string        `json:",omitempty" firestore:",omitempty"`
 	Photo *photo             `json:",omitempty" firestore:",omitempty"`
 	Description *description `json:",omitempty" firestore:",omitempty"`
-	CreatedAt time.Time      `json:"" firestore:""`
-	ModifiedAt time.Time     `json:"" firestore:""`
 }
 
 func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.NameUsageID) error {
@@ -80,8 +77,6 @@ func materialize(ctx context.Context, usage nameusage.NameUsage) (*materializedT
 		CommonName: strings.Title(commonName),
 		Photo: photo,
 		Description: description,
-		CreatedAt: time.Now(),
-		ModifiedAt: time.Now(),
 	}
 
 	return &mt, nil

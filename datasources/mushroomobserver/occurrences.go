@@ -219,7 +219,7 @@ func (Ω *Location) Coordinates() (lat, lng float64) {
 	if distance > 20 {
 		return 0, 0
 	}
-	centroid := terra.Points{p1, p2}.Centroid()
+	centroid := terra.Points{&p1, &p2}.Centroid()
 	return centroid.Latitude(), centroid.Longitude()
 }
 

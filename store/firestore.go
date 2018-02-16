@@ -12,7 +12,7 @@ import (
 type FirestoreCollection string
 
 const (
-	CollectionOccurrences    = FirestoreCollection("TotalOccurrenceCount")
+	CollectionOccurrences    = FirestoreCollection("Occurrences")
 	CollectionTaxa           = FirestoreCollection("Taxa")
 	CollectionNameUsages     = FirestoreCollection("NameUsages")
 	CollectionPhotos         = FirestoreCollection("Photos")

@@ -61,6 +61,10 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 		return nil, errors.Newf("Unsupported SourceType [%s]", sourceType)
 	}
 
+	if len(provided) == 0 {
+		return nil, nil
+	}
+
 	aggregation := OccurrenceAggregation{}
 
 	tmb := tomb.Tomb{}
@@ -80,6 +84,7 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 				if err != nil {
 					return errors.Wrap(err, "Could not get Occurrence Latitude")
 				}
+
 				err = o.SetGeospatial(lat, lng, p.DateString(), p.CoordinatesEstimated())
 				if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidCoordinate) {
 					//fmt.Println(fmt.Sprintf("Invalid Coordinate [%.4f, %.4f] from SourceType [%s, %s]", lat, lng, sourceType, targetID))

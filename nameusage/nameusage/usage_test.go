@@ -22,8 +22,6 @@ var usageJSON = []byte(`
           "Rank": "species",
           "ScientificName": "cantharellus jebbi"
         },
-        "ModifiedAt": "2018-02-10T14:21:10.599356-05:00",
-        "CreatedAt": "2018-02-10T14:21:10.599354-05:00"
       }
     },
     "26": {
@@ -32,8 +30,6 @@ var usageJSON = []byte(`
           "Rank": "species",
           "ScientificName": "cantharellus jebbi"
         },
-        "ModifiedAt": "2018-02-10T14:21:10.599361-05:00",
-        "CreatedAt": "2018-02-10T14:21:10.599359-05:00"
       }
     },
     "27": {
@@ -43,8 +39,6 @@ var usageJSON = []byte(`
           "Rank": "species",
           "ScientificName": "cantharellus jebbi"
         },
-        "ModifiedAt": "2018-02-10T14:21:11.096049-05:00",
-        "CreatedAt": "2018-02-10T14:21:11.096046-05:00"
       }
     },
     "INAT": {

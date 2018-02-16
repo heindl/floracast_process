@@ -7,7 +7,6 @@ import (
 	"bitbucket.org/heindl/processors/datasources"
 	"bitbucket.org/heindl/processors/nameusage/canonicalname"
 	"bitbucket.org/heindl/processors/utils"
-	"time"
 	"context"
 	"bitbucket.org/heindl/processors/store"
 	"encoding/json"
@@ -29,7 +28,6 @@ type NameUsage interface {
 	ScientificNameReferenceLedger() (NameReferenceLedger, error)
 	CommonNameReferenceLedger() (NameReferenceLedger, error)
 	Upload(context.Context, store.FloraStore) (deletedUsageIDs NameUsageIDs, err error)
-	//MarshalJSON() ([]byte, error)
 }
 
 const storeKeyScientificName = "ScientificNames"
@@ -37,10 +35,9 @@ const storeKeyScientificName = "ScientificNames"
 type usage struct {
 	Id                    NameUsageID`json:"-" firestore:"-"`
 	Cn         *canonicalname.CanonicalName `json:"CanonicalName" firestore:"CanonicalName"`
+	Occrrncs int `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
 	SciNames         map[string]bool `json:"ScientificNames,omitempty" firestore:"ScientificNames,omitempty"`
 	Srcs             map[datasources.SourceType]map[datasources.TargetID]*source `json:"Sources,omitempty" firestore:"Sources,omitempty"`
-	CreatedAt time.Time `json:"CreatedAt,omitempty" firestore:"CreatedAt,omitempty"`
-	ModifiedAt time.Time `json:"ModifiedAt,omitempty" firestore:"ModifiedAt,omitempty"`
 }
 
 func NewNameUsage(src Source) (NameUsage, error) {
@@ -53,8 +50,6 @@ func NewNameUsage(src Source) (NameUsage, error) {
 	u := usage{
 		Id:                    id,
 		Cn:         src.CanonicalName(),
-		CreatedAt: time.Now(),
-		ModifiedAt: time.Now(),
 	}
 
 	if err := u.AddSources(src); err != nil {
@@ -321,8 +316,6 @@ func (a *usage) Combine(b NameUsage) (NameUsage, error) {
 
 	c := usage{
 		Id: a.Id,
-		CreatedAt:a .CreatedAt,
-		ModifiedAt: time.Now(),
 	}
 
 	// Slow recalculate this but necessary for clean code.

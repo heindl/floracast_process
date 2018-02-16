@@ -165,14 +165,15 @@ func (Ω FeatureCollection) MaxDistanceFromCentroid() float64 {
 
 	polylabels := Points{}
 	for _, fc := range Ω.features {
-		polylabels = append(polylabels, fc.PolyLabel())
+		p := fc.PolyLabel()
+		polylabels = append(polylabels, &p)
 	}
 
 	centroid := polylabels.Centroid()
 
 	max := 0.0
 	for _, p := range polylabels {
-		distance := centroid.DistanceKilometers(p)
+		distance := centroid.DistanceKilometers(*p)
 		if distance > max {
 			max = distance
 		}
@@ -223,7 +224,8 @@ func (Ω FeatureCollections) FilterByMinimumArea(minimum_area_kilometers float64
 func (Ω FeatureCollections) PolyLabels() Points {
 	labels := Points{}
 	for _, ic := range Ω {
-		labels = append(labels, ic.PolyLabel())
+		p := ic.PolyLabel()
+		labels = append(labels, &p)
 	}
 	return labels
 }
@@ -258,7 +260,9 @@ Restart:
 				if k == i {
 					continue
 				}
-				distance := a[i].PolyLabel().DistanceKilometers(a[k].PolyLabel())
+				p1 := a[k].PolyLabel()
+				p2 := a[i].PolyLabel()
+				distance := p1.DistanceKilometers(p2)
 				// If the distance between the two is less than the required minimum.
 				if distance > minKm {
 					continue

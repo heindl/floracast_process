@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"bitbucket.org/heindl/processors/utils"
 	"github.com/dropbox/godropbox/errors"
-	"time"
 )
 
 func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (deletedUsageIDs NameUsageIDs, err error) {
@@ -27,9 +26,13 @@ func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (delet
 		return nil, err
 	}
 
-	Ω.ModifiedAt = time.Now()
-	Ω.SciNames = map[string]bool{}
 
+	Ω.Occrrncs, err = Ω.Occurrences()
+	if err != nil {
+		return nil, err
+	}
+
+	Ω.SciNames = map[string]bool{}
 	sciNames, err := Ω.AllScientificNames()
 	if err != nil {
 		return nil, err
@@ -47,6 +50,11 @@ func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (delet
 }
 
 func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsageIDs NameUsageIDs) error {
+	
+	if len(allUsageIDs) == 0 {
+		return nil
+	}
+	
 	for _, usageIDs := range allUsageIDs.Batch(500) {
 		if len(usageIDs) == 0 {
 			return nil
@@ -75,7 +83,7 @@ func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) 
 	wait := store.NewFirestoreLimiter()
 	list, err := utils.ForEachStringToStrings(names, func(name string) ([]string, error){
 		<-wait
-		synonymMatch := fmt.Sprintf("%s.%s", storeKeyScientificName)
+		synonymMatch := fmt.Sprintf("%s.%s", storeKeyScientificName, name)
 		snaps, err := col.Where(synonymMatch, "==", true).Documents(ctx).GetAll()
 		if err != nil {
 			return nil, err

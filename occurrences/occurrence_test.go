@@ -3,46 +3,46 @@ package occurrences
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/processors/utils"
 	"golang.org/x/net/context"
 	"bitbucket.org/heindl/processors/store"
-	"github.com/mongodb/mongo-tools/common/json"
+	"bitbucket.org/heindl/processors/datasources"
 )
 
-func TestTaxonFetcher(t *testing.T) {
+func TestOccurrenceFetcher(t *testing.T) {
 
 	t.Parallel()
 
-	Convey("should upload materialized name usage", t, func() {
+	Convey("should fetch occurrences for taxon", t, func() {
 
-		b := utils.GetFileContents("./testdata.json")
+		aggr, err := FetchOccurrences(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
+		So(err, ShouldBeNil)
+		So(aggr.Count(), ShouldEqual, 120)
 
-		oa := OccurrenceAggregation{}
-		So(json.Unmarshal(b, &oa), ShouldBeNil)
+		gbifAggr, err := FetchOccurrences(context.Background(), datasources.TypeGBIF, datasources.TargetID("2594602"), nil)
+		So(err, ShouldBeNil)
+		So(gbifAggr.Count(), ShouldEqual, 205)
 
-		So(oa.Count(), ShouldEqual, 238)
+		So(aggr.Merge(gbifAggr), ShouldBeNil)
+
+		So(aggr.Count(), ShouldEqual, 238)
 
 		cxt := context.Background()
 
 		florastore, err := store.NewTestFloraStore(cxt)
 		So(err, ShouldBeNil)
 
-		So(oa.Upload(cxt, florastore), ShouldBeNil)
+		So(aggr.Upload(cxt, florastore), ShouldBeNil)
 
 		snaps, err := florastore.FirestoreCollection(store.CollectionOccurrences).Documents(cxt).GetAll()
 		So(err, ShouldBeNil)
 		So(len(snaps), ShouldEqual, 238)
 
-		So(oa.Upload(cxt, florastore), ShouldBeNil)
+		// TODO: Test duplication avoidance here.
 
-		snaps, err = florastore.FirestoreCollection(store.CollectionOccurrences).Documents(cxt).GetAll()
-		So(err, ShouldBeNil)
-		So(len(snaps), ShouldEqual, 238)
-
-		for _, s := range snaps {
-			_, err := s.Ref.Delete(cxt)
-			So(err, ShouldBeNil)
-		}
+		//for _, s := range snaps {
+		//	_, err := s.Ref.Delete(cxt)
+		//	So(err, ShouldBeNil)
+		//}
 
 	})
 }

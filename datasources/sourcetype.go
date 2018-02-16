@@ -7,6 +7,7 @@ const (
 	TypeINaturalist      = SourceType("INAT")
 	TypeMushroomObserver = SourceType("MUOB")
 	TypeNatureServe      = SourceType("11")
+	TypeRandom      = SourceType("RANDOM")
 )
 
 func HasDataSourceType(srcs []SourceType, sourceType SourceType) bool {
@@ -24,6 +25,8 @@ func (Ω SourceType) Valid() bool {
 }
 
 var SchemeSourceIDMap = map[SourceType]string{
+	// Random Occurrence for Model Training
+	TypeRandom: "Random",
 	// Floracast
 	TypeINaturalist: "iNaturalist",
 	// INaturalist

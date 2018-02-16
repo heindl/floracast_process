@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"bitbucket.org/heindl/processors/datasources/sourcefetchers"
 	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/processors/store"
 )
 
 func TestNameUsageProcessor(t *testing.T) {
@@ -43,7 +44,7 @@ func TestNameUsageProcessor(t *testing.T) {
 	Convey("should fetch occurrences from name usages", t, func() {
 
 		aggr := aggregate.Aggregate{}
-		So(json.Unmarshal(utils.GetMorchellaAggregateTestData(), &aggr), ShouldBeNil)
+		So(json.Unmarshal(utils.GetUnFetchedMorchellaAggregateTestData(), &aggr), ShouldBeNil)
 
 		So(aggr.Count(), ShouldEqual, 1)
 
@@ -52,7 +53,24 @@ func TestNameUsageProcessor(t *testing.T) {
 
 		So(occurrenceAggr.Count(), ShouldEqual, 238)
 
-		fmt.Println(utils.JsonOrSpew(&aggr))
+		fmt.Println(utils.JsonOrSpew(occurrenceAggr))
+
+
+	})
+
+	SkipConvey("should upload occurrence count", t, func() {
+
+		aggr := aggregate.Aggregate{}
+		So(json.Unmarshal(utils.GetFetchedMorchellaAggregateTestData(), &aggr), ShouldBeNil)
+
+		So(aggr.Count(), ShouldEqual, 1)
+
+		cxt := context.Background()
+
+		florastore, err := store.NewFloraStore(cxt)
+		So(err, ShouldBeNil)
+
+		So(aggr.Upload(cxt, florastore), ShouldBeNil)
 
 	})
 }
