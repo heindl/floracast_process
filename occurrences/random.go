@@ -72,7 +72,7 @@ func GenerateRandomOccurrences(number float64) (*OccurrenceAggregation, error) {
 		return nil, err
 	}
 
-	bounds, err := gen.gridGenerator.SubDivide(grid.NorthAmerica)
+	bounds, err := gen.gridGenerator.SubDivide(grid.NorthAmerica, 4)
 	if err != nil {
 		panic(err)
 	}
@@ -109,7 +109,7 @@ func GenerateRandomOccurrences(number float64) (*OccurrenceAggregation, error) {
 }
 
 
-func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber int, bounds grid.Bounds, season Season) error {
+func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber int, bounds grid.Bound, season Season) error {
 
 	timeDelta := season.Max - season.Min
 	xDelta := int(math.Ceil(bounds.East) - math.Ceil(bounds.West))

@@ -10,7 +10,7 @@ import (
 )
 
 type Generator interface{
-	SubDivide(g *Bounds) ([]*Bounds, error)
+	SubDivide(g *Bound, level int) (Bounds, error)
 }
 
 func NewGridGenerator() (Generator, error) {
@@ -20,31 +20,56 @@ func NewGridGenerator() (Generator, error) {
 	}
 	return &generator{
 		ecoRegionCache: ecoCache,
-		grids: []*Bounds{},
+		grids: Bounds{},
 	}, nil
 }
 
 type generator struct {
 	ecoRegionCache *ecoregions.EcoRegionsCache
-	grids []*Bounds
+	grids []*Bound
 	sync.Mutex
 }
 
-var NorthAmerica = &Bounds{
+var NorthAmerica = &Bound{
 	North: 53.5555501, // Edmonton, Alberta
 	West: -137.8424302, // Glacier Bay
 	East: -53.1078873, // St. Johns, Newfoundland
 	South: 20.6737777, // Guadalajara, Mexico
 }
 
-type Bounds struct {
+type Bound struct {
 	North, South, East, West float64
 }
 
-func (Ω *generator) SubDivide(g *Bounds) ([]*Bounds, error) {
+type Bounds []*Bound
+
+func (Ω Bounds) ToGeoJSON() ([]byte, error) {
+	if len(Ω) == 0 {
+		return nil, errors.New("At least one Bound is required for GeoJSON")
+	}
+
+	fc := geojson.NewFeatureCollection()
+	for _, b := range Ω {
+		f := geojson.NewPolygonFeature(append([][][]float64{}, [][]float64{
+			{b.West, b.North},
+			{b.East, b.North},
+			{b.East, b.South},
+			{b.West, b.South},
+			{b.West, b.North},
+		}))
+		fc = fc.AddFeature(f)
+	}
+	b, err := fc.MarshalJSON()
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not marshal FeatureCollection")
+	}
+	return b, nil
+}
+
+func (Ω *generator) SubDivide(g *Bound, level int) (Bounds, error) {
 
 	region := s2.Region(s2.RectFromLatLng(s2.LatLngFromDegrees(g.North, g.East)).AddPoint(s2.LatLngFromDegrees(g.South, g.West)))
-	regionCoverer := &s2.RegionCoverer{MaxLevel: 4, MinLevel: 4, MaxCells: 500}
+	regionCoverer := &s2.RegionCoverer{MaxLevel: level, MinLevel: level, MaxCells: 500}
 
 	covering := regionCoverer.Covering(region)
 
@@ -99,7 +124,7 @@ func (Ω *generator) parseCell(cellID s2.CellID) error {
 		if ecoRegionTouches > 1 {
 			Ω.Lock()
 			defer Ω.Unlock()
-			Ω.grids = append(Ω.grids, &Bounds{
+			Ω.grids = append(Ω.grids, &Bound{
 				North: n,
 				South: s,
 				East: e,
