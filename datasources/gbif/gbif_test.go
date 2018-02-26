@@ -5,8 +5,8 @@ import (
 	"testing"
 	"golang.org/x/net/context"
 	"fmt"
-	"bitbucket.org/heindl/processors/utils"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/utils"
+	"bitbucket.org/heindl/process/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -89,7 +89,8 @@ func TestTaxonFetcher(t *testing.T) {
 
 		taxa, err := FetchNamesUsages(context.Background(), names, ids)
 		So(err, ShouldBeNil)
-		fmt.Println("Result", taxa.CountUsages(), utils.JsonOrSpew(taxa.ScientificNames()))
+
+		fmt.Println("Result", len(taxa))
 
 	})
 }

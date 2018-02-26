@@ -29,7 +29,7 @@ func TestSearch(t *testing.T) {
 			Rank: []Rank{RankGENUS},
 		})
 		So(err, ShouldBeNil)
-		So(len(r), ShouldEqual, 56)
+		So(len(r), ShouldEqual, 47)
 		So(r[0].DatasetKey, ShouldEqual, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c")
 		So(r[0].ScientificName, ShouldEqual, "Puma Jardine, 1834")
 

@@ -3,6 +3,7 @@ package terra
 import (
 	"bytes"
 	"github.com/golang/geo/s2"
+	"github.com/dropbox/godropbox/errors"
 )
 
 type MultiPolygon []*s2.Polygon
@@ -87,7 +88,11 @@ func (Ω MultiPolygon) Decode(a [][]byte) (MultiPolygon, error) {
 		if err := p.Decode(r); err != nil {
 			return nil, err
 		}
-		mp = mp.PushPolygon(&p)
+		var err error
+		mp, err = mp.PushPolygon(&p)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return mp, nil
 }
@@ -117,6 +122,9 @@ func (Ω MultiPolygon) ToArray() [][][][]float64 {
 }
 
 func PolygonToArray(polygon *s2.Polygon) [][][]float64 {
+	if polygon == nil {
+		return nil
+	}
 	polygon_array := [][][]float64{}
 	holes := [][][]float64{}
 	for _, loop := range polygon.Loops() {
@@ -134,13 +142,17 @@ func PolygonToArray(polygon *s2.Polygon) [][][]float64 {
 	return append(polygon_array, holes...)
 }
 
-func (Ω MultiPolygon) PolylabelOfLargestPolygon() Point {
-	return PolyLabel(PolygonToArray(Ω.LargestPolygon()), 0)
+func (Ω MultiPolygon) PolylabelOfLargestPolygon() (*Point, error) {
+	largestPolygon := Ω.LargestPolygon()
+	if largestPolygon == nil {
+		return nil, errors.New("could not find polylabel of empty polygon")
+	}
+	return PolyLabel(PolygonToArray(largestPolygon), 0)
 }
 
-func (Ω MultiPolygon) CentroidOfLargestPolygon() Point {
+func (Ω MultiPolygon) CentroidOfLargestPolygon() (*Point, error) {
 	largest := 0.0
-	coord := Point{}
+	coord := &Point{}
 	for _, polygon := range Ω {
 		for _, l := range polygon.Loops() {
 			if l.IsHole() {
@@ -152,23 +164,31 @@ func (Ω MultiPolygon) CentroidOfLargestPolygon() Point {
 			}
 			largest = a
 			ll := s2.LatLngFromPoint(l.Centroid())
-			coord = NewPoint(ll.Lat.Degrees(), ll.Lng.Degrees())
+			var err error
+			coord, err = NewPoint(ll.Lat.Degrees(), ll.Lng.Degrees())
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
-	return coord
+	return coord, nil
 }
 
-func (Ω MultiPolygon) PushPolygon(_p *s2.Polygon) MultiPolygon {
+func (Ω MultiPolygon) PushPolygon(_p *s2.Polygon) (MultiPolygon, error) {
 	p := *_p
-	return append(Ω, &p)
+	return append(Ω, &p), nil
 }
 
-func (Ω MultiPolygon) PushMultiPolygon(mp MultiPolygon) MultiPolygon {
+func (Ω MultiPolygon) PushMultiPolygon(mp MultiPolygon) (MultiPolygon, error) {
+	var err error
 	for _, _p := range mp {
 		p := *_p
-		Ω = Ω.PushPolygon(&p)
+		Ω, err = Ω.PushPolygon(&p)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return Ω
+	return Ω, nil
 }
 
 // Note that this function orders the points counter clockwise.

@@ -9,7 +9,7 @@ import (
 	"math"
 	"sync"
 	"gopkg.in/tomb.v2"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 )
 
 type OccurrenceSearchQuery struct {

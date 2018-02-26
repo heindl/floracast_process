@@ -1,11 +1,11 @@
 package taxa
 
 import (
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"context"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/store"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"strings"
 )
 
@@ -26,7 +26,12 @@ func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, us
 		return nil
 	}
 
-	docRef := florastore.FirestoreCollection(store.CollectionTaxa).Doc(id.String())
+	col, err := florastore.FirestoreCollection(store.CollectionTaxa)
+	if err != nil {
+		return err
+	}
+
+	docRef := col.Doc(id.String())
 	materialized, err := materialize(ctx, usage)
 	if err != nil {
 		return err
@@ -45,8 +50,11 @@ func clearMaterializedTaxa(ctx context.Context, florastore store.FloraStore, all
 		}
 		batch := florastore.FirestoreBatch()
 		for _, id := range usageIDs {
-			docRef := florastore.FirestoreCollection(store.CollectionTaxa).Doc(id.String())
-			batch = batch.Delete(docRef)
+			col, err := florastore.FirestoreCollection(store.CollectionTaxa)
+			if err != nil {
+				return err
+			}
+			batch = batch.Delete(col.Doc(id.String()))
 		}
 		if _, err := batch.Commit(ctx); err != nil {
 			return errors.Wrap(err, "Could not commit materialized taxa")

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"sort"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/nameusage/canonicalname"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/utils"
 	"context"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/store"
 	"encoding/json"
 )
 

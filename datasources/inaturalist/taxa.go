@@ -5,14 +5,14 @@ import (
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"sync"
 	"time"
 	"regexp"
 	"bytes"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 )
 
 type page struct {

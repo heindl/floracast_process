@@ -2,7 +2,7 @@ package grid
 
 import (
 	"github.com/golang/geo/s2"
-	"bitbucket.org/heindl/processors/ecoregions"
+	"bitbucket.org/heindl/process/ecoregions"
 	"github.com/paulmach/go.geojson"
 	"gopkg.in/tomb.v2"
 	"sync"

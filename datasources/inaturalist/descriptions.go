@@ -2,9 +2,9 @@ package inaturalist
 
 import (
 	"context"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/datasources/wikipedia"
+	"bitbucket.org/heindl/process/datasources/wikipedia"
 )
 
 type DescriptionProvider Taxon

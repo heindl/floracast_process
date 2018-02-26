@@ -2,11 +2,11 @@ package geofeatures
 
 import (
 	"google.golang.org/genproto/googleapis/type/latlng"
-	"bitbucket.org/heindl/processors/ecoregions"
+	"bitbucket.org/heindl/process/ecoregions"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/terra"
+	"bitbucket.org/heindl/process/terra"
 	"encoding/json"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 )
 
 func (Ω *GeoFeatureSet) UnmarshalJSON(b []byte) error {
@@ -31,7 +31,7 @@ func (Ω *GeoFeatureSet) UnmarshalJSON(b []byte) error {
 		biome:                m[keyEcoBiome].(ecoregions.Biome),
 		realm:                m[keyEcoRealm].(ecoregions.Realm),
 		ecoNum:               m[keyEcoNum].(ecoregions.EcoNum),
-		elevation:            utils.FloatPtr(m[keyElevation].(float64)),
+		elevation:            utils.IntPtr(m[keyElevation].(int)),
 		geopoint:             &geopoint,
 	}
 
@@ -82,7 +82,15 @@ func (Ω *GeoFeatureSet) MarshalJSON() ([]byte, error) {
 		return nil, errors.New("Invalid EcoID")
 	}
 
-	p := terra.NewPoint(Ω.geopoint.GetLatitude(), Ω.geopoint.GetLongitude())
+	terraPoint, err := terra.NewPoint(Ω.geopoint.GetLatitude(), Ω.geopoint.GetLongitude())
+	if err != nil {
+		return nil, err
+	}
+
+	coordKey, err := Ω.CoordinateKey()
+	if err != nil {
+		return nil, err
+	}
 
 	return json.Marshal(map[string]interface{}{
 		keyGeoPoint:             Ω.geopoint,
@@ -90,8 +98,8 @@ func (Ω *GeoFeatureSet) MarshalJSON() ([]byte, error) {
 		keyEcoBiome:             Ω.biome,
 		keyEcoRealm:             Ω.realm,
 		keyEcoNum:               Ω.ecoNum,
-		keyS2Tokens:             p.S2TokenMap(),
+		keyS2Tokens:             terraPoint.S2TokenMap(),
 		keyElevation:            elevation,
-		keyCoordinate:           Ω.CoordinateKey(),
+		keyCoordinate:           coordKey,
 	})
 }

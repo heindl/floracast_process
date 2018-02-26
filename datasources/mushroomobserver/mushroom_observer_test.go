@@ -4,7 +4,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"context"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {

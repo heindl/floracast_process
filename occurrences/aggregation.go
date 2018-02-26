@@ -2,12 +2,12 @@ package occurrences
 
 import (
 	"fmt"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 	"sync"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"encoding/json"
-	"bitbucket.org/heindl/processors/terra"
+	"bitbucket.org/heindl/process/terra"
 )
 
 type OccurrenceAggregation struct {
@@ -113,7 +113,10 @@ func (Ω *OccurrenceAggregation) GeoJSON() ([]byte, error) {
   	if err != nil {
   		return nil, err
 	}
-	p := terra.NewPoint(lat, lng)
+	p, err := terra.NewPoint(lat, lng)
+	if err != nil {
+		return nil, err
+	}
 	date, err := o.Date()
 	if err != nil {
 		return nil, err
@@ -121,7 +124,7 @@ func (Ω *OccurrenceAggregation) GeoJSON() ([]byte, error) {
 	if err := p.SetProperty("Date", date); err != nil {
 		return nil, err
 	}
-	points = append(points, &p)
+	points = append(points, p)
   }
   return points.GeoJSON()
 }

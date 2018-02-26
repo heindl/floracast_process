@@ -1,12 +1,12 @@
 package main
 //
 //import (
-//	"bitbucket.org/heindl/processors/ecoregions"
-//	"bitbucket.org/heindl/processors/store"
-//	"bitbucket.org/heindl/processors/utils"
+//	"bitbucket.org/heindl/process/ecoregions"
+//	"bitbucket.org/heindl/process/store"
+//	"bitbucket.org/heindl/process/utils"
 //	"flag"
 //	"fmt"
-//	"bitbucket.org/heindl/processors/datasources/gbif"
+//	"bitbucket.org/heindl/process/datasources/gbif"
 //	"github.com/jonboulle/clockwork"
 //	"golang.org/x/net/context"
 //	"google.golang.org/genproto/googleapis/type/latlng"

@@ -3,7 +3,7 @@ package canonicalname
 import (
 	"github.com/dropbox/godropbox/errors"
 	"strings"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 )
 
 // The canonical Name is the scientific Name of the species, subspecies, variety, etc. Anything under Genus.

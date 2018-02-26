@@ -216,8 +216,6 @@ RankVARIETY = Rank("VARIETY")
 )
 
 type SearchQuery struct {
-	tmb tomb.Tomb
-	ch  chan NameUsage
 	// Filters by the checklist dataset key (a uuid)
 	DatasetKey int `json:"datasetKey"`
 	// A list of facet names used to retrieve the 100 most frequent values for a field. Allowed facets are: datasetKey, higherTaxonKey, rank, status, isExtinct, habitat and nameType. Additionally threat and nomenclaturalStatus are legal values but not yet implemented, so data will not yet be returned for them.
@@ -268,7 +266,7 @@ func (q SearchQuery) url(offset int) string {
 	}
 
 	if q.FacetMinCount != 0 {
-		u += fmt.Sprintf("&facetMincount=%s", q.FacetMinCount)
+		u += fmt.Sprintf("&facetMincount=%d", q.FacetMinCount)
 	}
 
 	if q.FacetMultiSelect {
@@ -306,69 +304,48 @@ func (q SearchQuery) url(offset int) string {
 	return u
 }
 
+type searchResponse struct {
+	page
+	Results []NameUsage `json:"results"`
+}
+
 func Search(q SearchQuery) (names []NameUsage, err error) {
 
 	if q.Q == "" {
 		return nil, errors.New("a query value is required to search")
 	}
 
-	for o := range q.next() {
-		names = append(names, o)
-	}
+	qResponse := searchResponse{}
 
-	if err := q.tmb.Err(); err != nil {
+	if err := request(q.url(0), &qResponse); err != nil {
 		return nil, err
 	}
 
-	return
+	res := qResponse.Results
+	locker := sync.Mutex{}
+	totalRequests := math.Ceil(float64(qResponse.Count) / float64(qResponse.Limit))
 
-}
-
-func (s *SearchQuery) next() <-chan NameUsage {
-	s.tmb = tomb.Tomb{}
-	s.ch = make(chan NameUsage, 5)
-	go s.tmb.Go(func() error {
-		err := s.request(0)
-		close(s.ch)
-		return err
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _i := 1; _i <= int(totalRequests); _i++ {
+			i := _i
+			tmb.Go(func() error {
+				nqResponse := searchResponse{}
+				if err := request(q.url(i), &qResponse); err != nil {
+					return err
+				}
+				locker.Lock()
+				defer locker.Unlock()
+				res = append(res, nqResponse.Results...)
+				return nil
+			})
+		}
+		return nil
 	})
-	return s.ch
-}
-
-func (this *SearchQuery) request(offset int) error {
-
-	select {
-	case <-this.tmb.Dying():
-		return nil
-	default:
+	if err := tmb.Wait(); err != nil {
+		return nil, err
 	}
 
-	var response struct {
-		page
-		Results []NameUsage `json:"results"`
-	}
-	if err := request(this.url(offset), &response); err != nil {
-		return err
-	}
+	return res, nil
 
-	for i := range response.Results {
-		this.ch <- response.Results[i]
-	}
-
-	if offset > 0 {
-		return nil
-	}
-	// If this the first page, schedule the remaining requests
-	totalRequests := math.Ceil(float64(response.Count) / float64(response.Limit))
-	var wg sync.WaitGroup
-	for i := 1; i <= int(totalRequests); i++ {
-		c := i
-		wg.Add(1)
-		go this.tmb.Go(func() error {
-			defer wg.Done()
-			return this.request(c)
-		})
-	}
-	wg.Wait()
-	return nil
 }

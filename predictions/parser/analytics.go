@@ -13,7 +13,7 @@ import (
 //
 //	tmb := tomb.Tomb{}
 //	tmb.Go(func() error {
-//		iter := Ω.Bucket.Objects(cxt, q)
+//		iter := Ω.gcsBucketHandle.Objects(cxt, q)
 //		for {
 //			o, err := iter.Next()
 //			if err != nil && err == iterator.Done {

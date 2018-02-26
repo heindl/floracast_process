@@ -1,10 +1,10 @@
 package taxa
 
 import (
-	"bitbucket.org/heindl/processors/datasources/sourcefetchers"
+	"bitbucket.org/heindl/process/datasources/sourcefetchers"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"gopkg.in/tomb.v2"
 	"sync"
 	"github.com/grokify/html-strip-tags-go"

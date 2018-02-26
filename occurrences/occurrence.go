@@ -2,15 +2,18 @@ package occurrences
 
 import (
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/store"
-	"bitbucket.org/heindl/processors/geofeatures"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/geofeatures"
 	"strconv"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 	"encoding/json"
+	"cloud.google.com/go/firestore"
+	"fmt"
 )
 
 type Occurrence interface{
 	ID() (string, error)
+	Collection(florastore store.FloraStore) (*firestore.CollectionRef, error)
 	SourceType() datasources.SourceType
 	TargetID() datasources.TargetID
 	LocationKey() (string, error)
@@ -46,6 +49,13 @@ type occurrence struct {
 	SrcOccurrenceID  string `json:"SourceOccurrenceID"`
 	FormattedDate       string `json:""`
 	GeoFeatureSet *geofeatures.GeoFeatureSet `json:",omitempty"`
+}
+
+func (Ω *occurrence) Collection(florastore store.FloraStore) (*firestore.CollectionRef, error) {
+	if Ω.SourceType() == datasources.TypeRandom {
+		return florastore.FirestoreCollection(store.CollectionRandom)
+	}
+	return florastore.FirestoreCollection(store.CollectionOccurrences)
 }
 
 func (Ω *occurrence) MarshalJSON() ([]byte, error) {
@@ -119,17 +129,32 @@ func (Ω *occurrence) SourceOccurrenceID() string {
 }
 
 func (Ω *occurrence) Date() (string, error) {
+	if len(Ω.FormattedDate) != 8 {
+		return "", errors.Newf("Invalid Occurrence Date [%s]", Ω.FormattedDate)
+	}
 	return Ω.FormattedDate, nil
 }
 
 func (Ω *occurrence) LocationKey() (string, error) {
-	if Ω == nil || Ω.GeoFeatureSet == nil {
-		return "", errors.New("Nil Occurrence")
+	if Ω == nil {
+		return "", errors.New("Occurrence is Invalid")
 	}
+
 	if Ω.GeoFeatureSet == nil {
-		return "", errors.New("Nil FeatureSet")
+		return "", errors.New("Occurrence GeoFeatureSet is Invalid")
 	}
-	return Ω.GeoFeatureSet.CoordinateKey() + "|" + Ω.FormattedDate, nil
+
+	coordKey, err := Ω.GeoFeatureSet.CoordinateKey()
+	if err != nil {
+		return "", err
+	}
+
+	date, err := Ω.Date()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s|%s", coordKey, date), nil
 }
 
 

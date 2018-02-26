@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/store"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/processors/occurrences"
+	"bitbucket.org/heindl/process/occurrences"
 )
 
 func main() {

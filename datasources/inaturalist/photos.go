@@ -2,7 +2,7 @@ package inaturalist
 
 import (
 	"context"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 	"github.com/dropbox/godropbox/errors"
 )
 

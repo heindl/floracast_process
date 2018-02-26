@@ -3,10 +3,10 @@ package taxa
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/utils"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/store"
 )
 
 func TestTaxonFetcher(t *testing.T) {

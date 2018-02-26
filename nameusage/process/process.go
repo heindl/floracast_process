@@ -2,15 +2,15 @@ package main
 
 import (
 	"context"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/nameusage/aggregate"
-	"bitbucket.org/heindl/processors/occurrences"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/aggregate"
+	"bitbucket.org/heindl/process/occurrences"
 	"flag"
 	"strings"
 	"strconv"
-	"bitbucket.org/heindl/processors/store"
-	"bitbucket.org/heindl/processors/datasources/sourcefetchers"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/datasources/sourcefetchers"
 	"fmt"
 )
 

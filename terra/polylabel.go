@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-func PolyLabel(polygon [][][]float64, precision float64) Point {
+func PolyLabel(polygon [][][]float64, precision float64) (*Point, error) {
 
 	if precision == 0 {
 		precision = 0.001

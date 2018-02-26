@@ -13,8 +13,9 @@ func TestArea(t *testing.T) {
 
 		multipolygon := MultiPolygon{}
 		So(ParseGeoJSONFeatureCollection(sacramento_river_state_park, func(encoded_properties []byte, polygon MultiPolygon) error {
-			multipolygon = multipolygon.PushMultiPolygon(polygon)
-			return nil
+			var err error
+			multipolygon, err = multipolygon.PushMultiPolygon(polygon)
+			return err
 		}), ShouldBeNil)
 
 		So(multipolygon.Area(), ShouldEqual, 1.1781387697669539)
@@ -24,13 +25,16 @@ func TestArea(t *testing.T) {
 
 		multipolygon := MultiPolygon{}
 		So(ParseGeoJSONFeatureCollection(carmel_river_state_beach, func(encoded_properties []byte, polygon MultiPolygon) error {
-			multipolygon = multipolygon.PushMultiPolygon(polygon)
-			return nil
+			var err error
+			multipolygon, err = multipolygon.PushMultiPolygon(polygon)
+			return err
 		}), ShouldBeNil)
 
 		So(multipolygon.Area(), ShouldEqual, 1.2068186527473495)
-		centroid := multipolygon.CentroidOfLargestPolygon()
-		polylabel := multipolygon.PolylabelOfLargestPolygon()
+		centroid, err := multipolygon.CentroidOfLargestPolygon()
+		So(err, ShouldBeNil)
+		polylabel, err := multipolygon.PolylabelOfLargestPolygon()
+		So(err, ShouldBeNil)
 		//So(multipolygon.Contains(centroid[1], centroid[0]), ShouldBeTrue)
 		//So(multipolygon.Contains(polylabel[1], polylabel[0]), ShouldBeTrue)
 	})

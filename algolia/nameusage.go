@@ -4,10 +4,10 @@ import (
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"
 	"fmt"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"strings"
-	"bitbucket.org/heindl/processors/utils"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/utils"
+	"bitbucket.org/heindl/process/store"
 	"context"
 )
 
@@ -93,7 +93,6 @@ func countNameUsages(florastore store.FloraStore, nameUsageIDs ...nameusage.Name
 	return count, nil
 
 }
-
 
 const IndexNameUsage = "NameUsage"
 const IndexTestNameUsage = "TestNameUsage"

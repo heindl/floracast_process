@@ -8,15 +8,20 @@ import (
 )
 
 type Feature struct {
-	polyLabel    Point
+	polyLabel    *Point
 	area         float64
 	properties   []byte
 	multiPolygon MultiPolygon
 }
 
-func (Ω *Feature) Normalize() {
-	Ω.polyLabel = Ω.multiPolygon.PolylabelOfLargestPolygon()
+func (Ω *Feature) Normalize() error {
+	var err error
+	Ω.polyLabel, err = Ω.multiPolygon.PolylabelOfLargestPolygon()
+	if err != nil {
+		return err
+	}
 	Ω.area = Ω.multiPolygon.Area()
+	return nil
 }
 
 func (Ω *Feature) MultiPolygon() MultiPolygon {
@@ -38,9 +43,13 @@ func (Ω *Feature) GetProperties(i interface{}) error {
 	return nil
 }
 
-func (Ω *Feature) PushMultiPolygon(m MultiPolygon) {
-	Ω.multiPolygon = Ω.multiPolygon.PushMultiPolygon(m)
-	Ω.Normalize()
+func (Ω *Feature) PushMultiPolygon(m MultiPolygon) error {
+	var err error
+	Ω.multiPolygon, err = Ω.multiPolygon.PushMultiPolygon(m)
+	if err != nil {
+		return err
+	}
+	return Ω.Normalize()
 }
 
 func (Ω *Feature) Valid() bool {
@@ -53,8 +62,8 @@ func (Ω *Feature) Valid() bool {
 	return true
 }
 
-func (Ω *Feature) PolyLabel() Point {
-	return Ω.polyLabel
+func (Ω *Feature) PolyLabel() (*Point, error) {
+	return Ω.polyLabel, nil
 }
 
 func (Ω *Feature) Area() float64 {

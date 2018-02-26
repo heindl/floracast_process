@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"time"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"strconv"
 	"context"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 	"strings"
 )
 

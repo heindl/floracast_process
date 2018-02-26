@@ -1,7 +1,7 @@
 package ecoregions
 
 import (
-	"bitbucket.org/heindl/processors/terra"
+	"bitbucket.org/heindl/process/terra"
 	"sync"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"

@@ -1,18 +1,18 @@
 package occurrences
 
 import (
-	"bitbucket.org/heindl/processors/datasources/inaturalist"
-	"bitbucket.org/heindl/processors/datasources/mushroomobserver"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/datasources/gbif"
+	"bitbucket.org/heindl/process/datasources/inaturalist"
+	"bitbucket.org/heindl/process/datasources/mushroomobserver"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/gbif"
 	"context"
 	"time"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/utils"
-	"bitbucket.org/heindl/processors/geofeatures"
+	"bitbucket.org/heindl/process/utils"
+	"bitbucket.org/heindl/process/geofeatures"
 	"gopkg.in/tomb.v2"
 	"fmt"
-	"bitbucket.org/heindl/processors/ecoregions"
+	"bitbucket.org/heindl/process/ecoregions"
 )
 
 type OccurrenceProvider interface {

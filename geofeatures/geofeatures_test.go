@@ -3,7 +3,7 @@ package geofeatures
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 )
 
 func TestGeoFeatureGeneration(t *testing.T) {

@@ -1,10 +1,7 @@
 package process
 
 import (
-	"bitbucket.org/heindl/processors/predictions/filecache"
-	"bitbucket.org/heindl/processors/predictions/geocache"
-	"bitbucket.org/heindl/processors/predictions/parser"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/predictions/parser"
 	"context"
 	"flag"
 	"fmt"
@@ -12,32 +9,53 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"bitbucket.org/heindl/process/predictions/cache"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/store"
 )
 
 const predictionUploadLimit = 2000
-
-type CacheWriter interface {
-	WritePredictionLine(p *store.Prediction) error
-	ReadTaxa(lat, lng, radius float64, qDate string, taxon string) ([]string, error)
-	Close() error
-}
 
 func main() {
 
 	var err error
 	//writeToCache := flag.Bool("cache", false, "write to buntdb cache and initiate server?")
 	dates := flag.String("dates", "", "Dates for which to fetch latest predictions in format YYYYMMDD,YYYYMMDD. If blank will fetch all dates.")
-	taxa := flag.String("taxa", "", "Comma seperated list of taxa to fetch predictions for.")
+	requestedUsageIDs := flag.String("usageIDs", "", "Comma seperated list of NameUsageIDs to fetch predictions for.")
 	bucket := flag.String("bucket", "", "gcs bucket to fetch predictions from")
 	mode := flag.String("mode", "serve", "mode to handle predictions: write to temp file for javascript geofire uploader or serve for testing in local web router.")
 	flag.Parse()
 
-	if *taxa == "" {
-		panic("taxa required")
+	if *requestedUsageIDs == "" {
+		panic("NameUsageIDs required")
 	}
 
 	cxt := context.Background()
-	predictionParser, err := parser.NewPredictionParser(cxt, *bucket, "/tmp")
+
+	parsedUsageIDs, err := nameusage.NameUsageIDsFromStrings(strings.Split(*requestedUsageIDs, ","))
+	if err != nil {
+		panic(err)
+	}
+
+	florastore, err := store.NewFloraStore(cxt)
+	if err != nil {
+		panic(err)
+	}
+
+	var src parser.PredictionSource
+	if *bucket == "" {
+		src, err = parser.NewLocalPredictionSource(cxt, "/tmp/floracast-datamining/")
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		src, err = parser.NewGCSPredictionSource(cxt, florastore)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	predictionParser, err := parser.NewPredictionParser(src)
 	if err != nil {
 		panic(err)
 	}
@@ -47,33 +65,38 @@ func main() {
 		date_list = append(date_list, "") // AddUsage an empty value to make iteration simpler.
 	}
 
-	var cache CacheWriter
 
-	switch *mode {
-	case "write":
-		cache, err = filecache.NewFileCache()
-		if err != nil {
-			panic(err)
-		}
-	case "serve":
-		cache, err = geocache.NewCacheWriter(strings.Split(*taxa, ","))
-		if err != nil {
-			panic(err)
-		}
-	}
-	defer cache.Close()
-
-	predictions, err := predictionParser.FetchPredictions(cxt, strings.Split(*taxa, ","), nil)
+	predictions, err := predictionParser.FetchPredictions(cxt, parsedUsageIDs, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("Have Predictions")
 
-	for _, p := range predictions {
-		if err := cache.WritePredictionLine(p); err != nil {
+	var predictionCache cache.PredictionCache
+
+	switch *mode {
+	case "write":
+		predictionCache, _, err = cache.NewLocalFileCache()
+		if err != nil {
 			panic(err)
 		}
+	case "serve":
+		predictionCache, _, err = cache.NewLocalGeoCache()
+		if err != nil {
+			panic(err)
+		}
+	default:
+		panic("Expected mode to be write or serve")
+	}
+	defer func() {
+		if err := predictionCache.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	if err := predictions.Upload(cxt, florastore, predictionCache); err != nil {
+		panic(err)
 	}
 
 	if *mode != "serve" {
@@ -106,8 +129,6 @@ func main() {
 
 		vars := mux.Vars(r)
 
-		txn := vars["taxon"]
-
 		date := r.URL.Query().Get("date")
 
 		fmt.Println("recieving request", vars["taxon"], vars["location"], date)
@@ -130,11 +151,16 @@ func main() {
 			return
 		}
 
-		if txn == "taxa" {
-			txn = ""
+		var usageID nameusage.NameUsageID
+		if _, ok := vars["nameUsageID"]; ok {
+			usageID = nameusage.NameUsageID(vars["nameUsageID"])
+			if !usageID.Valid() {
+				http.Error(w, "Invalid NameUsageID", http.StatusBadRequest)
+				return
+			}
 		}
 
-		l, err := cache.ReadTaxa(lat, lng, rad, date, txn)
+		l, err := predictionCache.ReadPredictions(lat, lng, rad, date, &usageID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

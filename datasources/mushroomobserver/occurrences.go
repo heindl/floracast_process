@@ -6,11 +6,11 @@ import (
 	"context"
 	"time"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/utils"
-	"bitbucket.org/heindl/processors/terra"
+	"bitbucket.org/heindl/process/utils"
+	"bitbucket.org/heindl/process/terra"
 	"strconv"
 	"github.com/mongodb/mongo-tools/common/json"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 )
 
 func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Observation, error) {
@@ -206,21 +206,26 @@ type Location struct {
 	OkForExport     bool        `json:"ok_for_export"`
 }
 
-func (Ω *Location) Coordinates() (lat, lng float64) {
-	p1 := terra.NewPoint(Ω.LatitudeNorth, Ω.LongitudeEast)
-	if p1.IsZero() {
-		return 0, 0
+var ErrDistanceToLarge = errors.New("Distance too large")
+
+func (Ω *Location) Coordinates() (lat, lng float64, err error) {
+	p1, err := terra.NewPoint(Ω.LatitudeNorth, Ω.LongitudeEast)
+	if err != nil {
+		return 0, 0, err
 	}
-	p2 := terra.NewPoint(Ω.LatitudeSouth, Ω.LongitudeWest)
-	if p2.IsZero() {
-		return 0, 0
+	p2, err := terra.NewPoint(Ω.LatitudeSouth, Ω.LongitudeWest)
+	if err != nil {
+		return 0, 0, err
 	}
 	distance := p1.DistanceKilometers(p2)
 	if distance > 20 {
-		return 0, 0
+		return 0, 0, ErrDistanceToLarge
 	}
-	centroid := terra.Points{&p1, &p2}.Centroid()
-	return centroid.Latitude(), centroid.Longitude()
+	centroid, err := terra.Points{p1, p2}.Centroid()
+	if err != nil {
+		return 0, 0, err
+	}
+	return centroid.Latitude(), centroid.Longitude(), nil
 }
 
 type Naming struct {
@@ -263,14 +268,22 @@ type Naming struct {
 func (Ω *Observation) Lat() (float64, error) {
 	lat := float64(Ω.Latitude)
 	if lat == 0 {
-		lat, _ = Ω.Location.Coordinates()
+		var err error
+		lat, _, err = Ω.Location.Coordinates()
+		if err != nil {
+			return 0, err
+		}
 	}
 	return lat, nil
 }
 func (Ω *Observation) Lng() (float64, error) {
 	lng := float64(Ω.Longitude)
 	if lng == 0 {
-		_, lng = Ω.Location.Coordinates()
+		var err error
+		_, lng, err = Ω.Location.Coordinates()
+		if err != nil {
+			return 0 , err
+		}
 	}
 	return lng, nil
 }

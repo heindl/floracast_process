@@ -1,9 +1,9 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 	"context"
-	"bitbucket.org/heindl/processors/datasources/gbif/api"
+	"bitbucket.org/heindl/process/datasources/gbif/api"
 	"github.com/dropbox/godropbox/errors"
 )
 

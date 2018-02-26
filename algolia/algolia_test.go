@@ -3,10 +3,10 @@ package algolia
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/processors/utils"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/process/utils"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/store"
 	"time"
 )
 

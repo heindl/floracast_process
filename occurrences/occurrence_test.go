@@ -4,8 +4,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/processors/store"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/datasources"
 )
 
 func TestOccurrenceFetcher(t *testing.T) {
@@ -33,7 +33,10 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 		So(aggr.Upload(cxt, florastore), ShouldBeNil)
 
-		snaps, err := florastore.FirestoreCollection(store.CollectionOccurrences).Documents(cxt).GetAll()
+		col, err := florastore.FirestoreCollection(store.CollectionOccurrences)
+		So(err, ShouldBeNil)
+
+		snaps, err := col.Documents(cxt).GetAll()
 		So(err, ShouldBeNil)
 		So(len(snaps), ShouldEqual, 238)
 

@@ -1,9 +1,8 @@
 package main
 
 import (
-	"bitbucket.org/heindl/processors/pad_us"
-	"bitbucket.org/heindl/processors/store"
-	"bitbucket.org/heindl/processors/terra"
+	//"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/terra"
 	"flag"
 	"github.com/dropbox/godropbox/errors"
 	"golang.org/x/net/context"
@@ -14,7 +13,9 @@ import (
 	"strings"
 	"sync"
 	"unicode/utf8"
-	"fmt"
+	"bitbucket.org/heindl/process/protected_areas"
+	"bitbucket.org/heindl/process/protected_areas/pad_us"
+	"bitbucket.org/heindl/process/geofeatures"
 )
 
 func main() {
@@ -25,14 +26,16 @@ func main() {
 		panic("A geojson directory must be specified.")
 	}
 
-	taxaStore, err := store.NewTaxaStore()
-	if err != nil {
-		panic(err)
-	}
+	//florastore, err := store.NewFloraStore(context.Background())
+	//if err != nil {
+	//	panic(err)
+	//}
+
+	cxt := context.Background()
 
 	parser := &Parser{
-		Context: context.Background(),
-		Holder:  []*store.ProtectedArea{},
+		Context: cxt,
+		Areas:  protected_areas.ProtectedAreas{},
 		Tmb:     tomb.Tomb{},
 	}
 
@@ -44,11 +47,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Setting", len(parser.Holder), "Protected Areas")
-
-	if err := taxaStore.SetProtectedAreas(parser.Context, parser.Holder...); err != nil {
-		panic(err)
-	}
+	//if err := parser.Areas.Upload(cxt, florastore); err != nil {
+	//	panic(err)
+	//}
 
 	return
 }
@@ -57,7 +58,7 @@ type Parser struct {
 	Context context.Context
 	Tmb     tomb.Tomb
 	sync.Mutex
-	Holder []*store.ProtectedArea
+	Areas protected_areas.ProtectedAreas
 }
 
 func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) error {
@@ -84,8 +85,8 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			return err
 		}
 
-		gProtectionLevel := store.ProtectionLevelUnknown
-		gAccessLevel := store.AccessLevelUnknown
+		gProtectionLevel := protected_areas.ProtectionLevelUnknown
+		gAccessLevel :=  protected_areas.AccessLevelUnknown
 		gName := ""
 		gState := ""
 		gDesignation := ""
@@ -100,22 +101,22 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			if err != nil {
 				return err
 			}
-			if store.ProtectionLevel(gsc-1) < gProtectionLevel {
-				gProtectionLevel = store.ProtectionLevel(gsc-1)
+			if  protected_areas.ProtectionLevel(gsc-1) < gProtectionLevel {
+				gProtectionLevel =  protected_areas.ProtectionLevel(gsc-1)
 			}
-			access := store.AccessLevelUnknown
+			access :=  protected_areas.AccessLevelUnknown
 			switch string(pa.Access) {
 			case "OA":
-				access = store.AccessLevelOpen
+				access = protected_areas.AccessLevelOpen
 			case "RA":
-				access = store.AccessLevelRestricted
+				access = protected_areas.AccessLevelRestricted
 			case "UK":
-				access = store.AccessLevelUnknown
+				access = protected_areas.AccessLevelUnknown
 			case "XA":
-				access = store.AccessLevelClosed
+				access = protected_areas.AccessLevelClosed
 			}
 
-			if gAccessLevel == store.AccessLevelUnknown && access != gAccessLevel || access < gAccessLevel {
+			if gAccessLevel ==  protected_areas.AccessLevelUnknown && access != gAccessLevel || access < gAccessLevel {
 				gAccessLevel = access
 			}
 
@@ -131,17 +132,23 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			gOwner = parse_string_value(gOwner, pa.DOwnName)
 		}
 
-		spa, err := store.NewProtectedArea(gName, gState, gProtectionLevel, gAccessLevel, fc.PolyLabel().Latitude(), fc.PolyLabel().Longitude())
+		area := protected_areas.ProtectedArea{
+			Name: gName,
+			State: gState,
+			ProtectionLevel: &gProtectionLevel,
+			AccessLevel: &gAccessLevel,
+			Designation: gDesignation,
+			Owner: gOwner,
+		}
+
+		area.GeoFeatureSet, err = geofeatures.NewGeoFeatureSet(fc.PolyLabel().Latitude(), fc.PolyLabel().Longitude(), false)
 		if err != nil {
 			return err
 		}
 
-		spa.SetDesignation(gDesignation)
-		spa.SetOwner(gOwner)
-
 		Ω.Lock()
 		defer Ω.Unlock()
-		Ω.Holder = append(Ω.Holder, &spa)
+		Ω.Areas = append(Ω.Areas, &area)
 
 		return nil
 	})

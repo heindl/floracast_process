@@ -1,6 +1,6 @@
 #!/bin/bash
 
-STATES=(
+FULL_STATES=(
 #AK
 AL
 AZ
@@ -52,6 +52,8 @@ WV
 WI
 WY
 )
+
+STATES=(OR)
 
 printf '%s\n' "${STATES[@]}" | parallel -j4 "./parse.sh {.}"
 

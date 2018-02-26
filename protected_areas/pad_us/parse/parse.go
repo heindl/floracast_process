@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bitbucket.org/heindl/processors/pad_us"
-	"bitbucket.org/heindl/processors/terra"
+	"bitbucket.org/heindl/process/protected_areas/pad_us"
+	"bitbucket.org/heindl/process/terra"
 	"flag"
 	"fmt"
 	"github.com/elgs/gostrgen"
@@ -75,7 +75,11 @@ func main() {
 	below_centroid_distance := terra.FeatureCollections{}
 	for _, v := range name_grouped {
 		// TODO: Explode and regroup those that are too large by Unit_Nm & Loc_Nm
-		if v.Count() > 1 && v.MaxDistanceFromCentroid() > max_centroid_distance {
+		maxDistance, err := v.MaxDistanceFromCentroid()
+		if err != nil {
+			panic(err)
+		}
+		if v.Count() > 1 && maxDistance > max_centroid_distance {
 			above_centroid_distance = append(above_centroid_distance, v)
 		} else {
 			below_centroid_distance = append(below_centroid_distance, v)
@@ -89,15 +93,22 @@ func main() {
 	processor.Stats["After Minimum Area Filter"] = len(minimum_area_filtered)
 
 	// TODO: Sort based on additional fields, particularly protected or access status.
-	decimated_cluster := minimum_area_filtered.DecimateClusters(15)
+	decimated_cluster, err := minimum_area_filtered.DecimateClusters(15)
+	if err != nil {
+		panic(err)
+	}
 
 	processor.Stats["After Cluster Decimation"] = len(decimated_cluster)
 
 	processor.PrintStats()
 
 	for _, v := range decimated_cluster {
+		polyLabel, err := v.PolyLabel()
+		if err != nil {
+			panic(err)
+		}
 
-		fname := fmt.Sprintf("%s/%.6f_%.6f.geojson", *out, v.PolyLabel().Latitude(), v.PolyLabel().Longitude())
+		fname := fmt.Sprintf("%s/%.6f_%.6f.geojson", *out, polyLabel.Latitude(), polyLabel.Longitude())
 
 		gj, err := v.GeoJSON()
 		if err != nil {

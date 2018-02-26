@@ -7,8 +7,8 @@ package main
 //	"testing"
 //	"time"
 //	//"bitbucket.org/taxa/utils"
-//	"bitbucket.org/heindl/processors/store"
-//	"bitbucket.org/heindl/processors/utils"
+//	"bitbucket.org/heindl/process/store"
+//	"bitbucket.org/heindl/process/utils"
 //	"fmt"
 //	"github.com/jonboulle/clockwork"
 //	"golang.org/x/net/context"
@@ -41,7 +41,7 @@ package main
 //
 //		taxastore := store.NewTestTaxaStore()
 //
-//		//taxa, err := taxastore.ReadTaxa()
+//		//taxa, err := taxastore.ReadPredictions()
 //		//So(err, ShouldBeNil)
 //
 //		//for _, t := range taxa {

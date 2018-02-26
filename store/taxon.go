@@ -335,7 +335,7 @@ package store
 ////	return nil
 ////}
 //
-//func (Ω *store) ReadTaxa(cxt context.Context) (res Taxa, err error) {
+//func (Ω *store) ReadPredictions(cxt context.Context) (res Taxa, err error) {
 //
 //	snapshots, err := Ω.FirestoreClient.Collection(CollectionTypeTaxa).Documents(cxt).GetAll()
 //	if err != nil {

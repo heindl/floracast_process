@@ -5,7 +5,7 @@ import (
 	"testing"
 	"golang.org/x/net/context"
 	"fmt"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -458,13 +458,13 @@ func TestTaxonFetcher(t *testing.T) {
 	//
 	//	cxt := context.Background()
 	//
-	//	taxa, err := f.Store.ReadTaxa(cxt)
+	//	taxa, err := f.Store.ReadPredictions(cxt)
 	//	So(err, ShouldBeNil)
 	//	So(len(taxa), ShouldEqual, 0)
 	//
 	//	So(f.FetchProcessTaxa(cxt, []store.INaturalistTaxonID{store.INaturalistTaxonID("58583")}), ShouldBeNil)
 	//
-	//	taxa, err = f.Store.ReadTaxa(cxt)
+	//	taxa, err = f.Store.ReadPredictions(cxt)
 	//	So(err, ShouldBeNil)
 	//	So(len(taxa), ShouldEqual, 19)
 	//

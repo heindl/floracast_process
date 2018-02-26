@@ -5,9 +5,9 @@ import (
 	"testing"
 	"golang.org/x/net/context"
 	"fmt"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"time"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -16,7 +16,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 	SkipConvey("should fetch inaturalist", t, func() {
 
-		usages, err := FetchNameUsages(context.Background(), 56830)
+		usages, err := FetchNameUsages(context.Background(), []string{"56830"}, nil)
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(usages))
 
@@ -36,11 +36,11 @@ func TestTaxonFetcher(t *testing.T) {
 
 		occurrences, err := FetchOccurrences(context.Background(), datasources.TargetID("58682"), utils.TimePtr(time.Now().Add(time.Hour * 24 * 60 * -1)))
 		So(err, ShouldBeNil)
-		So(occurrences.Count(), ShouldEqual, 24)
+		So(len(occurrences), ShouldEqual, 24)
 
 		occurrences, err = FetchOccurrences(context.Background(), datasources.TargetID("58682"), nil)
 		So(err, ShouldBeNil)
-		So(occurrences.Count(), ShouldEqual, 100)
+		So(len(occurrences), ShouldEqual, 100)
 
 	})
 

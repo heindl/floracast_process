@@ -1,9 +1,9 @@
 package sourcefetchers
 
 import (
-	"bitbucket.org/heindl/processors/datasources/inaturalist"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/datasources/gbif"
+	"bitbucket.org/heindl/process/datasources/inaturalist"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/gbif"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 )

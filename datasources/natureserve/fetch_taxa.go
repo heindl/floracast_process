@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 	"fmt"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"sync"
 	"gopkg.in/tomb.v2"
 	"strings"

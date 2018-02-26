@@ -1,10 +1,10 @@
 package nameusage
 
 import (
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/store"
 	"context"
 	"fmt"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 )
 
@@ -15,7 +15,12 @@ func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (delet
 		return nil, err
 	}
 
-	docRef := florastore.FirestoreCollection(store.CollectionNameUsages).Doc(id.String())
+	col, err := florastore.FirestoreCollection(store.CollectionNameUsages)
+	if err != nil {
+		return nil, err
+	}
+
+	docRef := col.Doc(id.String())
 
 	deletedUsageIDs, err = Ω.matchInStore(ctx, florastore)
 	if err != nil {
@@ -61,8 +66,11 @@ func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsage
 		}
 		batch := florastore.FirestoreBatch()
 		for _, id := range usageIDs {
-			docRef := florastore.FirestoreCollection(store.CollectionNameUsages).Doc(id.String())
-			batch = batch.Delete(docRef)
+			col, err := florastore.FirestoreCollection(store.CollectionNameUsages)
+			if err != nil {
+				return err
+			}
+			batch = batch.Delete(col.Doc(id.String()))
 		}
 		if _, err := batch.Commit(ctx); err != nil {
 			return errors.Wrap(err, "Could not commit materialized taxa")
@@ -78,7 +86,10 @@ func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) 
 		return nil, err
 	}
 
-	col := florastore.FirestoreCollection(store.CollectionNameUsages)
+	col, err := florastore.FirestoreCollection(store.CollectionNameUsages)
+	if err != nil {
+		return nil, err
+	}
 
 	wait := store.NewFirestoreLimiter()
 	list, err := utils.ForEachStringToStrings(names, func(name string) ([]string, error){
@@ -98,7 +109,7 @@ func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) 
 		return nil, err
 	}
 
-	res, err := nameUsageIDsFromStrings(list)
+	res, err := NameUsageIDsFromStrings(list)
 	if err != nil {
 		return nil, err
 	}

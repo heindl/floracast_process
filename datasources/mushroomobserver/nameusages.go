@@ -5,14 +5,14 @@ import (
 	"strings"
 	"time"
 	"net/url"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
 	"sync"
 	"context"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/nameusage/canonicalname"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 )
 
 type MushroomObserverQueryResult struct {

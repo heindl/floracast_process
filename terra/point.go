@@ -21,12 +21,22 @@ func CoordinatesEqual(a, b float64) bool {
 	return false
 }
 
-func NewPoint(lat, lng float64) Point {
+func NewPoint(lat, lng float64) (*Point, error) {
 	ll := s2.LatLngFromDegrees(lat, lng)
-	return Point{
+	if !ll.IsValid() {
+		return nil, errors.New("could not create new point with invalid latlng")
+	}
+
+	p := Point{
 		latlng: &ll,
 		properties: map[string]interface{}{},
-		}
+	}
+
+	if p.IsZero() {
+		return nil, errors.New("new point is zero")
+	}
+
+	return &p, nil
 }
 
 func (Ω *Point) IsZero() bool {
@@ -36,7 +46,7 @@ func (Ω *Point) IsZero() bool {
 	return false
 }
 
-func (Ω *Point) Latitude() float64 {
+func (Ω Point) Latitude() float64 {
 	return Ω.latlng.Lat.Degrees()
 }
 
@@ -50,7 +60,7 @@ func (Ω *Point) S2TokenMap() map[int]string {
 	return feature_array
 }
 
-func (Ω *Point) Longitude() float64 {
+func (Ω Point) Longitude() float64 {
 	return Ω.latlng.Lng.Degrees()
 }
 
@@ -69,7 +79,7 @@ func (Ω *Point) AsArray() []float64 {
 	return []float64{Ω.Longitude(), Ω.Latitude()}
 }
 
-func (Ω *Point) DistanceKilometers(np Point) float64 {
+func (Ω *Point) DistanceKilometers(np *Point) float64 {
 	p1 := pmgeo.NewPointFromLatLng(Ω.Latitude(), Ω.Longitude())
 	p2 := pmgeo.NewPointFromLatLng(np.Latitude(), np.Longitude())
 	return p1.GeoDistanceFrom(p2) / 1000.0
@@ -77,7 +87,7 @@ func (Ω *Point) DistanceKilometers(np Point) float64 {
 
 type Points []*Point
 
-func (Ω Points) Centroid() Point {
+func (Ω Points) Centroid() (*Point, error) {
 	pointset := &pmgeo.PointSet{}
 	for _, p := range Ω {
 		pointset = pointset.Push(pmgeo.NewPointFromLatLng(p.Latitude(), p.Longitude()))

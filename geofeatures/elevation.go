@@ -3,7 +3,7 @@ package geofeatures
 import (
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"strings"
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
@@ -39,7 +39,7 @@ func (Ω *geoFeaturesProcessor) queueElevation(lat, lng float64) error {
 	return nil
 }
 
-func (Ω *geoFeaturesProcessor) getElevation(lat, lng float64) (*float64, error) {
+func (Ω *geoFeaturesProcessor) getElevation(lat, lng float64) (*int, error) {
 	queued, fetched := Ω.elevationQueueStatus(lat, lng)
 
 	if !fetched && queued {
@@ -71,7 +71,7 @@ func (Ω *geoFeaturesProcessor) flushElevations() error {
 		Results []struct {
 			Lat float64 `json:"latitude"`
 			Lng float64 `json:"longitude"`
-			Elevation float64 `json:"elevation"` // Meters
+			Elevation int `json:"elevation"` // Meters
 		} `json:"results"`
 	}
 
@@ -92,7 +92,7 @@ func (Ω *geoFeaturesProcessor) flushElevations() error {
 		if r.Elevation == 0 {
 			fmt.Println(fmt.Sprintf("Elevation value is 0 for key [%s], so may not resolved. Will add it regardless.", k))
 		}
-		Ω.elevationsFetched[k] = utils.FloatPtr(r.Elevation)
+		Ω.elevationsFetched[k] = utils.IntPtr(r.Elevation)
 	}
 
 	//fmt.Println("Flushing Elevations", len(Ω.elevationsQueued), len(Ω.elevationsFetched), len(locs), len(resolvedElevations))

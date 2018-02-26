@@ -2,13 +2,13 @@ package sourcefetchers
 
 import (
 	"context"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
-	"bitbucket.org/heindl/processors/datasources/inaturalist"
-	"bitbucket.org/heindl/processors/datasources/gbif"
-	"bitbucket.org/heindl/processors/datasources/natureserve"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/datasources/inaturalist"
+	"bitbucket.org/heindl/process/datasources/gbif"
+	"bitbucket.org/heindl/process/datasources/natureserve"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/datasources/mushroomobserver"
+	"bitbucket.org/heindl/process/datasources/mushroomobserver"
 )
 
 func FetchNameUsages(ctx context.Context, sourceType datasources.SourceType, scientificNames []string, targetIDs datasources.TargetIDs) ([]nameusage.NameUsage, error) {

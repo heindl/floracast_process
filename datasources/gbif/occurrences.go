@@ -1,12 +1,12 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/processors/datasources/gbif/api"
+	"bitbucket.org/heindl/process/datasources/gbif/api"
 	"time"
 	"github.com/dropbox/godropbox/errors"
 	"fmt"
 	"context"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 )
 
 func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*api.Occurrence, error) {

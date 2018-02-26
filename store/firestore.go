@@ -13,6 +13,7 @@ type FirestoreCollection string
 
 const (
 	CollectionOccurrences    = FirestoreCollection("Occurrences")
+	CollectionRandom   = FirestoreCollection("Random")
 	CollectionTaxa           = FirestoreCollection("Taxa")
 	CollectionNameUsages     = FirestoreCollection("NameUsages")
 	CollectionPhotos         = FirestoreCollection("Photos")

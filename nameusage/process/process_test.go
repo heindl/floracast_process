@@ -5,12 +5,12 @@ import (
 	"testing"
 	"context"
 	"fmt"
-	"bitbucket.org/heindl/processors/utils"
-	"bitbucket.org/heindl/processors/nameusage/aggregate"
+	"bitbucket.org/heindl/process/utils"
+	"bitbucket.org/heindl/process/nameusage/aggregate"
 	"encoding/json"
-	"bitbucket.org/heindl/processors/datasources/sourcefetchers"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/datasources/sourcefetchers"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/store"
 )
 
 func TestNameUsageProcessor(t *testing.T) {

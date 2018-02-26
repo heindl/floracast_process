@@ -102,7 +102,10 @@ func ParseGeoJSONFeature(encoded_feature []byte, callback GeoJSONParsedCallback)
 			if err != nil {
 				return err
 			}
-			multipolygon = multipolygon.PushPolygon(np)
+			multipolygon, err = multipolygon.PushPolygon(np)
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		// Polygon         [][][]float64
@@ -110,7 +113,10 @@ func ParseGeoJSONFeature(encoded_feature []byte, callback GeoJSONParsedCallback)
 		if err != nil {
 			return err
 		}
-		multipolygon = multipolygon.PushPolygon(np)
+		multipolygon, err = multipolygon.PushPolygon(np)
+		if err != nil {
+			return err
+		}
 	}
 
 	f := Feature{}

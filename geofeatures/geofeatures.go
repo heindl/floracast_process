@@ -1,7 +1,7 @@
 package geofeatures
 
 import (
-	"bitbucket.org/heindl/processors/ecoregions"
+	"bitbucket.org/heindl/process/ecoregions"
 	"github.com/dropbox/godropbox/errors"
 	"os"
 	"math"
@@ -9,18 +9,19 @@ import (
 	"fmt"
 	"cloud.google.com/go/firestore"
 	"google.golang.org/genproto/googleapis/type/latlng"
+	"strings"
 )
 
 var liveProcessor = &geoFeaturesProcessor{
 	elevationsQueued:    map[string]*latlng.LatLng{},
-	elevationsFetched: map[string]*float64{},
+	elevationsFetched: map[string]*int{},
 }
 
 type geoFeaturesProcessor struct {
 	ecoRegionCache    *ecoregions.EcoRegionsCache
 	sync.Mutex
 	elevationsQueued    map[string]*latlng.LatLng
-	elevationsFetched map[string]*float64
+	elevationsFetched map[string]*int
 }
 
 func init() {
@@ -56,7 +57,7 @@ type GeoFeatureSet struct {
 	biome                ecoregions.Biome
 	realm                ecoregions.Realm
 	ecoNum               ecoregions.EcoNum
-	elevation            *float64
+	elevation            *int
 	geopoint             *latlng.LatLng
 }
 
@@ -77,13 +78,42 @@ func (Ω *GeoFeatureSet) Lng() float64 {
 	return Ω.geopoint.GetLongitude()
 }
 
-func (Ω *GeoFeatureSet) CoordinateKey() string {
-	// Intentionally reduce the precision of the coordinates to ensure we're not duplicating occurrences.
-	return fmt.Sprintf("%.3f|%.3f", Ω.Lat(), Ω.Lng())
+type CoordinateKey string
+
+func (Ω CoordinateKey) Valid() bool {
+	if len(Ω) != 11 {
+		return false
+	}
+	return true
 }
 
-func (Ω *GeoFeatureSet) CoordinateQuery(collection *firestore.CollectionRef) (firestore.Query, error) {
-	return collection.Where(keyCoordinate, "==", Ω.CoordinateKey()), nil
+func NewCoordinateKey(lat, lng float64) (CoordinateKey, error) {
+	ll := latlng.LatLng{
+		Latitude: lat,
+		Longitude: lng,
+	}
+	if err := validateCoordinates(&ll); err != nil {
+		return "", err
+	}
+	// Intentionally reduce the precision of the coordinates to ensure we're not duplicating occurrences.
+	k := fmt.Sprintf("%.3f_%.3f", lat, lng)
+	// Replace decimals in order to use as firestore key.
+	k = strings.Replace(k, ".", "|", -1)
+	return CoordinateKey(k), nil
+}
+
+func (Ω *GeoFeatureSet) CoordinateKey() (CoordinateKey, error) {
+	return NewCoordinateKey(Ω.Lat(), Ω.Lng())
+
+}
+
+func CoordinateQuery(collection *firestore.CollectionRef, lat, lng float64) (*firestore.Query, error) {
+	k, err := NewCoordinateKey(lat, lng)
+	if err != nil {
+		return nil, err
+	}
+	q := collection.Where(keyCoordinate, "==", k)
+	return &q, nil
 }
 
 

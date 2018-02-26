@@ -1,22 +1,104 @@
-package main
+package predictions
 
 import (
 	"time"
-	"google.golang.org/appengine"
+	"google.golang.org/genproto/googleapis/type/latlng"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/geofeatures"
+	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/process/store"
+	"context"
 )
 
-type Prediction struct {
+type Prediction interface{
+	UsageID() (nameusage.NameUsageID, error)
+	Date() (string, error)
+	ProtectedArea() (geofeatures.CoordinateKey, error)
+	ScaledPrediction() (float64, error)
+	LatLng() (float64, float64, error)
+}
+
+func NewPrediction(usageID nameusage.NameUsageID, date string, lat, lng, predictionValue float64) (Prediction, error) {
+	if !usageID.Valid() {
+		return nil, errors.Newf("Could not create Prediction with invalid NameUsageID [%s]", usageID)
+	}
+
+	coordinateKey, err := geofeatures.NewCoordinateKey(lat, lng)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(date) != 8 {
+		return nil, errors.New("Could not create Prediction with Invalid Date")
+	}
+
+	if predictionValue == 0 {
+		return nil, errors.New("Prediction value should be more than 0")
+	}
+
+	return &prediction{
+		ProtectedAreaID: coordinateKey,
+		PredictionValue: predictionValue,
+		ScaledPredictionValue: ((predictionValue - 0.5) / 0.5),
+		FormattedDate: date,
+		GeoPoint: &latlng.LatLng{lat, lng},
+	}, nil
+}
+
+type prediction struct {
 	// Date formatted "YYYYMMDD"
-	Location *appengine.GeoPoint `json:",omitempty"`
-	Date                  *time.Time         `json:",omitempty"`
-	FormattedDate         string             `json:",omitempty"`
-	Month                 time.Month         `json:",omitempty"`
-	PredictionValue       float64            `json:",omitempty"`
-	ScaledPredictionValue float64            `json:",omitempty"`
-	ScarcityValue         float64            `json:""`
+	GeoPoint *latlng.LatLng `firestore:",omitempty" json:",omitempty"`
+	NameUsageID nameusage.NameUsageID `firestore:",omitempty" json:",omitempty"`
+	FormattedDate         string             `firestore:",omitempty" json:",omitempty"`
+	Month                 time.Month         `firestore:",omitempty" json:",omitempty"`
+	PredictionValue       float64            `firestore:",omitempty" json:",omitempty"`
+	ScaledPredictionValue float64            `firestore:",omitempty" json:",omitempty"`
+	//ScarcityValue         float64            `firestore:"" json:""`
 	//TaxonID               INaturalistTaxonID `datastore:",omitempty" json:",omitempty"`
-	WildernessAreaName    string             `json:",omitempty"`
-	WildernessAreaID      string             `json:""`
+	ProtectedAreaName string `firestore:",omitempty" json:",omitempty"`
+	ProtectedAreaSize float64 `firestore:",omitempty" json:",omitempty"`
+	ProtectedAreaID   geofeatures.CoordinateKey `firestore:"" json:""`
+}
+
+func (Ω *prediction) UsageID() (nameusage.NameUsageID, error) {
+	return Ω.NameUsageID, nil
+}
+func (Ω *prediction) Date() (string, error) {
+	if len(Ω.FormattedDate) != 8 {
+		return "", errors.Newf("Invalid Prediction Date [%s]", Ω.FormattedDate)
+	}
+	return Ω.FormattedDate, nil
+}
+func (Ω *prediction) ProtectedArea() (geofeatures.CoordinateKey, error) {
+	return Ω.ProtectedAreaID, nil
+}
+func (Ω *prediction) ScaledPrediction() (float64, error) {
+	return Ω.ScaledPredictionValue, nil
+}
+func (Ω *prediction) LatLng() (float64, float64, error) {
+	return Ω.GeoPoint.GetLatitude(),  Ω.GeoPoint.GetLongitude(), nil
+}
+
+type Predictions []Prediction
+
+type PredictionWriter interface{
+	WritePredictions(Predictions) error
+}
+
+func (Ω Predictions) Upload(cxt context.Context, florastore store.FloraStore, writer PredictionWriter) error {
+
+	if writer == nil {
+		return errors.New("Valid PredictionWriter required at this point")
+	}
+
+	// TODO: Get all ProtectedArea Names.
+	// Skip for now ...
+	//areaCache, err := protected_areas.NewProtectedAreaCache(florastore)
+	//if err != nil {
+	//	return err
+	//}
+
+	return writer.WritePredictions(Ω)
 }
 
 //func (Ω *store) PredictionDocumentID(p Prediction) (string, error) {

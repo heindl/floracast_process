@@ -1,70 +1,174 @@
 package parser
 
 import (
-	"bitbucket.org/heindl/processors/store"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"context"
 	"github.com/montanaflynn/stats"
 	"github.com/dropbox/godropbox/errors"
-	"google.golang.org/genproto/googleapis/type/latlng"
 	"gopkg.in/tomb.v2"
 	"strings"
 	"sync"
-	"time"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bufio"
+	"strconv"
+	"io"
+	"bitbucket.org/heindl/process/predictions"
 )
 
-type Writer interface {
-	WritePredictionLine(p store.Prediction) error
-	Close() error
-}
-
 type PredictionParser interface {
-	FetchPredictions(cxt context.Context, taxa []string, date []string) ([]*store.Prediction, error)
+	FetchPredictions(cxt context.Context, nameUsageIDs nameusage.NameUsageIDs, date []string) (predictions.Predictions, error)
 }
 
-func NewPredictionParser(cxt context.Context, gcsBucketName string, localPath string) (PredictionParser, error) {
-
-	taxastore, err := store.NewTaxaStore()
-	if err != nil {
-		return nil, err
-	}
-
-	gcsFetcher, err := NewGCSFetcher(cxt, gcsBucketName, localPath)
-	if err != nil {
-		return nil, err
-	}
-
+func NewPredictionParser(src PredictionSource) (PredictionParser, error) {
 	return &predictionParser{
-		WildernessAreaFetcher: NewWildernessAreaFetcher(taxastore),
-		GCSFetcher:            gcsFetcher,
+		predictionSource:   src,
 	}, nil
 }
 
 type predictionParser struct {
-	WildernessAreaFetcher WildernessAreaFetcher
-	GCSFetcher            GCSFetcher
+	predictionSource   PredictionSource
 }
 
-func taxonFromPredictionFilePath(p string) store.INaturalistTaxonID {
+func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*PredictionResult, error) {
+
+	scanner := &bufio.Scanner{}
+	scanner = bufio.NewScanner(reader)
+
+	scanner.Split(bufio.ScanLines)
+	response_list := []*PredictionResult{}
+	for scanner.Scan() {
+		var err error
+		line := strings.Split(scanner.Text(), ",")
+		res := PredictionResult{
+			Date:        line[2],
+			NameUsageID: id,
+		}
+		res.Latitude, err = strconv.ParseFloat(line[0], 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not parse latitude")
+		}
+		res.Longitude, err = strconv.ParseFloat(line[1], 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not parse longitude")
+		}
+		res.Target, err = strconv.ParseFloat(line[3], 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not parse target")
+		}
+		res.Random, err = strconv.ParseFloat(line[4], 64)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not parse random")
+		}
+		response_list = append(response_list, &res)
+	}
+	return response_list, nil
+}
+
+
+func parseNameUsageIDFromFilePath(p string) (nameusage.NameUsageID, error) {
 	a := strings.Split(p, "/")
 	for i, v := range a {
 		if v == "predictions" {
-			return store.INaturalistTaxonID(a[i+1])
+			id := nameusage.NameUsageID(a[i+1])
+			if !id.Valid() {
+				return nameusage.NameUsageID(""), errors.Newf("Invalid NameUsageID [%s]", a[i+1])
+			}
+			return id, nil
 		}
 	}
-	return store.INaturalistTaxonID("")
+	return nameusage.NameUsageID(""), errors.Newf("Invalid NameUsageID [%s]", "")
 }
 
-type PredictionAggregator struct {
-	PredictionObjects       []*store.Prediction
-	PredictionList          map[store.INaturalistTaxonID][]float64
-	TotalProtectedAreaCount map[store.INaturalistTaxonID]float64
+type aggregator struct {
+	PredictionObjects       predictions.Predictions
+	PredictionList          map[nameusage.NameUsageID][]float64
+	TotalProtectedAreaCount map[nameusage.NameUsageID]float64
 	sync.Mutex
 }
 
-func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.INaturalistTaxonID]float64, error) {
+func (Ω *predictionParser) parseFile(cxt context.Context, aggr *aggregator, fpath string) error {
+	prediction_list, err := Ω.predictionSource.FetchPredictions(cxt, fpath)
+	if err != nil {
+		return err
+	}
+	for _, predictionResult := range prediction_list {
+
+		parsedPrediction, err := predictions.NewPrediction(
+			predictionResult.NameUsageID,
+			predictionResult.Date,
+			predictionResult.Latitude,
+			predictionResult.Longitude,
+			predictionResult.Target,
+		)
+		if err != nil {
+			return err
+		}
+
+		aggr.Lock()
+		defer aggr.Unlock()
+
+		if _, ok := aggr.TotalProtectedAreaCount[predictionResult.NameUsageID]; !ok {
+			aggr.TotalProtectedAreaCount[predictionResult.NameUsageID] = 0
+		}
+		aggr.TotalProtectedAreaCount[predictionResult.NameUsageID] += 1
+
+		if predictionResult.Target <= predictionResult.Random {
+			return nil
+		}
+
+		if _, ok := aggr.PredictionList[predictionResult.NameUsageID]; !ok {
+			aggr.PredictionList[predictionResult.NameUsageID] = []float64{}
+		}
+		aggr.PredictionList[predictionResult.NameUsageID] = append(aggr.PredictionList[predictionResult.NameUsageID], predictionResult.Target)
+
+		aggr.PredictionObjects = append(aggr.PredictionObjects, parsedPrediction)
+		return nil
+	}
+	return nil
+}
+
+func (Ω *predictionParser) FetchPredictions(cxt context.Context, nameUsageIDs nameusage.NameUsageIDs, dates []string) (predictions.Predictions, error) {
+
+	aggr := aggregator{
+		PredictionObjects:       predictions.Predictions{},
+		PredictionList:          make(map[nameusage.NameUsageID][]float64),
+		TotalProtectedAreaCount: make(map[nameusage.NameUsageID]float64),
+	}
+
+	gcsFilePaths := []string{}
+	for _, usageID := range nameUsageIDs {
+		if !usageID.Valid() {
+			return nil, errors.New("Invalid NameUsageID")
+		}
+		aggr.PredictionList[usageID] = []float64{}
+		aggr.TotalProtectedAreaCount[usageID] = 0
+		gcsPaths, err := Ω.predictionSource.FetchLatestPredictionFileNames(cxt, usageID, "*")
+		if err != nil {
+			return nil, err
+		}
+		gcsFilePaths = utils.AddStringToSet(gcsFilePaths, gcsPaths...)
+	}
+
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _fpath := range gcsFilePaths {
+			fpath := _fpath
+			tmb.Go(func() error {
+				return Ω.parseFile(cxt, &aggr, fpath)
+			})
+		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
+	}
+
+	return aggr.PredictionObjects, nil
+}
+
+func (Ω aggregator) calcTaxonScarcity() (map[nameusage.NameUsageID]float64, error) {
 	taxaRatios := stats.Float64Data{}
-	taxaRatiosMap := map[store.INaturalistTaxonID]float64{}
+	taxaRatiosMap := map[nameusage.NameUsageID]float64{}
 	for taxon, predictionValues := range Ω.PredictionList {
 		totalTaxonPredictionCount := float64(len(predictionValues))
 		totalTaxonProtectedAreaCount := Ω.TotalProtectedAreaCount[taxon]
@@ -99,107 +203,4 @@ func (Ω PredictionAggregator) calcTaxonScarcity() (map[store.INaturalistTaxonID
 	}
 
 	return taxaRatiosMap, nil
-}
-
-func (Ω *predictionParser) FetchPredictions(cxt context.Context, taxa []string, dates []string) ([]*store.Prediction, error) {
-
-	aggr := PredictionAggregator{
-		PredictionObjects:       []*store.Prediction{},
-		PredictionList:          make(map[store.INaturalistTaxonID][]float64),
-		TotalProtectedAreaCount: make(map[store.INaturalistTaxonID]float64),
-	}
-
-	gcsFilePaths := []string{}
-	for _, _taxonID := range taxa {
-		taxonID := store.INaturalistTaxonID(_taxonID)
-		aggr.PredictionList[taxonID] = []float64{}
-		aggr.TotalProtectedAreaCount[taxonID] = 0
-		gcsPaths, err := Ω.GCSFetcher.FetchLatestPredictionFileNames(cxt, taxonID, "*")
-		if err != nil {
-			return nil, err
-		}
-		gcsFilePaths = append(gcsFilePaths, gcsPaths...)
-	}
-
-	tmb := tomb.Tomb{}
-	tmb.Go(func() error {
-		for _, _fpath := range gcsFilePaths {
-			fpath := _fpath
-			tmb.Go(func() error {
-				predictions, err := Ω.GCSFetcher.FetchPredictions(cxt, fpath)
-				if err != nil {
-					return err
-				}
-				for _, _p := range predictions {
-					p := _p
-					tmb.Go(func() error {
-						aggr.Lock()
-						defer aggr.Unlock()
-						aggr.TotalProtectedAreaCount[p.Taxon] += 1
-						if p.Target <= p.Random {
-							return nil
-						}
-						aggr.PredictionList[p.Taxon] = append(aggr.PredictionList[p.Taxon], p.Target)
-						d, err := time.ParseInLocation("20060102", p.Date, time.UTC)
-						if err != nil {
-							return errors.Wrap(err, "could not parse date")
-						}
-						aggr.PredictionObjects = append(aggr.PredictionObjects, &store.Prediction{
-							CreatedAt:       utils.TimePtr(time.Now()),
-							Location:        latlng.LatLng{p.Latitude, p.Longitude},
-							PredictionValue: p.Target,
-							TaxonID:         p.Taxon,
-							Date:            utils.TimePtr(d),
-							FormattedDate:   p.Date,
-							Month:           d.Month(),
-							//WildernessAreaID: wa.ID,
-							//WildernessAreaName: wa.Name,
-						})
-						return nil
-					})
-
-				}
-				return nil
-			})
-		}
-		return nil
-	})
-	if err := tmb.Wait(); err != nil {
-		return nil, err
-	}
-
-	taxaScarcityMap, err := aggr.calcTaxonScarcity()
-	if err != nil {
-		return nil, err
-	}
-
-	lmtr := utils.NewLimiter(20)
-	tmb = tomb.Tomb{}
-	tmb.Go(func() error {
-		for _, _predictionObject := range aggr.PredictionObjects {
-			predictionObject := _predictionObject
-			tmb.Go(func() error {
-				done := lmtr.Go()
-				defer done()
-
-				wa, err := Ω.WildernessAreaFetcher.GetWildernessArea(cxt, predictionObject.Location.Latitude, predictionObject.Location.Longitude)
-				if err != nil {
-					return err
-				}
-				if wa.ID != "" {
-					predictionObject.WildernessAreaID = wa.ID
-					predictionObject.WildernessAreaName = wa.Name
-				}
-				predictionObject.ScaledPredictionValue = (predictionObject.PredictionValue - 0.5) / 0.5
-				predictionObject.ScarcityValue = taxaScarcityMap[predictionObject.TaxonID] * predictionObject.ScaledPredictionValue
-				return nil
-			})
-		}
-		return nil
-	})
-	if err := tmb.Wait(); err != nil {
-		return nil, err
-	}
-
-	return aggr.PredictionObjects, nil
 }

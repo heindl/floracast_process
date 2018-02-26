@@ -3,11 +3,11 @@ package nameusage
 import (
 	"time"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/utils"
 	"strings"
 	"sync"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/canonicalname"
 	"github.com/mongodb/mongo-tools/common/json"
 )
 

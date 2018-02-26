@@ -61,7 +61,7 @@ func (Ω NameUsageIDs) Batch(maxBatchSize float64) []NameUsageIDs {
 }
 
 
-func nameUsageIDsFromStrings(æ []string) (NameUsageIDs, error) {
+func NameUsageIDsFromStrings(æ []string) (NameUsageIDs, error) {
 	res := NameUsageIDs{}
 	for _, strID := range æ {
 		id := NameUsageID(strID)

@@ -2,14 +2,15 @@ package occurrences
 
 import (
 	"fmt"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/store"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/store"
 	"context"
 	"cloud.google.com/go/firestore"
 	"strings"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/mongodb/mongo-tools/common/json"
 	"google.golang.org/api/iterator"
+	"bitbucket.org/heindl/process/geofeatures"
 )
 
 // TODO: Should periodically check all occurrences for consistency.
@@ -30,10 +31,11 @@ func (Ω *OccurrenceAggregation) Upload(cxt context.Context, florastore store.Fl
 
 func ClearRandomOccurrences(cxt context.Context, florastore store.FloraStore) error {
 
-	docs := florastore.FirestoreCollection(store.CollectionOccurrences).
-		Where("SourceType", "==", datasources.TypeRandom).
-			Documents(cxt)
-
+	col, err := florastore.FirestoreCollection(store.CollectionRandom)
+	if err != nil {
+		return err
+	}
+	docs := col.Where("SourceType", "==", datasources.TypeRandom).Documents(cxt)
 	for {
 		snap, err := docs.Next()
 		if err == iterator.Done {
@@ -66,7 +68,11 @@ func (Ω *occurrence) docRef(florastore store.FloraStore) (*firestore.DocumentRe
 	if err != nil {
 		return nil, err
 	}
-	return florastore.FirestoreCollection(store.CollectionOccurrences).Doc(id), nil
+	col, err := Ω.Collection(florastore)
+	if err != nil {
+		return nil, err
+	}
+	return col.Doc(id), nil
 }
 
 func (Ω *occurrence) UpsertTransactionFunc(florastore store.FloraStore) (store.FirestoreTransactionFunc, error) {
@@ -82,7 +88,12 @@ func (Ω *occurrence) UpsertTransactionFunc(florastore store.FloraStore) (store.
 		return nil, err
 	}
 
-	q, err := Ω.GeoFeatureSet.CoordinateQuery(florastore.FirestoreCollection(store.CollectionOccurrences))
+	col, err := Ω.Collection(florastore)
+	if err != nil {
+		return nil, err
+	}
+
+	q, err := geofeatures.CoordinateQuery(col, Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng())
 	if err != nil {
 		return nil, err
 	}

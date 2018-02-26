@@ -4,13 +4,13 @@ import (
 	"sync"
 	"gopkg.in/tomb.v2"
 	"context"
-	"bitbucket.org/heindl/processors/nameusage/canonicalname"
-	"bitbucket.org/heindl/processors/nameusage/nameusage"
-	"bitbucket.org/heindl/processors/datasources"
-	"bitbucket.org/heindl/processors/store"
-	"bitbucket.org/heindl/processors/algolia"
-	"bitbucket.org/heindl/processors/taxa"
-	"bitbucket.org/heindl/processors/utils"
+	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/algolia"
+	"bitbucket.org/heindl/process/taxa"
+	"bitbucket.org/heindl/process/utils"
 )
 
 type Aggregate struct {

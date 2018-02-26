@@ -8,7 +8,7 @@ import (
 
 type FeatureCollection struct {
 	area      float64
-	polyLabel Point
+	polyLabel *Point
 	features  []*Feature
 }
 
@@ -34,7 +34,11 @@ func (Ω *FeatureCollection) Append(features ...*Feature) error {
 		Ω.area += Ω.features[i].Area()
 		if Ω.features[i].Area() > largestArea {
 			largestArea = Ω.features[i].Area()
-			Ω.polyLabel = Ω.features[i].PolyLabel()
+			var err error
+			Ω.polyLabel, err = Ω.features[i].PolyLabel()
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -73,8 +77,8 @@ func (Ω *FeatureCollection) Contains(lat, lng float64) bool {
 	return false
 }
 
-func (Ω *FeatureCollection) PolyLabel() Point {
-	return Ω.polyLabel
+func (Ω *FeatureCollection) PolyLabel() (*Point, error) {
+	return Ω.polyLabel, nil
 }
 
 func (Ω *FeatureCollection) Area() float64 {
@@ -161,36 +165,46 @@ func (Ω *FeatureCollection) FilterByMinimumArea(minimum_area_kilometers float64
 	return &fc
 }
 
-func (Ω FeatureCollection) MaxDistanceFromCentroid() float64 {
+func (Ω FeatureCollection) MaxDistanceFromCentroid() (float64, error) {
 
 	polylabels := Points{}
 	for _, fc := range Ω.features {
-		p := fc.PolyLabel()
-		polylabels = append(polylabels, &p)
+		p, err := fc.PolyLabel()
+		if err != nil {
+			return 0, err
+		}
+		polylabels = append(polylabels, p)
 	}
 
-	centroid := polylabels.Centroid()
+	centroid, err := polylabels.Centroid()
+	if err != nil {
+		return 0, err
+	}
 
 	max := 0.0
 	for _, p := range polylabels {
-		distance := centroid.DistanceKilometers(*p)
+		distance := centroid.DistanceKilometers(p)
 		if distance > max {
 			max = distance
 		}
 	}
 
-	return max
+	return max, nil
 }
 
 type CondenseMergePropertiesFunc func(a, b []byte) []byte
 
-func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFunc) *Feature {
+func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFunc) (*Feature, error) {
 
 	multipolygon := MultiPolygon{}
 	properties := []byte{}
 	for _, f := range Ω.features {
 		properties = merge_properties(properties, f.properties)
-		multipolygon = multipolygon.PushMultiPolygon(f.multiPolygon)
+		var err error
+		multipolygon, err = multipolygon.PushMultiPolygon(f.multiPolygon)
+		if err != nil {
+			return nil, err
+		}
 	}
 	f := Feature{
 		multiPolygon: multipolygon,
@@ -199,7 +213,7 @@ func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFun
 
 	f.Normalize()
 
-	return &f
+	return &f, nil
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -221,19 +235,26 @@ func (Ω FeatureCollections) FilterByMinimumArea(minimum_area_kilometers float64
 	return out
 }
 
-func (Ω FeatureCollections) PolyLabels() Points {
+func (Ω FeatureCollections) PolyLabels() (Points, error) {
 	labels := Points{}
 	for _, ic := range Ω {
-		p := ic.PolyLabel()
-		labels = append(labels, &p)
+		p, err := ic.PolyLabel()
+		if err != nil {
+			return nil, err
+		}
+		labels = append(labels, p)
 	}
-	return labels
+	return labels, nil
 }
 
 func (Ω FeatureCollections) Condense(merge_properties CondenseMergePropertiesFunc) (*FeatureCollection, error) {
 	features := []*Feature{}
 	for _, fc := range Ω {
-		features = append(features, fc.Condense(merge_properties))
+		condensed, err := fc.Condense(merge_properties)
+		if err != nil {
+			return nil, err
+		}
+		features = append(features, condensed)
 	}
 	fc := FeatureCollection{}
 	if err := fc.Append(features...); err != nil {
@@ -243,7 +264,7 @@ func (Ω FeatureCollections) Condense(merge_properties CondenseMergePropertiesFu
 }
 
 // Sorter accepts two property maps and returns true if a is greater than b. If sorter is nil, the area will be used.
-func (Ω FeatureCollections) DecimateClusters(minKm float64) FeatureCollections {
+func (Ω FeatureCollections) DecimateClusters(minKm float64) (FeatureCollections, error) {
 
 	a := FeatureCollections{}
 	a = append(a, Ω...)
@@ -260,8 +281,14 @@ Restart:
 				if k == i {
 					continue
 				}
-				p1 := a[k].PolyLabel()
-				p2 := a[i].PolyLabel()
+				p1, err := a[k].PolyLabel()
+				if err != nil {
+					return nil, err
+				}
+				p2, err := a[i].PolyLabel()
+				if err != nil {
+					return nil, err
+				}
 				distance := p1.DistanceKilometers(p2)
 				// If the distance between the two is less than the required minimum.
 				if distance > minKm {
@@ -285,5 +312,5 @@ Restart:
 		complete = true
 	}
 
-	return a
+	return a, nil
 }

@@ -1,10 +1,10 @@
 package occurrences
 
 import (
-	"bitbucket.org/heindl/processors/terra/grid"
-	"bitbucket.org/heindl/processors/ecoregions"
+	"bitbucket.org/heindl/process/terra/grid"
+	"bitbucket.org/heindl/process/ecoregions"
 	"math"
-	"bitbucket.org/heindl/processors/datasources"
+	"bitbucket.org/heindl/process/datasources"
 	"strconv"
 	"time"
 	"sync"

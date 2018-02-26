@@ -63,6 +63,10 @@ func FloatPtr(v float64) *float64 {
 	return &v
 }
 
+func IntPtr(v int) *int {
+	return &v
+}
+
 type Limiter chan struct{}
 
 func NewLimiter(amount int) Limiter {
