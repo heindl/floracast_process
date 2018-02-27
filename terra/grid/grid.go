@@ -1,40 +1,35 @@
 package grid
 
 import (
+	"bitbucket.org/heindl/process/terra/ecoregions"
+	"bitbucket.org/heindl/process/terra/ecoregions/cache"
+	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
-	"bitbucket.org/heindl/process/ecoregions"
 	"github.com/paulmach/go.geojson"
 	"gopkg.in/tomb.v2"
 	"sync"
-	"github.com/dropbox/godropbox/errors"
 )
 
-type Generator interface{
+type Generator interface {
 	SubDivide(g *Bound, level int) (Bounds, error)
 }
 
 func NewGridGenerator() (Generator, error) {
-	ecoCache, err := ecoregions.NewEcoRegionsCache()
-	if err != nil {
-		return nil, err
-	}
 	return &generator{
-		ecoRegionCache: ecoCache,
 		grids: Bounds{},
 	}, nil
 }
 
 type generator struct {
-	ecoRegionCache *ecoregions.EcoRegionsCache
 	grids []*Bound
 	sync.Mutex
 }
 
 var NorthAmerica = &Bound{
-	North: 53.5555501, // Edmonton, Alberta
-	West: -137.8424302, // Glacier Bay
-	East: -53.1078873, // St. Johns, Newfoundland
-	South: 20.6737777, // Guadalajara, Mexico
+	North: 53.5555501,   // Edmonton, Alberta
+	West:  -137.8424302, // Glacier Bay
+	East:  -53.1078873,  // St. Johns, Newfoundland
+	South: 20.6737777,   // Guadalajara, Mexico
 }
 
 type Bound struct {
@@ -108,17 +103,17 @@ func (Ω *generator) parseCell(cellID s2.CellID) error {
 
 	ecoRegionTouches := 0
 
-	if _, err := Ω.ecoRegionCache.EcoID(rb.Center().Lat.Degrees(), rb.Center().Lng.Degrees()); err == nil {
+	if _, err := cache.FetchEcologicalRegion(rb.Center().Lat.Degrees(), rb.Center().Lng.Degrees()); err == nil {
 		ecoRegionTouches += 1
 	}
 
 	for _, loc := range f.Geometry.Polygon[0][:3] {
-		_, err := Ω.ecoRegionCache.EcoID(loc[1], loc[0])
+		_, err := cache.FetchEcologicalRegion(loc[1], loc[0])
 		if err == ecoregions.ErrNotFound {
 			continue
 		}
 		if err != nil {
-			return errors.Wrapf(err, "Could not get EcoID from location [%f, %f]", loc[0], loc[1])
+			return errors.Wrapf(err, "Could not get ecoID from location [%f, %f]", loc[0], loc[1])
 		}
 		ecoRegionTouches += 1
 		if ecoRegionTouches > 1 {
@@ -127,8 +122,8 @@ func (Ω *generator) parseCell(cellID s2.CellID) error {
 			Ω.grids = append(Ω.grids, &Bound{
 				North: n,
 				South: s,
-				East: e,
-				West: w,
+				East:  e,
+				West:  w,
 			})
 			return nil
 		}

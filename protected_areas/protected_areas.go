@@ -3,26 +3,26 @@ package protected_areas
 import (
 	"context"
 	//"github.com/cenkalti/backoff"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/terra/geoembed"
 	"github.com/saleswise/errors/errors"
 	"gopkg.in/tomb.v2"
-	"bitbucket.org/heindl/process/geofeatures"
 	"math"
-	"bitbucket.org/heindl/process/store"
 )
 
 type ProtectedArea struct {
-	Name            string           `firestore:"" json:""`
-	State           string           `firestore:"" json:""`
-	Area            float64          `firestore:"" json:""` // Kilometers
-	ProtectionLevel *ProtectionLevel `firestore:"" json:""`
-	Designation     string           `firestore:"" json:""`
-	Owner           string           `firestore:"" json:""`
-	AccessLevel     *AccessLevel     `firestore:"" json:""`
-	GeoFeatureSet *geofeatures.GeoFeatureSet `json:",omitempty"`
+	Name            string                  `firestore:"" json:""`
+	State           string                  `firestore:"" json:""`
+	Area            float64                 `firestore:"" json:""` // Kilometers
+	ProtectionLevel *ProtectionLevel        `firestore:"" json:""`
+	Designation     string                  `firestore:"" json:""`
+	Owner           string                  `firestore:"" json:""`
+	AccessLevel     *AccessLevel            `firestore:"" json:""`
+	GeoFeatureSet   *geoembed.GeoFeatureSet `json:",omitempty"`
 }
 
-func (a *ProtectedArea) ID() (geofeatures.CoordinateKey, error) {
-	return geofeatures.NewCoordinateKey(a.GeoFeatureSet.Lat(), a.GeoFeatureSet.Lat())
+func (a *ProtectedArea) ID() (geoembed.CoordinateKey, error) {
+	return geoembed.NewCoordinateKey(a.GeoFeatureSet.Lat(), a.GeoFeatureSet.Lat())
 }
 
 type AccessLevel int
@@ -80,7 +80,6 @@ type ProtectedAreaState struct {
 //func (a ProtectedAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 //func (a ProtectedAreas) Less(i, j int) bool { return a[i].GISAcres > a[j].GISAcres }
 
-
 var counter = 0
 
 type ProtectedAreas []*ProtectedArea
@@ -94,7 +93,7 @@ func (Ω ProtectedAreas) batches(maxBatchSize float64) []ProtectedAreas {
 	batchCount := math.Ceil(float64(len(Ω)) / maxBatchSize)
 
 	res := []ProtectedAreas{}
-	for i := 0.0; i <= batchCount - 1; i++ {
+	for i := 0.0; i <= batchCount-1; i++ {
 		start := int(i * maxBatchSize)
 		end := int(((i + 1) * maxBatchSize) - 1)
 		if end > len(Ω) {
@@ -145,7 +144,6 @@ func (Ω ProtectedAreas) Upload(cxt context.Context, florastore store.FloraStore
 	})
 
 	return tmb.Wait()
-
 
 	//// Validate
 	//if wa.ID == "" {

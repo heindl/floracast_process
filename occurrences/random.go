@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/ecoregions"
+	"bitbucket.org/heindl/process/terra/ecoregions"
+	"bitbucket.org/heindl/process/terra/ecoregions/cache"
 	"bitbucket.org/heindl/process/terra/grid"
 	"gopkg.in/tomb.v2"
 )
@@ -40,7 +41,6 @@ var Winter = Season{
 type randomOccurrenceGenerator struct {
 	gridGenerator        grid.Generator
 	occurrenceAggregator *OccurrenceAggregation
-	ecoRegionCache       *ecoregions.EcoRegionsCache
 	counter              int
 	sync.Mutex
 }
@@ -54,15 +54,9 @@ func newRandomOccurrenceGenerator() (*randomOccurrenceGenerator, error) {
 		return nil, err
 	}
 
-	ecoRegionCache, err := ecoregions.NewEcoRegionsCache()
-	if err != nil {
-		return nil, err
-	}
-
 	return &randomOccurrenceGenerator{
 		gridGenerator:        gridGenerator,
 		occurrenceAggregator: NewOccurrenceAggregation(),
-		ecoRegionCache:       ecoRegionCache,
 	}, nil
 }
 
@@ -123,7 +117,7 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 		lat := (float64(rand.Intn(yDelta)) * rand.Float64()) + bounds.South
 		lng := (float64(rand.Intn(xDelta)) * rand.Float64()) + bounds.West
 
-		_, err := Ω.ecoRegionCache.EcoID(lat, lng)
+		_, err := cache.FetchEcologicalRegion(lat, lng)
 		if err == ecoregions.ErrNotFound {
 			continue
 		}

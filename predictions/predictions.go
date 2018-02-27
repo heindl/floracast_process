@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"bitbucket.org/heindl/process/geofeatures"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/terra/geoembed"
 	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
@@ -14,7 +14,7 @@ import (
 type Prediction interface {
 	UsageID() (nameusage.NameUsageID, error)
 	Date() (string, error)
-	ProtectedArea() (geofeatures.CoordinateKey, error)
+	ProtectedArea() (geoembed.CoordinateKey, error)
 	ScaledPrediction() (float64, error)
 	LatLng() (float64, float64, error)
 }
@@ -24,7 +24,7 @@ func NewPrediction(usageID nameusage.NameUsageID, date string, lat, lng, predict
 		return nil, errors.Newf("Could not create Prediction with invalid NameUsageID [%s]", usageID)
 	}
 
-	coordinateKey, err := geofeatures.NewCoordinateKey(lat, lng)
+	coordinateKey, err := geoembed.NewCoordinateKey(lat, lng)
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +59,9 @@ type prediction struct {
 	ScaledPredictionValue float64               `firestore:",omitempty" json:",omitempty"`
 	//ScarcityValue         float64            `firestore:"" json:""`
 	//TaxonID               INaturalistTaxonID `datastore:",omitempty" json:",omitempty"`
-	ProtectedAreaName string                    `firestore:",omitempty" json:",omitempty"`
-	ProtectedAreaSize float64                   `firestore:",omitempty" json:",omitempty"`
-	ProtectedAreaID   geofeatures.CoordinateKey `firestore:"" json:""`
+	ProtectedAreaName string                 `firestore:",omitempty" json:",omitempty"`
+	ProtectedAreaSize float64                `firestore:",omitempty" json:",omitempty"`
+	ProtectedAreaID   geoembed.CoordinateKey `firestore:"" json:""`
 }
 
 func (Ω *prediction) UsageID() (nameusage.NameUsageID, error) {
@@ -73,7 +73,7 @@ func (Ω *prediction) Date() (string, error) {
 	}
 	return Ω.FormattedDate, nil
 }
-func (Ω *prediction) ProtectedArea() (geofeatures.CoordinateKey, error) {
+func (Ω *prediction) ProtectedArea() (geoembed.CoordinateKey, error) {
 	return Ω.ProtectedAreaID, nil
 }
 func (Ω *prediction) ScaledPrediction() (float64, error) {

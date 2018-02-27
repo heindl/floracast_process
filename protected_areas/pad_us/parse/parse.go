@@ -2,7 +2,7 @@ package main
 
 import (
 	"bitbucket.org/heindl/process/protected_areas/pad_us"
-	"bitbucket.org/heindl/process/terra"
+	"bitbucket.org/heindl/process/terra/geo"
 	"flag"
 	"fmt"
 	"github.com/elgs/gostrgen"
@@ -35,11 +35,11 @@ func main() {
 
 	processor := Processor{
 		OutputDirectory: *out,
-		Aggregated:      terra.FeatureCollection{},
+		Aggregated:      geo.FeatureCollection{},
 		Stats:           map[string]int{},
 	}
 
-	if err := terra.ReadFeaturesFromGeoJSONFeatureCollectionFile(*in, processor.ReceiveFeature); err != nil {
+	if err := geo.ReadFeaturesFromGeoJSONFeatureCollectionFile(*in, processor.ReceiveFeature); err != nil {
 		panic(err)
 	}
 
@@ -74,8 +74,8 @@ func main() {
 	processor.Stats["After Name Group"] = len(name_grouped)
 
 	max_centroid_distance := 20.0
-	above_centroid_distance := terra.FeatureCollections{}
-	below_centroid_distance := terra.FeatureCollections{}
+	above_centroid_distance := geo.FeatureCollections{}
+	below_centroid_distance := geo.FeatureCollections{}
 	for _, v := range name_grouped {
 		// TODO: Explode and regroup those that are too large by Unit_Nm & Loc_Nm
 		maxDistance, err := v.MaxDistanceFromCentroid()
@@ -153,7 +153,7 @@ type Processor struct {
 	sync.Mutex
 	OutputDirectory        string
 	PublicAccessClosed     int
-	Aggregated             terra.FeatureCollection
+	Aggregated             geo.FeatureCollection
 	PublicAccessRestricted int
 	GolfCourse             int
 	PublicAccessUnknown    int
@@ -186,7 +186,7 @@ func (Ω *Processor) PrintStats() {
 	}
 }
 
-func (Ω *Processor) ShouldSaveProtectedArea(feature *terra.Feature) bool {
+func (Ω *Processor) ShouldSaveProtectedArea(feature *geo.Feature) bool {
 
 	if !feature.Valid() {
 		Ω.EmptyAreas += 1
@@ -263,7 +263,7 @@ func (Ω *Processor) ShouldSaveProtectedArea(feature *terra.Feature) bool {
 	return true
 }
 
-func (Ω *Processor) GetID(nf *terra.Feature) string {
+func (Ω *Processor) GetID(nf *geo.Feature) string {
 	pa := pad_us.ProtectedArea{}
 	if err := nf.GetProperties(&pa); err != nil {
 		panic(err)
@@ -284,7 +284,7 @@ func (Ω *Processor) GetID(nf *terra.Feature) string {
 	return "unidentified_" + rand_id
 }
 
-func (Ω *Processor) ReceiveFeature(nf *terra.Feature) error {
+func (Ω *Processor) ReceiveFeature(nf *geo.Feature) error {
 
 	Ω.Total += 1
 

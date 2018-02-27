@@ -1,15 +1,15 @@
 package protected_areas
 
 import (
-	"context"
 	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/geofeatures"
+	"bitbucket.org/heindl/process/terra/geoembed"
+	"context"
 	"github.com/dropbox/godropbox/errors"
 )
 
 var ErrNotFound = errors.New("Not Found")
 
-func FetchOne(cxt context.Context, florastore store.FloraStore, coordinateKey geofeatures.CoordinateKey) (*ProtectedArea, error) {
+func FetchOne(cxt context.Context, florastore store.FloraStore, coordinateKey geoembed.CoordinateKey) (*ProtectedArea, error) {
 
 	if !coordinateKey.Valid() {
 		return nil, errors.Newf("Invalid CoordinateKey [%s]", coordinateKey)

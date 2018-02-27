@@ -1,18 +1,18 @@
 package occurrences
 
 import (
-	"bitbucket.org/heindl/process/datasources/inaturalist"
-	"bitbucket.org/heindl/process/datasources/mushroomobserver"
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/datasources/gbif"
-	"context"
-	"time"
-	"github.com/dropbox/godropbox/errors"
+	"bitbucket.org/heindl/process/datasources/inaturalist"
+	"bitbucket.org/heindl/process/datasources/mushroomobserver"
+	"bitbucket.org/heindl/process/terra/ecoregions"
+	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/utils"
-	"bitbucket.org/heindl/process/geofeatures"
-	"gopkg.in/tomb.v2"
+	"context"
 	"fmt"
-	"bitbucket.org/heindl/process/ecoregions"
+	"github.com/dropbox/godropbox/errors"
+	"gopkg.in/tomb.v2"
+	"time"
 )
 
 type OccurrenceProvider interface {
@@ -26,7 +26,7 @@ type OccurrenceProvider interface {
 func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) (*OccurrenceAggregation, error) {
 
 	// Only fetch once a day.
-	if since != nil && since.After(time.Now().Add(time.Hour * 24 * -1)) {
+	if since != nil && since.After(time.Now().Add(time.Hour*24*-1)) {
 		return nil, nil
 	}
 
@@ -86,7 +86,7 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 				}
 
 				err = o.SetGeospatial(lat, lng, p.DateString(), p.CoordinatesEstimated())
-				if err != nil && utils.ContainsError(err, geofeatures.ErrInvalidCoordinate) {
+				if err != nil && utils.ContainsError(err, geo.ErrInvalidCoordinates) {
 					//fmt.Println(fmt.Sprintf("Invalid Coordinate [%.4f, %.4f] from SourceType [%s, %s]", lat, lng, sourceType, targetID))
 					return nil
 				}

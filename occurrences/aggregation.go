@@ -1,17 +1,17 @@
 package occurrences
 
 import (
-	"fmt"
 	"bitbucket.org/heindl/process/datasources"
-	"sync"
+	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/utils"
-	"github.com/dropbox/godropbox/errors"
 	"encoding/json"
-	"bitbucket.org/heindl/process/terra"
+	"fmt"
+	"github.com/dropbox/godropbox/errors"
+	"sync"
 )
 
 type OccurrenceAggregation struct {
-	collisions int
+	collisions        int
 	iterator_position int
 	sync.Mutex
 	list []Occurrence
@@ -56,6 +56,7 @@ func (Ω *OccurrenceAggregation) Merge(æ *OccurrenceAggregation) error {
 }
 
 var ErrCollision = errors.New("Occurrence Collision")
+
 func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 
 	if b == nil {
@@ -89,8 +90,8 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 
 		fmt.Println("Warning: Collision",
 			aKey,
-			"[" + fmt.Sprint(Ω.list[i].SourceType(), ",", Ω.list[i].TargetID(), ",", Ω.list[i].SourceOccurrenceID()) + "]",
-			"[" + fmt.Sprint(b.SourceType(), ",", b.TargetID(), ",", b.SourceOccurrenceID()) + "]")
+			"["+fmt.Sprint(Ω.list[i].SourceType(), ",", Ω.list[i].TargetID(), ",", Ω.list[i].SourceOccurrenceID())+"]",
+			"["+fmt.Sprint(b.SourceType(), ",", b.TargetID(), ",", b.SourceOccurrenceID())+"]")
 
 		if aSourceType != bSourceType && bSourceType == datasources.TypeGBIF {
 			Ω.list[i] = b
@@ -103,30 +104,29 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 
 	return nil
 
-
 }
 
 func (Ω *OccurrenceAggregation) GeoJSON() ([]byte, error) {
-  points := terra.Points{}
-  for _, o := range Ω.list {
-  	lat, lng, err := o.Coordinates()
-  	if err != nil {
-  		return nil, err
+	points := geo.Points{}
+	for _, o := range Ω.list {
+		lat, lng, err := o.Coordinates()
+		if err != nil {
+			return nil, err
+		}
+		p, err := geo.NewPoint(lat, lng)
+		if err != nil {
+			return nil, err
+		}
+		date, err := o.Date()
+		if err != nil {
+			return nil, err
+		}
+		if err := p.SetProperty("Date", date); err != nil {
+			return nil, err
+		}
+		points = append(points, p)
 	}
-	p, err := terra.NewPoint(lat, lng)
-	if err != nil {
-		return nil, err
-	}
-	date, err := o.Date()
-	if err != nil {
-		return nil, err
-	}
-	if err := p.SetProperty("Date", date); err != nil {
-		return nil, err
-	}
-	points = append(points, p)
-  }
-  return points.GeoJSON()
+	return points.GeoJSON()
 }
 
 func (Ω *OccurrenceAggregation) MarshalJSON() ([]byte, error) {

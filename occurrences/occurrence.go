@@ -1,17 +1,17 @@
 package occurrences
 
 import (
-	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/geofeatures"
-	"strconv"
 	"bitbucket.org/heindl/process/datasources"
-	"encoding/json"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/terra/geoembed"
 	"cloud.google.com/go/firestore"
+	"encoding/json"
 	"fmt"
+	"github.com/dropbox/godropbox/errors"
+	"strconv"
 )
 
-type Occurrence interface{
+type Occurrence interface {
 	ID() (string, error)
 	Collection(florastore store.FloraStore) (*firestore.CollectionRef, error)
 	SourceType() datasources.SourceType
@@ -37,18 +37,18 @@ func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID
 	}
 
 	return &occurrence{
-		SrcType: srcType,
-		TgtID: targetID,
+		SrcType:         srcType,
+		TgtID:           targetID,
 		SrcOccurrenceID: occurrenceID,
 	}, nil
 }
 
 type occurrence struct {
-	SrcType          datasources.SourceType `json:"SourceType"`
-	TgtID            datasources.TargetID `json:"TargetID"`
-	SrcOccurrenceID  string `json:"SourceOccurrenceID"`
-	FormattedDate       string `json:""`
-	GeoFeatureSet *geofeatures.GeoFeatureSet `json:",omitempty"`
+	SrcType         datasources.SourceType  `json:"SourceType"`
+	TgtID           datasources.TargetID    `json:"TargetID"`
+	SrcOccurrenceID string                  `json:"SourceOccurrenceID"`
+	FormattedDate   string                  `json:""`
+	GeoFeatureSet   *geoembed.GeoFeatureSet `json:",omitempty"`
 }
 
 func (Ω *occurrence) Collection(florastore store.FloraStore) (*firestore.CollectionRef, error) {
@@ -97,9 +97,9 @@ func (Ω *occurrence) Coordinates() (lat, lng float64, err error) {
 	return Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng(), nil
 }
 
-func (Ω *occurrence) UnmarshalJSON(b []byte) (error) {
+func (Ω *occurrence) UnmarshalJSON(b []byte) error {
 
-	gf := geofeatures.GeoFeatureSet{}
+	gf := geoembed.GeoFeatureSet{}
 	if err := json.Unmarshal(b, &gf); err != nil {
 		return err
 	}
@@ -157,14 +157,13 @@ func (Ω *occurrence) LocationKey() (string, error) {
 	return fmt.Sprintf("%s|%s", coordKey, date), nil
 }
 
-
 var ErrInvalidDate = errors.New("Invalid Date")
 
 func (Ω *occurrence) SetGeospatial(lat, lng float64, date string, coordinatesEstimated bool) error {
 
 	var err error
 	// GeoFeatureSet placeholder should validate for decimal places.
-	Ω.GeoFeatureSet, err = geofeatures.NewGeoFeatureSet(lat, lng, coordinatesEstimated)
+	Ω.GeoFeatureSet, err = geoembed.NewGeoFeatureSet(lat, lng, coordinatesEstimated)
 	if err != nil {
 		return err
 	}

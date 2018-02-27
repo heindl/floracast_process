@@ -10,10 +10,10 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"bitbucket.org/heindl/process/geofeatures"
 	"bitbucket.org/heindl/process/protected_areas"
 	"bitbucket.org/heindl/process/protected_areas/pad_us"
-	"bitbucket.org/heindl/process/terra"
+	"bitbucket.org/heindl/process/terra/geo"
+	"bitbucket.org/heindl/process/terra/geoembed"
 	"github.com/dropbox/godropbox/errors"
 	"golang.org/x/net/context"
 	"gopkg.in/tomb.v2"
@@ -81,7 +81,7 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			return nil
 		}
 
-		fc, err := terra.ReadFeatureCollectionFromGeoJSONFile(path, nil)
+		fc, err := geo.ReadFeatureCollectionFromGeoJSONFile(path, nil)
 		if err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			return err
 		}
 
-		area.GeoFeatureSet, err = geofeatures.NewGeoFeatureSet(polyLabel.Latitude(), polyLabel.Longitude(), false)
+		area.GeoFeatureSet, err = geoembed.NewGeoFeatureSet(polyLabel.Latitude(), polyLabel.Longitude(), false)
 		if err != nil {
 			return err
 		}

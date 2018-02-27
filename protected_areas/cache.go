@@ -1,10 +1,10 @@
 package protected_areas
 
 import (
-	"context"
 	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/terra/geoembed"
+	"context"
 	"sync"
-	"bitbucket.org/heindl/process/geofeatures"
 )
 
 type ProtectedAreaCache interface {
@@ -14,19 +14,19 @@ type ProtectedAreaCache interface {
 func NewProtectedAreaCache(florastore store.FloraStore) (ProtectedAreaCache, error) {
 	return &cache{
 		florastore: florastore,
-		areas:      map[geofeatures.CoordinateKey]*ProtectedArea{},
+		areas:      map[geoembed.CoordinateKey]*ProtectedArea{},
 	}, nil
 }
 
 type cache struct {
 	florastore store.FloraStore
 	sync.Mutex
-	areas      map[geofeatures.CoordinateKey]*ProtectedArea
+	areas map[geoembed.CoordinateKey]*ProtectedArea
 }
 
 func (Ω *cache) GetProtectedArea(cxt context.Context, latitude, longitude float64) (*ProtectedArea, error) {
 
-	coordKey, err := geofeatures.NewCoordinateKey(latitude, longitude)
+	coordKey, err := geoembed.NewCoordinateKey(latitude, longitude)
 	if err != nil {
 		return nil, err
 	}
@@ -50,4 +50,3 @@ func (Ω *cache) GetProtectedArea(cxt context.Context, latitude, longitude float
 
 	return area, nil
 }
-

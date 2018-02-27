@@ -1,16 +1,16 @@
 package mushroomobserver
 
 import (
-	"fmt"
-	"strings"
-	"context"
-	"time"
-	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/process/utils"
-	"bitbucket.org/heindl/process/terra"
-	"strconv"
-	"github.com/mongodb/mongo-tools/common/json"
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/terra/geo"
+	"bitbucket.org/heindl/process/utils"
+	"context"
+	"fmt"
+	"github.com/dropbox/godropbox/errors"
+	"github.com/mongodb/mongo-tools/common/json"
+	"strconv"
+	"strings"
+	"time"
 )
 
 func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Observation, error) {
@@ -81,14 +81,14 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 }
 
 type ObservationsResult struct {
-	Version         float64   `json:"version"`
-	RunDate         time.Time `json:"run_date"`
-	Query           string    `json:"query"`
-	NumberOfRecords int       `json:"number_of_records"`
-	NumberOfPages   int       `json:"number_of_pages"`
-	PageNumber      int       `json:"page_number"`
-	Results         []*Observation     `json:"results"`
-	RunTime         float64   `json:"run_time"`
+	Version         float64        `json:"version"`
+	RunDate         time.Time      `json:"run_date"`
+	Query           string         `json:"query"`
+	NumberOfRecords int            `json:"number_of_records"`
+	NumberOfPages   int            `json:"number_of_pages"`
+	PageNumber      int            `json:"page_number"`
+	Results         []*Observation `json:"results"`
+	RunTime         float64        `json:"run_time"`
 }
 
 type Observation struct {
@@ -140,12 +140,12 @@ type Observation struct {
 		OkForExport   bool      `json:"ok_for_export"`
 		SynonymID     int       `json:"synonym_id"`
 	} `json:"consensus"`
-	Location Location `json:"location"`
+	Location          Location      `json:"location"`
 	CollectionNumbers []interface{} `json:"collection_numbers"`
 	HerbariumRecords  []interface{} `json:"herbarium_records"`
 	Sequences         []interface{} `json:"sequences"`
-	Namings           Namings `json:"namings"`
-	PrimaryImage struct {
+	Namings           Namings       `json:"namings"`
+	PrimaryImage      struct {
 		ID              int         `json:"id"`
 		Type            string      `json:"type"`
 		Date            string      `json:"date"`
@@ -209,11 +209,11 @@ type Location struct {
 var ErrDistanceToLarge = errors.New("Distance too large")
 
 func (Ω *Location) Coordinates() (lat, lng float64, err error) {
-	p1, err := terra.NewPoint(Ω.LatitudeNorth, Ω.LongitudeEast)
+	p1, err := geo.NewPoint(Ω.LatitudeNorth, Ω.LongitudeEast)
 	if err != nil {
 		return 0, 0, err
 	}
-	p2, err := terra.NewPoint(Ω.LatitudeSouth, Ω.LongitudeWest)
+	p2, err := geo.NewPoint(Ω.LatitudeSouth, Ω.LongitudeWest)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -221,7 +221,7 @@ func (Ω *Location) Coordinates() (lat, lng float64, err error) {
 	if distance > 20 {
 		return 0, 0, ErrDistanceToLarge
 	}
-	centroid, err := terra.Points{p1, p2}.Centroid()
+	centroid, err := geo.Points{p1, p2}.Centroid()
 	if err != nil {
 		return 0, 0, err
 	}
@@ -282,7 +282,7 @@ func (Ω *Observation) Lng() (float64, error) {
 		var err error
 		_, lng, err = Ω.Location.Coordinates()
 		if err != nil {
-			return 0 , err
+			return 0, err
 		}
 	}
 	return lng, nil

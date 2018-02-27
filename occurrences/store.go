@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/geofeatures"
 	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/terra/geoembed"
 	"cloud.google.com/go/firestore"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/mongodb/mongo-tools/common/json"
@@ -94,7 +94,7 @@ func (Ω *occurrence) UpsertTransactionFunc(florastore store.FloraStore) (store.
 		return nil, err
 	}
 
-	q, err := geofeatures.CoordinateQuery(col, Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng())
+	q, err := geoembed.CoordinateQuery(col, Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng())
 	if err != nil {
 		return nil, err
 	}
