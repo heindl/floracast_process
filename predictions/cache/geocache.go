@@ -1,18 +1,19 @@
 package cache
 
 import (
-	"bitbucket.org/heindl/process/utils"
 	"fmt"
-	"github.com/elgs/gostrgen"
-	"github.com/kellydunn/golang-geo"
-	"github.com/dropbox/godropbox/errors"
-	"github.com/tidwall/buntdb"
 	"os"
 	"path"
 	"strings"
-	"bitbucket.org/heindl/process/predictions"
-	"gopkg.in/tomb.v2"
+
 	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/predictions"
+	"bitbucket.org/heindl/process/utils"
+	"github.com/dropbox/godropbox/errors"
+	"github.com/elgs/gostrgen"
+	"github.com/kellydunn/golang-geo"
+	"github.com/tidwall/buntdb"
+	"gopkg.in/tomb.v2"
 )
 
 type localGeoCacheWriter struct {
@@ -43,7 +44,6 @@ func NewLocalGeoCache() (PredictionCache, func() error, error) {
 	return &c, c.Close, nil
 
 }
-
 
 func bbox(lat, lng, radius float64) string {
 	//LatLon bounding box: [-112.26 33.51],[-112.18 33.67]
@@ -90,7 +90,7 @@ func (Ω *localGeoCacheWriter) ReadPredictions(lat, lng, radius float64, qDate s
 	return res, nil
 }
 
-func (Ω *localGeoCacheWriter) WritePredictionLines(prediction_list predictions.Predictions) error {
+func (Ω *localGeoCacheWriter) WritePredictions(prediction_list predictions.Predictions) error {
 	//Species:taxon_id,date:pos
 	//taxon_id:date,id,prediction:
 	tmb := tomb.Tomb{}
@@ -126,12 +126,12 @@ func newTransaction(p predictions.Prediction) (func(*buntdb.Tx) error, error) {
 		return nil, err
 	}
 
-	return func(tx *buntdb.Tx) error{
+	return func(tx *buntdb.Tx) error {
 		if err := ensureIndexes(tx, indexKeys); err != nil {
 			return nil
 		}
 		pos := fmt.Sprintf("[%.6f %.6f]", lng, lat)
-		for _, k := range indexKeys{
+		for _, k := range indexKeys {
 			if _, _, err := tx.Set(k+":"+valueLine, pos, nil); err != nil {
 				return err
 			}
@@ -139,7 +139,6 @@ func newTransaction(p predictions.Prediction) (func(*buntdb.Tx) error, error) {
 		return nil
 	}, nil
 }
-
 
 func (Ω *localGeoCacheWriter) Close() error {
 	if err := Ω.DB.Close(); err != nil {
@@ -215,7 +214,7 @@ func ensureIndexes(tx *buntdb.Tx, newIndexes []string) error {
 		return err
 	}
 
-	for _, indx := range newIndexes{
+	for _, indx := range newIndexes {
 		if !utils.ContainsString(existingIndexes, indx) {
 			pattern := fmt.Sprintf("%s:*:pos", indx)
 			if err := tx.CreateSpatialIndex(indx, pattern, buntdb.IndexRect); err != nil {
@@ -226,4 +225,3 @@ func ensureIndexes(tx *buntdb.Tx, newIndexes []string) error {
 
 	return nil
 }
-

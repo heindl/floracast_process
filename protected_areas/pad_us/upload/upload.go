@@ -2,20 +2,21 @@ package main
 
 import (
 	//"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/terra"
 	"flag"
-	"github.com/dropbox/godropbox/errors"
-	"golang.org/x/net/context"
-	"gopkg.in/tomb.v2"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"unicode/utf8"
+
+	"bitbucket.org/heindl/process/geofeatures"
 	"bitbucket.org/heindl/process/protected_areas"
 	"bitbucket.org/heindl/process/protected_areas/pad_us"
-	"bitbucket.org/heindl/process/geofeatures"
+	"bitbucket.org/heindl/process/terra"
+	"github.com/dropbox/godropbox/errors"
+	"golang.org/x/net/context"
+	"gopkg.in/tomb.v2"
 )
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 
 	parser := &Parser{
 		Context: cxt,
-		Areas:  protected_areas.ProtectedAreas{},
+		Areas:   protected_areas.ProtectedAreas{},
 		Tmb:     tomb.Tomb{},
 	}
 
@@ -86,7 +87,7 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 		}
 
 		gProtectionLevel := protected_areas.ProtectionLevelUnknown
-		gAccessLevel :=  protected_areas.AccessLevelUnknown
+		gAccessLevel := protected_areas.AccessLevelUnknown
 		gName := ""
 		gState := ""
 		gDesignation := ""
@@ -101,10 +102,10 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 			if err != nil {
 				return err
 			}
-			if  protected_areas.ProtectionLevel(gsc-1) < gProtectionLevel {
-				gProtectionLevel =  protected_areas.ProtectionLevel(gsc-1)
+			if protected_areas.ProtectionLevel(gsc-1) < gProtectionLevel {
+				gProtectionLevel = protected_areas.ProtectionLevel(gsc - 1)
 			}
-			access :=  protected_areas.AccessLevelUnknown
+			access := protected_areas.AccessLevelUnknown
 			switch string(pa.Access) {
 			case "OA":
 				access = protected_areas.AccessLevelOpen
@@ -116,7 +117,7 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 				access = protected_areas.AccessLevelClosed
 			}
 
-			if gAccessLevel ==  protected_areas.AccessLevelUnknown && access != gAccessLevel || access < gAccessLevel {
+			if gAccessLevel == protected_areas.AccessLevelUnknown && access != gAccessLevel || access < gAccessLevel {
 				gAccessLevel = access
 			}
 
@@ -133,15 +134,20 @@ func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) er
 		}
 
 		area := protected_areas.ProtectedArea{
-			Name: gName,
-			State: gState,
+			Name:            gName,
+			State:           gState,
 			ProtectionLevel: &gProtectionLevel,
-			AccessLevel: &gAccessLevel,
-			Designation: gDesignation,
-			Owner: gOwner,
+			AccessLevel:     &gAccessLevel,
+			Designation:     gDesignation,
+			Owner:           gOwner,
 		}
 
-		area.GeoFeatureSet, err = geofeatures.NewGeoFeatureSet(fc.PolyLabel().Latitude(), fc.PolyLabel().Longitude(), false)
+		polyLabel, err := fc.PolyLabel()
+		if err != nil {
+			return err
+		}
+
+		area.GeoFeatureSet, err = geofeatures.NewGeoFeatureSet(polyLabel.Latitude(), polyLabel.Longitude(), false)
 		if err != nil {
 			return err
 		}
@@ -178,19 +184,10 @@ func parse_string_value(existing, given string) string {
 		}
 	}
 
-	if existing_has_negative_flag != given_has_negative_flag && existing_has_negative_flag {
-		return given
-	} else {
-		return existing
-	}
-
-	if len(existing) > len(given) {
-		return existing
-	} else {
+	if (existing_has_negative_flag != given_has_negative_flag && existing_has_negative_flag) || (len(existing) < len(given)) {
 		return given
 	}
-
-	return given
+	return existing
 }
 
 func (p *Parser) FormatAreaName(name string) string {

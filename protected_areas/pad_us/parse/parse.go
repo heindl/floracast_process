@@ -45,7 +45,7 @@ func main() {
 
 	processor.Stats["Initial Filtered Total"] = processor.Aggregated.Count()
 
-	filtered_unit_names := processor.Aggregated.FilterByProperty(func(i interface{}) bool {
+	filtered_unit_names, err := processor.Aggregated.FilterByProperty(func(i interface{}) bool {
 		s := strings.ToLower(string(i.([]byte)))
 		for _, f := range filteredNames {
 			if strings.Contains(s, f) {
@@ -60,6 +60,9 @@ func main() {
 		}
 		return true
 	}, "Unit_Nm")
+	if err != nil {
+		panic(err)
+	}
 
 	processor.Stats["After Name Filter"] = filtered_unit_names.Count()
 

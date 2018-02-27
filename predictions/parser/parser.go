@@ -1,18 +1,18 @@
 package parser
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"bufio"
 	"context"
-	"github.com/montanaflynn/stats"
-	"github.com/dropbox/godropbox/errors"
-	"gopkg.in/tomb.v2"
+	"io"
+	"strconv"
 	"strings"
 	"sync"
+
 	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bufio"
-	"strconv"
-	"io"
 	"bitbucket.org/heindl/process/predictions"
+	"bitbucket.org/heindl/process/utils"
+	"github.com/dropbox/godropbox/errors"
+	"gopkg.in/tomb.v2"
 )
 
 type PredictionParser interface {
@@ -21,12 +21,12 @@ type PredictionParser interface {
 
 func NewPredictionParser(src PredictionSource) (PredictionParser, error) {
 	return &predictionParser{
-		predictionSource:   src,
+		predictionSource: src,
 	}, nil
 }
 
 type predictionParser struct {
-	predictionSource   PredictionSource
+	predictionSource PredictionSource
 }
 
 func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*PredictionResult, error) {
@@ -63,7 +63,6 @@ func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*Predi
 	}
 	return response_list, nil
 }
-
 
 func parseNameUsageIDFromFilePath(p string) (nameusage.NameUsageID, error) {
 	a := strings.Split(p, "/")
@@ -166,41 +165,42 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, nameUsageIDs n
 	return aggr.PredictionObjects, nil
 }
 
-func (Ω aggregator) calcTaxonScarcity() (map[nameusage.NameUsageID]float64, error) {
-	taxaRatios := stats.Float64Data{}
-	taxaRatiosMap := map[nameusage.NameUsageID]float64{}
-	for taxon, predictionValues := range Ω.PredictionList {
-		totalTaxonPredictionCount := float64(len(predictionValues))
-		totalTaxonProtectedAreaCount := Ω.TotalProtectedAreaCount[taxon]
-		taxaRatios = append(taxaRatios, totalTaxonPredictionCount/totalTaxonProtectedAreaCount)
-		taxaRatiosMap[taxon] = totalTaxonPredictionCount / totalTaxonProtectedAreaCount
-	}
-
-	taxaRatioMean, err := stats.Mean(taxaRatios)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not calculate mean")
-	}
-
-	var taxonRatioInvertedMin, taxonRatioInvertedMax float64
-	// In order to scale, must calculate the min and the max values once we invert the value by subtracting the mean.
-	// This is so rarer taxa have a higher intensity value.
-	for taxon, ratio := range taxaRatiosMap {
-		invertedValue := taxaRatioMean - ratio
-		if invertedValue < taxonRatioInvertedMin || taxonRatioInvertedMin == 0 {
-			taxonRatioInvertedMin = invertedValue
-		}
-		if invertedValue > taxonRatioInvertedMax || taxonRatioInvertedMax == 0 {
-			taxonRatioInvertedMax = invertedValue
-		}
-		taxaRatiosMap[taxon] = invertedValue
-	}
-	for taxon, ratio := range taxaRatiosMap {
-		// Scale between 1 and 0.5
-		//((b-a)(x - min) / max - min) + a
-		if ratio != 0 {
-			taxaRatiosMap[taxon] = ((1 - 0.5) * (ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)) + 0.5
-		}
-	}
-
-	return taxaRatiosMap, nil
-}
+//
+//func (Ω *aggregator) calcTaxonScarcity() (map[nameusage.NameUsageID]float64, error) {
+//	taxaRatios := stats.Float64Data{}
+//	taxaRatiosMap := map[nameusage.NameUsageID]float64{}
+//	for taxon, predictionValues := range Ω.PredictionList {
+//		totalTaxonPredictionCount := float64(len(predictionValues))
+//		totalTaxonProtectedAreaCount := Ω.TotalProtectedAreaCount[taxon]
+//		taxaRatios = append(taxaRatios, totalTaxonPredictionCount/totalTaxonProtectedAreaCount)
+//		taxaRatiosMap[taxon] = totalTaxonPredictionCount / totalTaxonProtectedAreaCount
+//	}
+//
+//	taxaRatioMean, err := stats.Mean(taxaRatios)
+//	if err != nil {
+//		return nil, errors.Wrap(err, "could not calculate mean")
+//	}
+//
+//	var taxonRatioInvertedMin, taxonRatioInvertedMax float64
+//	// In order to scale, must calculate the min and the max values once we invert the value by subtracting the mean.
+//	// This is so rarer taxa have a higher intensity value.
+//	for taxon, ratio := range taxaRatiosMap {
+//		invertedValue := taxaRatioMean - ratio
+//		if invertedValue < taxonRatioInvertedMin || taxonRatioInvertedMin == 0 {
+//			taxonRatioInvertedMin = invertedValue
+//		}
+//		if invertedValue > taxonRatioInvertedMax || taxonRatioInvertedMax == 0 {
+//			taxonRatioInvertedMax = invertedValue
+//		}
+//		taxaRatiosMap[taxon] = invertedValue
+//	}
+//	for taxon, ratio := range taxaRatiosMap {
+//		// Scale between 1 and 0.5
+//		//((b-a)(x - min) / max - min) + a
+//		if ratio != 0 {
+//			taxaRatiosMap[taxon] = ((1 - 0.5) * (ratio - taxonRatioInvertedMin) / (taxonRatioInvertedMax - taxonRatioInvertedMin)) + 0.5
+//		}
+//	}
+//
+//	return taxaRatiosMap, nil
+//}

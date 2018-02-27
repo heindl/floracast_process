@@ -1,16 +1,17 @@
 package predictions
 
 import (
-	"time"
-	"google.golang.org/genproto/googleapis/type/latlng"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/geofeatures"
-	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/process/store"
 	"context"
+	"time"
+
+	"bitbucket.org/heindl/process/geofeatures"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/store"
+	"github.com/dropbox/godropbox/errors"
+	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
-type Prediction interface{
+type Prediction interface {
 	UsageID() (nameusage.NameUsageID, error)
 	Date() (string, error)
 	ProtectedArea() (geofeatures.CoordinateKey, error)
@@ -37,26 +38,29 @@ func NewPrediction(usageID nameusage.NameUsageID, date string, lat, lng, predict
 	}
 
 	return &prediction{
-		ProtectedAreaID: coordinateKey,
-		PredictionValue: predictionValue,
+		ProtectedAreaID:       coordinateKey,
+		PredictionValue:       predictionValue,
 		ScaledPredictionValue: ((predictionValue - 0.5) / 0.5),
-		FormattedDate: date,
-		GeoPoint: &latlng.LatLng{lat, lng},
+		FormattedDate:         date,
+		GeoPoint: &latlng.LatLng{
+			Latitude:  lat,
+			Longitude: lng,
+		},
 	}, nil
 }
 
 type prediction struct {
 	// Date formatted "YYYYMMDD"
-	GeoPoint *latlng.LatLng `firestore:",omitempty" json:",omitempty"`
-	NameUsageID nameusage.NameUsageID `firestore:",omitempty" json:",omitempty"`
-	FormattedDate         string             `firestore:",omitempty" json:",omitempty"`
-	Month                 time.Month         `firestore:",omitempty" json:",omitempty"`
-	PredictionValue       float64            `firestore:",omitempty" json:",omitempty"`
-	ScaledPredictionValue float64            `firestore:",omitempty" json:",omitempty"`
+	GeoPoint              *latlng.LatLng        `firestore:",omitempty" json:",omitempty"`
+	NameUsageID           nameusage.NameUsageID `firestore:",omitempty" json:",omitempty"`
+	FormattedDate         string                `firestore:",omitempty" json:",omitempty"`
+	Month                 time.Month            `firestore:",omitempty" json:",omitempty"`
+	PredictionValue       float64               `firestore:",omitempty" json:",omitempty"`
+	ScaledPredictionValue float64               `firestore:",omitempty" json:",omitempty"`
 	//ScarcityValue         float64            `firestore:"" json:""`
 	//TaxonID               INaturalistTaxonID `datastore:",omitempty" json:",omitempty"`
-	ProtectedAreaName string `firestore:",omitempty" json:",omitempty"`
-	ProtectedAreaSize float64 `firestore:",omitempty" json:",omitempty"`
+	ProtectedAreaName string                    `firestore:",omitempty" json:",omitempty"`
+	ProtectedAreaSize float64                   `firestore:",omitempty" json:",omitempty"`
 	ProtectedAreaID   geofeatures.CoordinateKey `firestore:"" json:""`
 }
 
@@ -76,12 +80,12 @@ func (Ω *prediction) ScaledPrediction() (float64, error) {
 	return Ω.ScaledPredictionValue, nil
 }
 func (Ω *prediction) LatLng() (float64, float64, error) {
-	return Ω.GeoPoint.GetLatitude(),  Ω.GeoPoint.GetLongitude(), nil
+	return Ω.GeoPoint.GetLatitude(), Ω.GeoPoint.GetLongitude(), nil
 }
 
 type Predictions []Prediction
 
-type PredictionWriter interface{
+type PredictionWriter interface {
 	WritePredictions(Predictions) error
 }
 

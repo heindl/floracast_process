@@ -21,6 +21,7 @@ func (Ω *FeatureCollection) Features() []*Feature {
 }
 
 var ErrInvalidFeature = errors.New("Invalid Feature")
+
 func (Ω *FeatureCollection) Append(features ...*Feature) error {
 	for i := range features {
 		features[i].Normalize()
@@ -84,18 +85,17 @@ func (Ω *FeatureCollection) PolyLabel() (*Point, error) {
 func (Ω *FeatureCollection) Area() float64 {
 	return Ω.area
 }
-func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bool, property_key string) *FeatureCollection {
+func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bool, property_key string) (*FeatureCollection, error) {
 	if property_key == "" {
-		return Ω
+		return Ω, nil
 	}
 	// This instead of Feature collection to reduce normalization calculations.
 	output_holder := []*Feature{}
 	for _, feature := range Ω.features {
 		i, err := feature.GetProperty(property_key)
 		if err != nil {
-			panic(err)
 			// Hard break because should function may be looking for nil or something
-			return nil
+			return nil, err
 		}
 		if should_filter(i) {
 			continue
@@ -105,12 +105,13 @@ func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bo
 	fc := FeatureCollection{}
 	// Ignore internal validate error because features must have been valid to be created.
 	_ = fc.Append(output_holder...)
-	return &fc
+	return &fc, nil
 }
 
 // Note that this function ignores missing strings.
 // max_distance_from_centroid
 var ErrInvalidProperty = errors.New("Invalid Property")
+
 func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) (FeatureCollections, error) {
 	if len(property_keys) == 0 {
 		return nil, nil
@@ -127,7 +128,7 @@ func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) (Feature
 				return nil, errors.Wrapf(ErrInvalidProperty, "Empty Value")
 			}
 			s := strings.TrimSpace(string(i.([]byte)))
-			if s == "" || s == "0"  {
+			if s == "" || s == "0" {
 				return nil, errors.Wrapf(ErrInvalidProperty, "Empty Value")
 			}
 			a = a + s

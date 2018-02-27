@@ -1,12 +1,11 @@
 package terra
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	//"github.com/golang/geo/s1"
-	//"github.com/golang/geo/s2"
-	//"fmt"
+
 	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
+
 	"github.com/golang/geo/s1"
 	"github.com/golang/geo/s2"
 )
@@ -435,13 +434,11 @@ func TestEcoRegionFetch(t *testing.T) {
 }`)
 
 		multipolygon := MultiPolygon{}
-		So(ParseGeoJSONFeature(seal_beach, func(encoded_properties []byte, polygon MultiPolygon) error {
-			multipolygon = polygon
+		So(ParseGeoJSONFeature(seal_beach, func(feature *Feature) error {
+			multipolygon = feature.MultiPolygon()
 			return nil
 		}), ShouldBeNil)
 
-		_, err := multipolygon.ToGeoJSONFeature(nil)
-		So(err, ShouldBeNil)
 		//fmt.Println(string(f))
 		So(multipolygon.Contains(33.735760815044635, -118.06564807891844), ShouldBeFalse) // Within Hole
 		So(multipolygon.Contains(33.745252, -118.0801775), ShouldBeTrue)

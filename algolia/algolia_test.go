@@ -41,7 +41,7 @@ func TestNameUsageProcessor(t *testing.T) {
 
 		c, err := countNameUsages(florastore, id1)
 		So(err, ShouldBeNil)
-		So(c, ShouldEqual, 102)
+		So(c, ShouldEqual, 103)
 
 		usage, err = nameusage.NameUsageFromJSON(id2, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
@@ -52,7 +52,7 @@ func TestNameUsageProcessor(t *testing.T) {
 
 		c, err = countNameUsages(florastore, id1, id2)
 		So(err, ShouldBeNil)
-		So(c, ShouldEqual, 102)
+		So(c, ShouldEqual, 103)
 
 		time.Sleep(time.Second * 5) // Consistency
 

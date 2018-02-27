@@ -1,16 +1,17 @@
 package occurrences
 
 import (
-	"fmt"
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/store"
 	"context"
-	"cloud.google.com/go/firestore"
+	"fmt"
 	"strings"
+
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/geofeatures"
+	"bitbucket.org/heindl/process/store"
+	"cloud.google.com/go/firestore"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/mongodb/mongo-tools/common/json"
 	"google.golang.org/api/iterator"
-	"bitbucket.org/heindl/process/geofeatures"
 )
 
 // TODO: Should periodically check all occurrences for consistency.
@@ -18,13 +19,13 @@ import (
 func (Ω *OccurrenceAggregation) Upload(cxt context.Context, florastore store.FloraStore) error {
 	for _, _o := range Ω.list {
 		o := _o
-			transactionFunc, err := o.UpsertTransactionFunc(florastore)
-			if err != nil {
-				return err
-			}
-			if err := florastore.FirestoreTransaction(cxt, transactionFunc); err != nil {
-				return err
-			}
+		transactionFunc, err := o.UpsertTransactionFunc(florastore)
+		if err != nil {
+			return err
+		}
+		if err := florastore.FirestoreTransaction(cxt, transactionFunc); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -39,7 +40,7 @@ func ClearRandomOccurrences(cxt context.Context, florastore store.FloraStore) er
 	for {
 		snap, err := docs.Next()
 		if err == iterator.Done {
-			return nil
+			break
 		}
 		if err != nil {
 			return errors.Wrap(err, "Could not get random occurrence snapshot")
@@ -139,7 +140,12 @@ func (Ω *occurrence) UpsertTransactionFunc(florastore store.FloraStore) (store.
 
 			// TODO: Be wary of cases in which there are occurrence of two different species in the same spot. Not sure if this will come up.
 
-			fmt.Println(fmt.Sprintf("Warning: Imbricative Occurrence Locations [%s, %s]", Ω.ID, imbricates[0].Ref.ID))
+			originalID, err := Ω.ID()
+			if err != nil {
+				return err
+			}
+
+			fmt.Println(fmt.Sprintf("Warning: Imbricative Occurrence Locations [%s, %s]", originalID, imbricates[0].Ref.ID))
 
 			m := map[string]interface{}{}
 			if err := imbricates[0].DataTo(&m); err != nil {

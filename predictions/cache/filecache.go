@@ -3,14 +3,15 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/elgs/gostrgen"
-	"github.com/dropbox/godropbox/errors"
 	"os"
 	"path"
-	"bitbucket.org/heindl/process/predictions"
-	"gopkg.in/tomb.v2"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"sync"
+
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/predictions"
+	"github.com/dropbox/godropbox/errors"
+	"github.com/elgs/gostrgen"
+	"gopkg.in/tomb.v2"
 )
 
 type localFileCache struct {
@@ -31,7 +32,7 @@ func NewLocalFileCache() (PredictionCache, func() error, error) {
 	fmt.Println("TEMP_FILE_DIRECTORY", tmp)
 
 	c := localFileCache{
-		filePath: tmp,
+		filePath:     tmp,
 		filePointers: map[string]*os.File{},
 	}
 
@@ -73,7 +74,7 @@ func (Ω *localFileCache) getFilePointer(p predictions.Prediction) (*os.File, er
 	return taxonFile, nil
 }
 
-func (Ω *localFileCache) WritePredictionLines(prediction_list predictions.Predictions) error {
+func (Ω *localFileCache) WritePredictions(prediction_list predictions.Predictions) error {
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {

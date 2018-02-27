@@ -1,18 +1,19 @@
 package occurrences
 
 import (
-	"bitbucket.org/heindl/process/terra/grid"
-	"bitbucket.org/heindl/process/ecoregions"
 	"math"
-	"bitbucket.org/heindl/process/datasources"
-	"strconv"
-	"time"
-	"sync"
-	"gopkg.in/tomb.v2"
 	"math/rand"
+	"strconv"
+	"sync"
+	"time"
+
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/ecoregions"
+	"bitbucket.org/heindl/process/terra/grid"
+	"gopkg.in/tomb.v2"
 )
 
-type Season struct{
+type Season struct {
 	Min, Max int64
 }
 
@@ -36,14 +37,13 @@ var Winter = Season{
 	Max: time.Date(2011, time.February, 28, 0, 0, 0, 0, time.UTC).Unix(),
 }
 
-type randomOccurrenceGenerator struct{
-	gridGenerator grid.Generator
+type randomOccurrenceGenerator struct {
+	gridGenerator        grid.Generator
 	occurrenceAggregator *OccurrenceAggregation
-	ecoRegionCache *ecoregions.EcoRegionsCache
-	counter int
+	ecoRegionCache       *ecoregions.EcoRegionsCache
+	counter              int
 	sync.Mutex
 }
-
 
 func newRandomOccurrenceGenerator() (*randomOccurrenceGenerator, error) {
 
@@ -60,9 +60,9 @@ func newRandomOccurrenceGenerator() (*randomOccurrenceGenerator, error) {
 	}
 
 	return &randomOccurrenceGenerator{
-		gridGenerator: gridGenerator,
+		gridGenerator:        gridGenerator,
 		occurrenceAggregator: NewOccurrenceAggregation(),
-		ecoRegionCache: ecoRegionCache,
+		ecoRegionCache:       ecoRegionCache,
 	}, nil
 }
 
@@ -77,7 +77,7 @@ func GenerateRandomOccurrences(number float64) (*OccurrenceAggregation, error) {
 		panic(err)
 	}
 
-	numberOfBatches := math.Ceil(number / float64(len(bounds) * 4))
+	numberOfBatches := math.Ceil(number / float64(len(bounds)*4))
 
 	counter := 1
 
@@ -107,7 +107,6 @@ func GenerateRandomOccurrences(number float64) (*OccurrenceAggregation, error) {
 
 	return gen.occurrenceAggregator, nil
 }
-
 
 func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber int, bounds grid.Bound, season Season) error {
 
@@ -149,7 +148,7 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 			return err
 		}
 
-		return nil
+		break
 
 	}
 

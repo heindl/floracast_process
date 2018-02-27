@@ -1,20 +1,21 @@
 package terra
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestArea(t *testing.T) {
 
 	t.Parallel()
 
-	SkipConvey("should provide area", t, func() {
+	Convey("should provide area", t, func() {
 
 		multipolygon := MultiPolygon{}
-		So(ParseGeoJSONFeatureCollection(sacramento_river_state_park, func(encoded_properties []byte, polygon MultiPolygon) error {
+		So(ParseGeoJSONFeatureCollection(sacramento_river_state_park, func(feature *Feature) error {
 			var err error
-			multipolygon, err = multipolygon.PushMultiPolygon(polygon)
+			multipolygon, err = multipolygon.PushMultiPolygon(feature.MultiPolygon())
 			return err
 		}), ShouldBeNil)
 
@@ -24,9 +25,9 @@ func TestArea(t *testing.T) {
 	Convey("should provide area", t, func() {
 
 		multipolygon := MultiPolygon{}
-		So(ParseGeoJSONFeatureCollection(carmel_river_state_beach, func(encoded_properties []byte, polygon MultiPolygon) error {
+		So(ParseGeoJSONFeatureCollection(carmel_river_state_beach, func(feature *Feature) error {
 			var err error
-			multipolygon, err = multipolygon.PushMultiPolygon(polygon)
+			multipolygon, err = multipolygon.PushMultiPolygon(feature.MultiPolygon())
 			return err
 		}), ShouldBeNil)
 
@@ -35,8 +36,8 @@ func TestArea(t *testing.T) {
 		So(err, ShouldBeNil)
 		polylabel, err := multipolygon.PolylabelOfLargestPolygon()
 		So(err, ShouldBeNil)
-		//So(multipolygon.Contains(centroid[1], centroid[0]), ShouldBeTrue)
-		//So(multipolygon.Contains(polylabel[1], polylabel[0]), ShouldBeTrue)
+		So(multipolygon.Contains(centroid.Latitude(), centroid.Longitude()), ShouldBeTrue)
+		So(multipolygon.Contains(polylabel.Latitude(), polylabel.Longitude()), ShouldBeTrue)
 	})
 }
 
