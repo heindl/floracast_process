@@ -1,22 +1,24 @@
 package algolia
 
 import (
+	"context"
+	"fmt"
+	"strings"
+
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/utils"
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"
-	"fmt"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"strings"
-	"bitbucket.org/heindl/process/utils"
-	"bitbucket.org/heindl/process/store"
-	"context"
 )
 
+// UploadNameUsageObjects creates searchable Algolia objects.
 func UploadNameUsageObjects(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsages ...nameusage.NameUsageID) error {
 
 	if err := deleteNameUsageObjects(florastore, deletedUsages...); err != nil {
 		return err
 	}
-	
+
 	objs, err := generateNameUsageObjects(ctx, usage)
 	if err != nil {
 		return err
@@ -25,7 +27,7 @@ func UploadNameUsageObjects(ctx context.Context, florastore store.FloraStore, us
 	return uploadNameUsageObjects(florastore, objs)
 }
 
-func uploadNameUsageObjects(florastore store.FloraStore, objs AlgoliaObjects) error {
+func uploadNameUsageObjects(florastore store.FloraStore, objs objects) error {
 
 	index, err := florastore.AlgoliaIndex(nameUsageIndex)
 	if err != nil {
@@ -63,59 +65,35 @@ func nameUsageIDFilter(nameUsageIDs ...nameusage.NameUsageID) algoliasearch.Map 
 	}
 	filterKeys := []string{}
 	for _, id := range nameUsageIDs {
-		filterKeys = append(filterKeys, fmt.Sprintf("%s:%s", KeyNameUsageID, id))
+		filterKeys = append(filterKeys, fmt.Sprintf("%s:%s", keyNameUsageID, id))
 	}
 	return algoliasearch.Map{
 		"filters": strings.Join(filterKeys, " OR "),
 	}
 }
 
-func countNameUsages(florastore store.FloraStore, nameUsageIDs ...nameusage.NameUsageID) (int, error) {
-	index, err := florastore.AlgoliaIndex(nameUsageIndex)
-	if err != nil {
-		return 0, err
-	}
-	count := 0
-
-	iter, err := index.BrowseAll(nameUsageIDFilter(nameUsageIDs...))
-	if err != nil && err != algoliasearch.NoMoreHitsErr {
-		return 0, errors.Wrap(err, "Could not browse Algolia NameUsage Index")
-	}
-
-	for {
-		if _, err := iter.Next(); err != nil && err != algoliasearch.NoMoreHitsErr {
-			return 0, err
-		} else if err != nil && err == algoliasearch.NoMoreHitsErr {
-			break
-		}
-		count += 1
-	}
-	return count, nil
-
-}
-
-const IndexNameUsage = "NameUsage"
-const IndexTestNameUsage = "TestNameUsage"
+const indexNameUsage = "NameUsage"
+const indexTestNameUsage = "TestNameUsage"
 
 func nameUsageIndex(client algoliasearch.Client, isTest bool) (algoliasearch.Index, error) {
 
 	var index algoliasearch.Index
 	if isTest {
-		index = client.InitIndex(IndexTestNameUsage)
+		index = client.InitIndex(indexTestNameUsage)
 	} else {
-		index = client.InitIndex(IndexNameUsage)
+		index = client.InitIndex(indexNameUsage)
 	}
 
 	if _, err := index.SetSettings(algoliasearch.Map{
-		"distinct": true,
-		"attributeForDistinct": string(KeyNameUsageID),
-		"attributesForFaceting": []string{string(KeyNameUsageID)},
+		"distinct":              true,
+		"attributeForDistinct":  string(keyNameUsageID),
+		"attributesForFaceting": []string{string(keyNameUsageID)},
 		"customRanking": []string{
-			fmt.Sprintf("desc(%s)", KeyReferenceCount),
+			fmt.Sprintf("desc(%s)", keyReferenceCount),
 		},
 		"searchableAttributes": []string{
-			string(KeyCommonName),
-			string(KeyScientificName),
+			string(keyCommonName),
+			string(keyScientificName),
 		},
 	}); err != nil {
 		return nil, errors.Wrap(err, "Could not add settings to NameUsage Algolia index")
@@ -124,16 +102,17 @@ func nameUsageIndex(client algoliasearch.Client, isTest bool) (algoliasearch.Ind
 	return index, nil
 
 }
+
 const (
-	KeyNameUsageID     = ObjectKey("NameUsageID")
-	KeyScientificName  = ObjectKey("ScientificName")
-	KeyCommonName      = ObjectKey("CommonName")
-	KeyThumbnail       = ObjectKey("Thumbnail")
-	KeyOccurrenceCount = ObjectKey("TotalOccurrenceCount")
-	KeyReferenceCount  = ObjectKey("ReferenceCount")
+	keyNameUsageID     = objectKey("NameUsageID")
+	keyScientificName  = objectKey("ScientificName")
+	keyCommonName      = objectKey("CommonName")
+	keyThumbnail       = objectKey("Thumbnail")
+	keyOccurrenceCount = objectKey("TotalOccurrenceCount")
+	keyReferenceCount  = objectKey("ReferenceCount")
 )
 
-func generateNameUsageObjects(ctx context.Context, usage nameusage.NameUsage) (AlgoliaObjects, error) {
+func generateNameUsageObjects(ctx context.Context, usage nameusage.NameUsage) (objects, error) {
 
 	usageOccurrenceCount, err := usage.Occurrences()
 	if err != nil {
@@ -152,11 +131,10 @@ func generateNameUsageObjects(ctx context.Context, usage nameusage.NameUsage) (A
 	}
 	usageCommonName = strings.Title(usageCommonName)
 
-
 	// TODO: Generate thumbnail from image
 	thumbnail := ""
 
-	res := AlgoliaObjects{}
+	res := objects{}
 
 	sciNameRefLedger, err := usage.ScientificNameReferenceLedger()
 	if err != nil {
@@ -169,13 +147,13 @@ func generateNameUsageObjects(ctx context.Context, usage nameusage.NameUsage) (A
 	}
 
 	for _, ref := range sciNameRefLedger {
-		res = append(res, AlgoliaObject{
-			KeyNameUsageID:     id,
-			KeyScientificName:  utils.CapitalizeString(ref.Name),
-			KeyCommonName:      usageCommonName,
-			KeyThumbnail:       thumbnail,
-			KeyOccurrenceCount: usageOccurrenceCount,
-			KeyReferenceCount:  ref.ReferenceCount,
+		res = append(res, object{
+			keyNameUsageID:     id,
+			keyScientificName:  utils.CapitalizeString(ref.Name),
+			keyCommonName:      usageCommonName,
+			keyThumbnail:       thumbnail,
+			keyOccurrenceCount: usageOccurrenceCount,
+			keyReferenceCount:  ref.ReferenceCount,
 		})
 	}
 
@@ -185,13 +163,13 @@ func generateNameUsageObjects(ctx context.Context, usage nameusage.NameUsage) (A
 	}
 
 	for _, ref := range commonNameRefLedger {
-		res = append(res, AlgoliaObject{
-			KeyNameUsageID:     id,
-			KeyScientificName:  utils.CapitalizeString(usage.CanonicalName().ScientificName()),
-			KeyCommonName:      strings.Title(ref.Name),
-			KeyThumbnail:       thumbnail,
-			KeyOccurrenceCount: usageOccurrenceCount,
-			KeyReferenceCount:  ref.ReferenceCount,
+		res = append(res, object{
+			keyNameUsageID:     id,
+			keyScientificName:  utils.CapitalizeString(usage.CanonicalName().ScientificName()),
+			keyCommonName:      strings.Title(ref.Name),
+			keyThumbnail:       thumbnail,
+			keyOccurrenceCount: usageOccurrenceCount,
+			keyReferenceCount:  ref.ReferenceCount,
 		})
 	}
 

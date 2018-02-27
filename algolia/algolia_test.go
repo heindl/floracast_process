@@ -1,13 +1,16 @@
 package algolia
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"bitbucket.org/heindl/process/utils"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"golang.org/x/net/context"
-	"bitbucket.org/heindl/process/store"
 	"time"
+
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/utils"
+	"github.com/algolia/algoliasearch-client-go/algoliasearch"
+	"github.com/dropbox/godropbox/errors"
+	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
 )
 
 func TestNameUsageProcessor(t *testing.T) {
@@ -62,4 +65,28 @@ func TestNameUsageProcessor(t *testing.T) {
 		So(c, ShouldEqual, 0)
 
 	})
+}
+
+func countNameUsages(florastore store.FloraStore, nameUsageIDs ...nameusage.NameUsageID) (int, error) {
+	index, err := florastore.AlgoliaIndex(nameUsageIndex)
+	if err != nil {
+		return 0, err
+	}
+	count := 0
+
+	iter, err := index.BrowseAll(nameUsageIDFilter(nameUsageIDs...))
+	if err != nil && err != algoliasearch.NoMoreHitsErr {
+		return 0, errors.Wrap(err, "Could not browse Algolia NameUsage Index")
+	}
+
+	for {
+		if _, err := iter.Next(); err != nil && err != algoliasearch.NoMoreHitsErr {
+			return 0, err
+		} else if err != nil && err == algoliasearch.NoMoreHitsErr {
+			break
+		}
+		count++
+	}
+	return count, nil
+
 }

@@ -1,30 +1,16 @@
 package algolia
 
 import (
-	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"math"
+
+	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 )
 
-type ObjectKey string
-type AlgoliaObject map[ObjectKey]interface{}
-type AlgoliaObjects []AlgoliaObject
+type objectKey string
+type object map[objectKey]interface{}
+type objects []object
 
-func (Ω AlgoliaObjects) hasCombination(scientificName, commonName string) bool {
-
-	for _, o := range Ω {
-
-		if o[KeyScientificName] != scientificName {
-			continue
-		}
-		if o[KeyCommonName] != commonName {
-			continue
-		}
-		return true
-	}
-	return false
-}
-
-func (Ω AlgoliaObjects) asAlgoliaMapObjects() []algoliasearch.Object {
+func (Ω objects) asAlgoliaMapObjects() []algoliasearch.Object {
 	res := []algoliasearch.Object{}
 	for _, nameObject := range Ω {
 		o := algoliasearch.Object{}
@@ -36,7 +22,7 @@ func (Ω AlgoliaObjects) asAlgoliaMapObjects() []algoliasearch.Object {
 	return res
 }
 
-func (Ω AlgoliaObjects) batches(maxBatchSize float64) []AlgoliaObjects {
+func (Ω objects) batches(maxBatchSize float64) []objects {
 
 	if len(Ω) == 0 {
 		return nil
@@ -44,8 +30,8 @@ func (Ω AlgoliaObjects) batches(maxBatchSize float64) []AlgoliaObjects {
 
 	batchCount := math.Ceil(float64(len(Ω)) / maxBatchSize)
 
-	res := []AlgoliaObjects{}
-	for i := 0.0; i <= batchCount - 1; i++ {
+	res := []objects{}
+	for i := 0.0; i <= batchCount-1; i++ {
 		start := int(i * maxBatchSize)
 		end := int(((i + 1) * maxBatchSize) - 1)
 		if end > len(Ω) {
