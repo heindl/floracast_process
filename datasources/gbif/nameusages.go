@@ -172,7 +172,7 @@ func (Ω *orchestrator) fashionCanonicalNameUsage(scientificName, vernacularName
 
 	if vernacularName != "" {
 		if err := usageSource.AddCommonNames(vernacularName); err != nil {
-			return nil
+			return err
 		}
 	}
 

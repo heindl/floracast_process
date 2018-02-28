@@ -27,7 +27,7 @@ func (Ω *GeoFeatureSet) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	Ω = &GeoFeatureSet{
+	*Ω = GeoFeatureSet{
 		coordinatesEstimated: m[keyCoordinatesEstimated].(bool),
 		biome:                m[keyEcoBiome].(ecoregions.Biome),
 		realm:                m[keyEcoRealm].(ecoregions.Realm),

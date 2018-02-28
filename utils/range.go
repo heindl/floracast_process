@@ -68,9 +68,18 @@ func (r RangeVal) Unmarshal() (time.Time, error) {
 		return time.Time{}, err
 	}
 	v := string(r)
-	y, _ := strconv.Atoi(v[0:4])
-	m, _ := strconv.Atoi(v[4:6])
-	d, _ := strconv.Atoi(v[6:8])
+	y, err := strconv.Atoi(v[0:4])
+	if err != nil {
+		return time.Time{}, err
+	}
+	m, err := strconv.Atoi(v[4:6])
+	if err != nil {
+		return time.Time{}, err
+	}
+	d, err := strconv.Atoi(v[6:8])
+	if err != nil {
+		return time.Time{}, err
+	}
 	// Set central date as noon.
 	return time.Date(y, time.Month(m), d, 12, 0, 0, 0, time.UTC), nil
 }

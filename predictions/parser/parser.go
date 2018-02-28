@@ -34,7 +34,7 @@ func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*Predi
 	scanner := bufio.NewScanner(reader)
 
 	scanner.Split(bufio.ScanLines)
-	response_list := []*PredictionResult{}
+	responseList := []*PredictionResult{}
 	for scanner.Scan() {
 		var err error
 		line := strings.Split(scanner.Text(), ",")
@@ -58,9 +58,9 @@ func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*Predi
 		if err != nil {
 			return nil, errors.Wrap(err, "could not parse random")
 		}
-		response_list = append(response_list, &res)
+		responseList = append(responseList, &res)
 	}
-	return response_list, nil
+	return responseList, nil
 }
 
 func parseNameUsageIDFromFilePath(p string) (nameusage.NameUsageID, error) {
@@ -85,11 +85,11 @@ type aggregator struct {
 }
 
 func (Ω *predictionParser) parseFile(cxt context.Context, aggr *aggregator, fpath string) error {
-	prediction_list, err := Ω.predictionSource.FetchPredictions(cxt, fpath)
+	predictionList, err := Ω.predictionSource.FetchPredictions(cxt, fpath)
 	if err != nil {
 		return err
 	}
-	for _, predictionResult := range prediction_list {
+	for _, predictionResult := range predictionList {
 
 		parsedPrediction, err := predictions.NewPrediction(
 			predictionResult.NameUsageID,
@@ -108,7 +108,7 @@ func (Ω *predictionParser) parseFile(cxt context.Context, aggr *aggregator, fpa
 		if _, ok := aggr.TotalProtectedAreaCount[predictionResult.NameUsageID]; !ok {
 			aggr.TotalProtectedAreaCount[predictionResult.NameUsageID] = 0
 		}
-		aggr.TotalProtectedAreaCount[predictionResult.NameUsageID] += 1
+		aggr.TotalProtectedAreaCount[predictionResult.NameUsageID]++
 
 		if predictionResult.Target <= predictionResult.Random {
 			return nil

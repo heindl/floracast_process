@@ -80,7 +80,7 @@ func newNameUsageID() (NameUsageID, error) {
 	}
 	id := NameUsageID(rand)
 	if !id.Valid() {
-		return "", errors.Newf("Creating invalid NameUsageID [%s]", id)
+		return NameUsageID(""), errors.Newf("Creating invalid NameUsageID [%s]", id)
 	}
-	return NameUsageID(id), nil
+	return id, nil
 }

@@ -97,7 +97,8 @@ func (Ω *Aggregate) ScientificNames() ([]string, error) {
 	return res.ScientificNames(), nil
 }
 
-func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (res datasources.TargetIDs, err error) {
+func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (datasources.TargetIDs, error) {
+	res := datasources.TargetIDs{}
 	for _, usage := range Ω.list {
 		srcs, err := usage.Sources(sourceTypes...)
 		if err != nil {
@@ -111,7 +112,7 @@ func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (res datas
 			res = append(res, targetID)
 		}
 	}
-	return
+	return res, nil
 }
 
 func (Ω *Aggregate) AddUsage(usages ...nameusage.NameUsage) error {
@@ -122,18 +123,16 @@ func (Ω *Aggregate) AddUsage(usages ...nameusage.NameUsage) error {
 
 ResetLoop:
 	for {
-		changed := false
 		for i := range Ω.list {
 			for k := range Ω.list {
 				if k == i {
 					continue
 				}
-				combine, err := Ω.list[i].ShouldCombine(Ω.list[k])
+				shouldCombine, err := Ω.list[i].ShouldCombine(Ω.list[k])
 				if err != nil {
 					return err
 				}
-				if combine {
-					changed = true
+				if shouldCombine {
 					var err error
 					Ω.list[i], err = Ω.list[i].Combine(Ω.list[k])
 					if err != nil {
@@ -144,9 +143,7 @@ ResetLoop:
 				}
 			}
 		}
-		if !changed {
-			break
-		}
+		break
 	}
 
 	return nil

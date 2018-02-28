@@ -110,7 +110,7 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 	for {
 		//rand.Seed(time.Now().Unix())
 
-		seconds := rand.Int63n(timeDelta) + int64(season.Min)
+		seconds := rand.Int63n(timeDelta) + season.Min
 		dateStr := time.Unix(seconds, 0).Format("20060102")
 
 		lat := (float64(rand.Intn(yDelta)) * rand.Float64()) + bounds.South

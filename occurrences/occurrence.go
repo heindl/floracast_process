@@ -111,7 +111,7 @@ func (Ω *occurrence) UnmarshalJSON(b []byte) error {
 
 	o.GeoFeatureSet = &gf
 
-	Ω = &o
+	*Ω = o
 
 	return nil
 }

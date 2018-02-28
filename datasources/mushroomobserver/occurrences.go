@@ -359,8 +359,7 @@ func (t *CustomFloat) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	c := CustomFloat(f)
-	t = &c
+	*t = CustomFloat(f)
 
 	return nil
 }

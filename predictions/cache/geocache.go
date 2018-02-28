@@ -28,7 +28,7 @@ func NewLocalGeoCache() (PredictionCache, func() error, error) {
 	}
 
 	tmp := path.Join("/tmp/", fmt.Sprintf("predictions-%s", random_string))
-	if err := os.Mkdir(tmp, os.ModePerm); err != nil {
+	if err = os.Mkdir(tmp, os.ModePerm); err != nil {
 		return nil, nil, errors.Wrap(err, "could not create tmp path")
 	}
 
