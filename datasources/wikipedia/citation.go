@@ -22,7 +22,7 @@ func Citation(wikipedia_url string) (string, error) {
 		return "", errors.Wrapf(err, "Could not fetch MediaWiki [%s]", wikipedia_url)
 	}
 
-	pageName := strings.TrimLeft(requestURI.Path, "wiki/")
+	pageName := strings.TrimPrefix(requestURI.Path, "wiki/")
 	wikiPage, err := wiki.Read(pageName)
 	if err != nil {
 		return "", errors.Wrapf(err, "Could not read wikipedia page [%s] from link [%s]", pageName, wikipedia_url)

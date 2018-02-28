@@ -66,7 +66,7 @@ type schemePageParser struct {
 func (Ω *schemePageParser) parseHREF(i int, s *goquery.Selection) {
 
 	srcStr, _ := s.Attr("href")
-	srcStr = strings.TrimSpace(srcStr[len(Ω.hrefSelector):])
+	srcStr = strings.TrimPrefix(strings.TrimSpace(srcStr), Ω.hrefSelector)
 	if srcStr == "" {
 		return
 	}

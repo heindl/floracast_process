@@ -1,7 +1,10 @@
-package process
+package main
 
 import (
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/predictions/cache"
 	"bitbucket.org/heindl/process/predictions/parser"
+	"bitbucket.org/heindl/process/store"
 	"context"
 	"flag"
 	"fmt"
@@ -9,18 +12,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"bitbucket.org/heindl/process/predictions/cache"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
 )
 
-const predictionUploadLimit = 2000
-
 func main() {
-
-	var err error
 	//writeToCache := flag.Bool("cache", false, "write to buntdb cache and initiate server?")
-	dates := flag.String("dates", "", "Dates for which to fetch latest predictions in format YYYYMMDD,YYYYMMDD. If blank will fetch all dates.")
+	//dates := flag.String("dates", "", "Dates for which to fetch latest predictions in format YYYYMMDD,YYYYMMDD. If blank will fetch all dates.")
 	requestedUsageIDs := flag.String("usageIDs", "", "Comma seperated list of NameUsageIDs to fetch predictions for.")
 	bucket := flag.String("bucket", "", "gcs bucket to fetch predictions from")
 	mode := flag.String("mode", "serve", "mode to handle predictions: write to temp file for javascript geofire uploader or serve for testing in local web router.")
@@ -60,18 +56,10 @@ func main() {
 		panic(err)
 	}
 
-	date_list := strings.Split(*dates, ",")
-	if len(date_list) == 0 {
-		date_list = append(date_list, "") // AddUsage an empty value to make iteration simpler.
-	}
-
-
 	predictions, err := predictionParser.FetchPredictions(cxt, parsedUsageIDs, nil)
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Have Predictions")
 
 	var predictionCache cache.PredictionCache
 
@@ -102,23 +90,6 @@ func main() {
 	if *mode != "serve" {
 		return
 	}
-
-	//tmb := tomb.Tomb{}
-	//tmb.Go(func() error {
-	//	for _, _taxon := range strings.Split(*taxa, ",") {
-	//		taxon := _taxon
-	//		for _, _date := range date_list {
-	//			date := _date
-	//			tmb.Go(func() error {
-	//				return predictionParser.WritePredictions(cxt, store.TaxonID(taxon), date)
-	//			})
-	//		}
-	//	}
-	//	return nil
-	//})
-	//if err := tmb.Wait(); err != nil {
-	//	panic(err)
-	//}
 
 	router := mux.NewRouter()
 
@@ -166,7 +137,6 @@ func main() {
 			return
 		}
 		fmt.Fprint(w, strings.Join(l, "\n"))
-		return
 
 	})
 
@@ -175,7 +145,5 @@ func main() {
 	if err := http.ListenAndServe(":8081", router); err != nil {
 		panic(err)
 	}
-
-	// If we wrote to a geocache, hold it open as a web server.
 
 }

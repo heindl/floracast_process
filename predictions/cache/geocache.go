@@ -53,19 +53,6 @@ func bbox(lat, lng, radius float64) string {
 	return fmt.Sprintf("[%.6f %.6f],[%.6f %.6f]", sw.Lng(), sw.Lat(), ne.Lng(), ne.Lat())
 }
 
-func datesMatch(qDate, tDate string) bool {
-	if qDate == "" {
-		return true
-	}
-	if len(qDate) == 2 && qDate == tDate[4:6] {
-		return true
-	}
-	if len(qDate) == 8 && qDate == tDate {
-		return true
-	}
-	return false
-}
-
 func (Ω *localGeoCacheWriter) ReadPredictions(lat, lng, radius float64, qDate string, nameUsageID *nameusage.NameUsageID) ([]string, error) {
 
 	res := []string{}

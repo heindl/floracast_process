@@ -1,13 +1,13 @@
 package parser
 
 import (
-	"path"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"context"
 	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"io/ioutil"
-	"sort"
 	"os"
+	"path"
+	"sort"
 )
 
 func NewLocalPredictionSource(cxt context.Context, localPath string) (PredictionSource, error) {
@@ -19,7 +19,7 @@ func NewLocalPredictionSource(cxt context.Context, localPath string) (Prediction
 	}, nil
 }
 
-type localSource struct{
+type localSource struct {
 	path string
 }
 
@@ -71,7 +71,7 @@ func (s FileNames) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 func (s FileNames) Less(i, j int) bool {
-	return s[i].Name() < s[i].Name()
+	return s[i].Name() < s[j].Name()
 }
 
 func (Ω *localSource) FetchPredictions(cxt context.Context, filePath string) (res []*PredictionResult, err error) {
@@ -80,7 +80,7 @@ func (Ω *localSource) FetchPredictions(cxt context.Context, filePath string) (r
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not open prediction file [%s]", filePath)
 	}
-	defer func(){
+	defer func() {
 		if closeErr := f.Close(); closeErr != nil && err != nil {
 			err = closeErr
 			res = nil
@@ -99,4 +99,3 @@ func (Ω *localSource) FetchPredictions(cxt context.Context, filePath string) (r
 
 	return parsePredictionReader(nameUsageID, f)
 }
-

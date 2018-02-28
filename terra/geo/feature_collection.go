@@ -277,7 +277,7 @@ func (Ω FeatureCollections) DecimateClusters(minKm float64) (FeatureCollections
 	complete := false
 
 Restart:
-	for complete == false {
+	for !complete {
 		for i := range a {
 			// Find nearest Point.
 			nearest_distance := 0.0

@@ -1,10 +1,9 @@
 package protected_areas
 
 import (
-	"context"
-	//"github.com/cenkalti/backoff"
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/terra/geoembed"
+	"context"
 	"github.com/saleswise/errors/errors"
 	"gopkg.in/tomb.v2"
 	"math"
@@ -79,8 +78,6 @@ type ProtectedAreaState struct {
 //func (a ProtectedAreas) Len() int           { return len(a) }
 //func (a ProtectedAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 //func (a ProtectedAreas) Less(i, j int) bool { return a[i].GISAcres > a[j].GISAcres }
-
-var counter = 0
 
 type ProtectedAreas []*ProtectedArea
 

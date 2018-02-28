@@ -13,7 +13,7 @@ type FirestoreCollection string
 
 const (
 	CollectionOccurrences    = FirestoreCollection("Occurrences")
-	CollectionRandom   = FirestoreCollection("Random")
+	CollectionRandom         = FirestoreCollection("Random")
 	CollectionTaxa           = FirestoreCollection("Taxa")
 	CollectionNameUsages     = FirestoreCollection("NameUsages")
 	CollectionPhotos         = FirestoreCollection("Photos")
@@ -23,7 +23,8 @@ const (
 
 func NewFirestoreLimiter() <-chan time.Time {
 	// Maximum writes per second per database (at beta): 2,500 (up to 2.5 MiB per second)
-	return time.Tick(time.Second / 1000)
+	t := time.NewTicker(time.Second / 1000)
+	return t.C
 }
 
 // gcloud beta emulators datastore start --project=floracast-20c01 --store-on-disk=false

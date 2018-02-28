@@ -60,7 +60,7 @@ func ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath string, callback GeoJ
 func ParseGeoJSONFeatureCollection(encodedFeatureCollection []byte, callback GeoJSONParsedCallback) error {
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		if _, err := jsonparser.ArrayEach(encodedFeatureCollection, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		_, err := jsonparser.ArrayEach(encodedFeatureCollection, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 			tmb.Go(func() error {
 				if err != nil {
 					return errors.Wrapf(err, "could not parse features array: %s", string(value))
@@ -70,10 +70,8 @@ func ParseGeoJSONFeatureCollection(encodedFeatureCollection []byte, callback Geo
 				}
 				return nil
 			})
-		}, "features"); err != nil {
-			return err
-		}
-		return nil
+		}, "features")
+		return err
 	})
 	return tmb.Wait()
 }

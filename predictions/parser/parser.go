@@ -31,8 +31,7 @@ type predictionParser struct {
 
 func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*PredictionResult, error) {
 
-	scanner := &bufio.Scanner{}
-	scanner = bufio.NewScanner(reader)
+	scanner := bufio.NewScanner(reader)
 
 	scanner.Split(bufio.ScanLines)
 	response_list := []*PredictionResult{}
@@ -121,7 +120,7 @@ func (Ω *predictionParser) parseFile(cxt context.Context, aggr *aggregator, fpa
 		aggr.PredictionList[predictionResult.NameUsageID] = append(aggr.PredictionList[predictionResult.NameUsageID], predictionResult.Target)
 
 		aggr.PredictionObjects = append(aggr.PredictionObjects, parsedPrediction)
-		return nil
+
 	}
 	return nil
 }

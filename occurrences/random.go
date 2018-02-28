@@ -41,7 +41,6 @@ var Winter = Season{
 type randomOccurrenceGenerator struct {
 	gridGenerator        grid.Generator
 	occurrenceAggregator *OccurrenceAggregation
-	counter              int
 	sync.Mutex
 }
 

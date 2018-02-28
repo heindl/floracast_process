@@ -1,17 +1,17 @@
 package main
 
 import (
-	"context"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/aggregate"
-	"bitbucket.org/heindl/process/occurrences"
-	"flag"
-	"strings"
-	"strconv"
-	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/datasources/sourcefetchers"
+	"bitbucket.org/heindl/process/nameusage/aggregate"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/occurrences"
+	"bitbucket.org/heindl/process/store"
+	"context"
+	"flag"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 const minimumOccurrenceCount = 100
@@ -62,7 +62,6 @@ func main() {
 
 }
 
-
 // This function is intended to be a process of building a store taxon representation based on several
 // sorted that accumulate taxonomic information. These names and synonyms can then be used to fetch occurrences
 // from various sources using only the list of names.
@@ -90,7 +89,7 @@ func InitialAggregation(cxt context.Context, inaturalistTaxonIDs ...int) (*aggre
 	// Which means that try to combine them and ignore synonyms, though they appear to still show known synonyms like Morchella Conica.
 	// We need synonyms because other archives do not appear to divide them. TotalOccurrenceCount are still stored within the synonym.
 
-	targetIDs, err := datasources.NewDataSourceTargetIDFromInts(inaturalistTaxonIDs...)
+	targetIDs, err := datasources.NewDataSourceTargetIDFromInts(datasources.TypeINaturalist, inaturalistTaxonIDs...)
 	if err != nil {
 		return nil, err
 	}

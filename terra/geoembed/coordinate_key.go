@@ -9,10 +9,7 @@ import (
 type CoordinateKey string
 
 func (Ω CoordinateKey) Valid() bool {
-	if len(Ω) != 11 {
-		return false
-	}
-	return true
+	return len(Ω) == 11
 }
 
 func NewCoordinateKey(lat, lng float64) (CoordinateKey, error) {

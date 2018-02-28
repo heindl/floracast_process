@@ -51,8 +51,6 @@ func main() {
 	//if err := parser.Areas.Upload(cxt, florastore); err != nil {
 	//	panic(err)
 	//}
-
-	return
 }
 
 type Parser struct {

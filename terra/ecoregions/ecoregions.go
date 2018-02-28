@@ -1,7 +1,6 @@
 package ecoregions
 
 import (
-	"bitbucket.org/heindl/process/terra/geo"
 	"github.com/dropbox/godropbox/errors"
 	"strconv"
 )
@@ -11,10 +10,9 @@ type Region struct {
 	realm Realm
 	name  string
 	//ecoCode      ecoCode
-	ecoNum       EcoNum
-	ecoID        ecoID
-	biome        Biome
-	multiPolygon geo.MultiPolygon
+	ecoNum EcoNum
+	ecoID  ecoID
+	biome  Biome
 }
 
 // Name of the region EcoID, or a combination of Realm, Biome and EcoNum.
@@ -93,7 +91,7 @@ func NewRegion(ecoIDInt int) (*Region, error) {
 // EcoCode is an alphanumeric code that is similar to eco_ID but a little easier to interpret.
 // The first 2 characters (letters) are the realm the ecoregion is in.
 // The 2nd 2 characters are the biome and the last 2 characters are the ecoregion number.
-type ecoCode string
+//type ecoCode string
 
 // Biome is a large naturally occurring community of flora and fauna occupying a major habitat.
 type Biome int
@@ -155,14 +153,13 @@ func (Ω realmCode) Valid() bool {
 	return ok
 }
 
-type globalStatus int
-
-// A 30-year prediction of future conservation status given current conservation status and trajectories.
-var globalStatusDefinitions = map[globalStatus]string{
-	globalStatus(1): "CRITICAL OR ENDANGERED",
-	globalStatus(2): "VULNERABLE",
-	globalStatus(3): "RELATIVELY STABLE OR INTACT",
-}
+//type globalStatus int
+//// A 30-year prediction of future conservation status given current conservation status and trajectories.
+//var globalStatusDefinitions = map[globalStatus]string{
+//	globalStatus(1): "CRITICAL OR ENDANGERED",
+//	globalStatus(2): "VULNERABLE",
+//	globalStatus(3): "RELATIVELY STABLE OR INTACT",
+//}
 
 // EcoNum is a unique number for each ecoregion within each biome nested within each realm.
 type EcoNum int

@@ -11,8 +11,7 @@ import (
 )
 
 type OccurrenceAggregation struct {
-	collisions        int
-	iterator_position int
+	collisions int
 	sync.Mutex
 	list []Occurrence
 }

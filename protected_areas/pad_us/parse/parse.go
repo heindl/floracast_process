@@ -74,7 +74,7 @@ func main() {
 	processor.Stats["After Name Group"] = len(name_grouped)
 
 	max_centroid_distance := 20.0
-	above_centroid_distance := geo.FeatureCollections{}
+	//above_centroid_distance := geo.FeatureCollections{}
 	below_centroid_distance := geo.FeatureCollections{}
 	for _, v := range name_grouped {
 		// TODO: Explode and regroup those that are too large by Unit_Nm & Loc_Nm
@@ -83,7 +83,7 @@ func main() {
 			panic(err)
 		}
 		if v.Count() > 1 && maxDistance > max_centroid_distance {
-			above_centroid_distance = append(above_centroid_distance, v)
+			//above_centroid_distance = append(above_centroid_distance, v)
 		} else {
 			below_centroid_distance = append(below_centroid_distance, v)
 		}
@@ -123,30 +123,6 @@ func main() {
 		}
 	}
 
-	//gj, err := decimated_cluster.PolyLabels().GeoJSON()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println(string(gj))
-
-}
-
-func filter_exists(shouldExist bool) func(interface{}) bool {
-	return func(i interface{}) bool {
-		s := string(i.([]byte))
-		//fmt.Println(s)
-		exists := (s != "" && s != "null" && s != "0")
-
-		if shouldExist != exists {
-			fmt.Println(s, exists, shouldExist != exists)
-		}
-
-		return shouldExist != exists
-	}
-}
-
-func cast_string(i interface{}) string {
-	return string(i.([]byte))
 }
 
 type Processor struct {
@@ -295,9 +271,5 @@ func (Ω *Processor) ReceiveFeature(nf *geo.Feature) error {
 	Ω.Lock()
 	defer Ω.Unlock()
 
-	if err := Ω.Aggregated.Append(nf); err != nil {
-		return err
-	}
-
-	return nil
+	return Ω.Aggregated.Append(nf)
 }
