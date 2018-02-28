@@ -2,8 +2,8 @@ package natureserve
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"context"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 	"testing"
 )
 

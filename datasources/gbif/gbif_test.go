@@ -3,9 +3,9 @@ package gbif
 import (
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/utils"
+	"context"
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 	"testing"
 )
 

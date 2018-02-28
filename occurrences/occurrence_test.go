@@ -3,8 +3,8 @@ package occurrences
 import (
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/store"
+	"context"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 	"testing"
 )
 

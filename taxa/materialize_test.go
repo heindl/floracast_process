@@ -4,8 +4,8 @@ import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/utils"
+	"context"
 	. "github.com/smartystreets/goconvey/convey"
-	"golang.org/x/net/context"
 	"testing"
 )
 

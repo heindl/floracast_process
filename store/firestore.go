@@ -2,8 +2,8 @@ package store
 
 import (
 	"cloud.google.com/go/firestore"
+	"context"
 	"github.com/dropbox/godropbox/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/api/option"
 	"os"
 	"time"

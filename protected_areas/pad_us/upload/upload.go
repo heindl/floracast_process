@@ -14,8 +14,8 @@ import (
 	"bitbucket.org/heindl/process/protected_areas/pad_us"
 	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/terra/geoembed"
+	"context"
 	"github.com/dropbox/godropbox/errors"
-	"golang.org/x/net/context"
 	"gopkg.in/tomb.v2"
 )
 

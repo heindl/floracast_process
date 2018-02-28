@@ -3,9 +3,9 @@ package main
 import (
 	"bitbucket.org/heindl/process/occurrences"
 	"bitbucket.org/heindl/process/store"
+	"context"
 	"flag"
 	"fmt"
-	"golang.org/x/net/context"
 )
 
 func main() {
