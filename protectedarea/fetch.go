@@ -7,8 +7,6 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
-var ErrNotFound = errors.New("Not Found")
-
 // FetchOne fetches a ProtectedArea from Cloud Firestore
 func FetchOne(cxt context.Context, florastore store.FloraStore, coordinateKey geoembed.CoordinateKey) (ProtectedArea, error) {
 

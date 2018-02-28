@@ -19,7 +19,7 @@ func main() {
 
 	flag.Parse()
 
-	process, err := NewProcessor(*in, *out, false)
+	process, err := NewProcessor(*in, *out)
 	if err != nil {
 		panic(err)
 	}

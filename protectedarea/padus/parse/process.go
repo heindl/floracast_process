@@ -14,7 +14,15 @@ import (
 	"sync"
 )
 
-func NewProcessor(inpath, outpath string) (*orchestrator, error) {
+// Processor parses, groups, filters and writes PAD-US GeoJSON.
+type Processor interface {
+	ProcessFeatureCollections() (geo.FeatureCollections, *metrics, error)
+	WriteCollections(collections geo.FeatureCollections) error
+}
+
+// NewProcessor validates and initiates a processor to parse, group, filter and write PAD-US GeoJSON.
+// Input and Output directories must be specified.
+func NewProcessor(inpath, outpath string) (Processor, error) {
 	inpath = strings.TrimSpace(inpath)
 	outpath = strings.TrimSpace(outpath)
 	if inpath == "" || outpath == "" {
@@ -51,6 +59,7 @@ type metrics struct {
 	marineProtectedArea    int
 }
 
+// ProcessFeatureCollections reads, parses, groups, and filters PAD-US GeoJSON
 func (Ω *orchestrator) ProcessFeatureCollections() (geo.FeatureCollections, *metrics, error) {
 
 	nameGrouped, err := Ω.readGroupAndFilter()
@@ -78,9 +87,31 @@ func (Ω *orchestrator) ProcessFeatureCollections() (geo.FeatureCollections, *me
 
 	Ω.stats["After Cluster Decimation"] = len(decimatedClusters)
 
-	Ω.PrintStats()
-
 	return decimatedClusters, Ω.metrics, nil
+}
+
+// WriteCollections writes grouped feature collections to a geojson file
+// The collection polylabel is used for the filename
+func (Ω *orchestrator) WriteCollections(collections geo.FeatureCollections) error {
+
+	for _, v := range collections {
+		polyLabel, err := v.PolyLabel()
+		if err != nil {
+			return err
+		}
+
+		fname := fmt.Sprintf("%s/%.6f_%.6f.geojson", Ω.outPath, polyLabel.Latitude(), polyLabel.Longitude())
+
+		gj, err := v.GeoJSON()
+		if err != nil {
+			return err
+		}
+
+		if err := ioutil.WriteFile(fname, gj, os.ModePerm); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (Ω *orchestrator) readGroupAndFilter() (geo.FeatureCollections, error) {
@@ -133,7 +164,7 @@ func (Ω *orchestrator) filterByCentroidDistance(collections geo.FeatureCollecti
 	return validCentroidDistance, nil
 }
 
-func (Ω *metrics) PrintStats() {
+func (Ω *metrics) print() {
 
 	fmt.Println("total", Ω.total)
 	fmt.Println("publicAccessClosed", Ω.publicAccessClosed)
@@ -220,11 +251,11 @@ func (Ω *orchestrator) getID(nf *geo.Feature) string {
 		return "pai_" + pa.SourcePAI
 	}
 
-	rand_id, err := gostrgen.RandGen(20, gostrgen.Lower|gostrgen.Digit, "", "")
+	randID, err := gostrgen.RandGen(20, gostrgen.Lower|gostrgen.Digit, "", "")
 	if err != nil {
 		panic(err)
 	}
-	return "unidentified_" + rand_id
+	return "unidentified_" + randID
 }
 
 func (Ω *orchestrator) receiveFeature(nf *geo.Feature) error {
@@ -243,26 +274,4 @@ func (Ω *orchestrator) receiveFeature(nf *geo.Feature) error {
 	defer Ω.Unlock()
 
 	return Ω.aggregated.Append(nf)
-}
-
-func (Ω *orchestrator) WriteCollections(collections geo.FeatureCollections) error {
-
-	for _, v := range collections {
-		polyLabel, err := v.PolyLabel()
-		if err != nil {
-			return err
-		}
-
-		fname := fmt.Sprintf("%s/%.6f_%.6f.geojson", Ω.outPath, polyLabel.Latitude(), polyLabel.Longitude())
-
-		gj, err := v.GeoJSON()
-		if err != nil {
-			return err
-		}
-
-		if err := ioutil.WriteFile(fname, gj, os.ModePerm); err != nil {
-			return err
-		}
-	}
-	return nil
 }

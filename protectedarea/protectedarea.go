@@ -146,10 +146,17 @@ func (Ω *protectedArea) Valid() bool {
 type AccessLevel int
 
 const (
-	AccessLevelOpen       AccessLevel = iota + 1 // 1
-	AccessLevelRestricted                        // 2
-	AccessLevelUnknown                           // 3
-	AccessLevelClosed                            // 4
+	// AccessLevelOpen means the area is open to the public, though inconclusive
+	AccessLevelOpen AccessLevel = iota + 1 // 1
+
+	// AccessLevelRestricted means the area has restricted access, though inconclusive
+	AccessLevelRestricted // 2
+
+	// AccessLevelUnknown means we don't know, though inconclusive
+	AccessLevelUnknown // 3
+
+	// AccessLevelClosed means the area is closed, though inconclusive
+	AccessLevelClosed // 4
 )
 
 // ProtectionLevel is the protection status (1-4) of an ecosystem.
@@ -158,10 +165,17 @@ const (
 type ProtectionLevel int
 
 const (
-	ProtectionLevelHighest     ProtectionLevel = iota // 1
-	ProtectionLevelHigh                               // 2
-	ProtectionLevelMultipleUse                        // 3
-	ProtectionLevelUnknown                            // 4
+	// ProtectionLevelHighest [1]
+	ProtectionLevelHighest ProtectionLevel = iota
+
+	// ProtectionLevelHigh [2]
+	ProtectionLevelHigh
+
+	// ProtectionLevelMultipleUse  [3]
+	ProtectionLevelMultipleUse
+
+	// ProtectionLevelUnknown  [4]
+	ProtectionLevelUnknown
 )
 
 //type ProtectedAreaState struct {

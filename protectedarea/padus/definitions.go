@@ -295,9 +295,16 @@ func (Ω PublicAccess) AccessLevel() (int, error) {
 	}
 }
 
+// PublicAccessOpen [1, "OA"]
 const PublicAccessOpen = PublicAccess("OA")
-const PublicAccessClosed = PublicAccess("XA")
+
+// PublicAccessRestricted [2, "RA"]
 const PublicAccessRestricted = PublicAccess("RA")
+
+// PublicAccessClosed [4, "XA"]
+const PublicAccessClosed = PublicAccess("XA")
+
+// PublicAccessUnknown [3, "UK"]
 const PublicAccessUnknown = PublicAccess("UK")
 
 var publicAccessDefinitions = map[PublicAccess]string{
@@ -311,7 +318,8 @@ var publicAccessDefinitions = map[PublicAccess]string{
 // assigned to protected areas for inclusion in the UNEP- World Conservation Monitoring Center’s (WCMC)
 // World Database for Protected Areas (WDPA) and the Commission for Environmental Cooperation’s (CEC)
 // North American Terrestrial Protected Areas Database.
-//
+type IUCNCategory string
+
 // IUCN defines a protected area as,
 // "A clearly defined geographical space, recognized, dedicated and managed, through legal or
 // other effective means, to achieve the long-term conservation of nature with associated ecosystem
@@ -355,7 +363,6 @@ var publicAccessDefinitions = map[PublicAccess]string{
 // "Not Reported" areas that meet the definition of IUCN protection (i.e. GAP Status Code 1 or 2)
 // but where IUCN Category has not yet been assigned and categorical assignment is not appropriate.
 // See the PAD-US Standards Manual for a summary of methods.
-type IUCNCategory string
 
 // Valid returns true is the property is accepted for use.
 func (Ω IUCNCategory) Valid() bool {

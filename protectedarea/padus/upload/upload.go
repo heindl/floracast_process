@@ -31,14 +31,14 @@ func main() {
 	//	panic(err)
 	//}
 
-	parser := &Parser{
+	parser := &parser{
 		Context: cxt,
 		Areas:   protectedarea.ProtectedAreas{},
 		Tmb:     tomb.Tomb{},
 	}
 
 	parser.Tmb.Go(func() error {
-		return filepath.Walk(*geojsonPath, parser.RecursiveSearchParse)
+		return filepath.Walk(*geojsonPath, parser.recursiveSearchParse)
 	})
 
 	if err := parser.Tmb.Wait(); err != nil {
@@ -50,14 +50,14 @@ func main() {
 	//}
 }
 
-type Parser struct {
+type parser struct {
 	Context context.Context
 	Tmb     tomb.Tomb
 	sync.Mutex
 	Areas protectedarea.ProtectedAreas
 }
 
-func (Ω *Parser) RecursiveSearchParse(path string, f os.FileInfo, err error) error {
+func (Ω *parser) recursiveSearchParse(path string, f os.FileInfo, err error) error {
 
 	Ω.Tmb.Go(func() error {
 		if err != nil {
@@ -130,7 +130,7 @@ func parseFeatureCollection(fc *geo.FeatureCollection) (protectedarea.ProtectedA
 	return area, nil
 }
 
-func parseFeature(area protectedarea.ProtectedArea, feature *geo.Feature, lock *sync.Mutex) error {
+func parseFeature(area protectedarea.ProtectedArea, feature *geo.Feature, lock sync.Locker) error {
 
 	pa := padus.ProtectedArea{}
 	if err := feature.GetProperties(&pa); err != nil {

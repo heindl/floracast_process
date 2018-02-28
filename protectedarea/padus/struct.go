@@ -1,5 +1,6 @@
 package padus
 
+// ProtectedArea is the primary struct for unmarshalling PAD-US GeoJSON properties.
 // https://gapanalysis.usgs.gov/padus/data/metadata/
 type ProtectedArea struct {
 	Access  PublicAccess `json:"Access"`
