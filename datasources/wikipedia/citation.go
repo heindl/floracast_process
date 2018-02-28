@@ -1,13 +1,13 @@
 package wikipedia
 
 import (
-	"github.com/dropbox/godropbox/errors"
-	"net/url"
 	"fmt"
-	"strings"
-	"github.com/sadbox/mediawiki"
-	"time"
+	"github.com/dropbox/godropbox/errors"
 	"github.com/grokify/html-strip-tags-go"
+	"github.com/sadbox/mediawiki"
+	"net/url"
+	"strings"
+	"time"
 )
 
 func Citation(wikipedia_url string) (string, error) {
@@ -30,7 +30,7 @@ func Citation(wikipedia_url string) (string, error) {
 
 	modifiedAt := time.Time{}
 
-	for _, revision := range wikiPage.Revisions{
+	for _, revision := range wikiPage.Revisions {
 		if revision.Revid == wikiPage.Lastrevid {
 			modifiedAt = revision.Timestamp
 			break
@@ -51,5 +51,5 @@ func Citation(wikipedia_url string) (string, error) {
 		fmt.Sprintf("<%s>", wikipedia_url),
 	}, ". ")
 
-	return strip.StripTags(c), nil
+	return strings.TrimSpace(strip.StripTags(c)), nil
 }

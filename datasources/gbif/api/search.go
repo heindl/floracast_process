@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 
+	"bitbucket.org/heindl/process/utils"
 	"gopkg.in/tomb.v2"
 )
 
@@ -82,7 +83,7 @@ func (q MatchQuery) url() string {
 // If a classification is provided and strict is not set to true,
 // the default matching will also try to match against these if no direct match is found for the name parameter alone.
 func Match(q MatchQuery) (response MatchResult, err error) {
-	if err := request(q.url(), &response); err != nil {
+	if err := utils.RequestJSON(q.url(), &response); err != nil {
 		return MatchResult{}, err
 	}
 	return
@@ -294,13 +295,13 @@ func (q SearchQuery) url(offset int) string {
 
 	for _, r := range q.Rank {
 		if string(r) != "" {
-			params = append(params, fmt.Sprintf("rank=%s", r))
+			filtered = append(filtered, fmt.Sprintf("rank=%s", r))
 		}
 	}
 
 	for _, s := range q.Status {
 		if string(s) != "" {
-			params = append(params, fmt.Sprintf("status=%s", s))
+			filtered = append(filtered, fmt.Sprintf("status=%s", s))
 		}
 	}
 
@@ -320,7 +321,7 @@ func Search(q SearchQuery) (names []NameUsage, err error) {
 
 	qResponse := searchResponse{}
 
-	if err := request(q.url(0), &qResponse); err != nil {
+	if err := utils.RequestJSON(q.url(0), &qResponse); err != nil {
 		return nil, err
 	}
 
@@ -334,7 +335,7 @@ func Search(q SearchQuery) (names []NameUsage, err error) {
 			i := _i
 			tmb.Go(func() error {
 				nqResponse := searchResponse{}
-				if err := request(q.url(i), &qResponse); err != nil {
+				if err := utils.RequestJSON(q.url(i), &qResponse); err != nil {
 					return err
 				}
 				locker.Lock()

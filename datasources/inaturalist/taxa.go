@@ -1,18 +1,13 @@
 package inaturalist
 
 import (
-	"fmt"
+	"bitbucket.org/heindl/process/utils"
 	"context"
+	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
-	"bitbucket.org/heindl/process/utils"
 	"sync"
 	"time"
-	"regexp"
-	"bytes"
-	"github.com/PuerkitoBio/goquery"
-	"strings"
-	"bitbucket.org/heindl/process/datasources"
 )
 
 type page struct {
@@ -22,21 +17,21 @@ type page struct {
 }
 
 type Taxon struct {
-	CompleteSpeciesCount      int `json:"complete_species_count"`
-	Extinct                   bool        `json:"extinct"`
-	ObservationsCount         int         `json:"observations_count"`
-	WikipediaURL string `json:"wikipedia_url"`
-	TaxonSchemesCount         int         `json:"taxon_schemes_count"`
-	Ancestry                  string      `json:"ancestry"`
-	IsActive                  bool        `json:"is_active"`
+	CompleteSpeciesCount int    `json:"complete_species_count"`
+	Extinct              bool   `json:"extinct"`
+	ObservationsCount    int    `json:"observations_count"`
+	WikipediaURL         string `json:"wikipedia_url"`
+	TaxonSchemesCount    int    `json:"taxon_schemes_count"`
+	Ancestry             string `json:"ancestry"`
+	IsActive             bool   `json:"is_active"`
 	// TODO: Must have way to sync synonyms when they change.
 	CurrentSynonymousTaxonIds []TaxonID `json:"current_synonymous_taxon_ids"`
-	IconicTaxonID             TaxonID         `json:"iconic_taxon_id"`
-	TaxonPhotos       []struct {
+	IconicTaxonID             TaxonID   `json:"iconic_taxon_id"`
+	TaxonPhotos               []struct {
 		Photo Photo `json:"photo"`
 		Taxon Taxon `json:"taxon"`
 	} `json:"taxon_photos"`
-	RankLevel            RankLevel      `json:"rank_level"`
+	RankLevel            RankLevel            `json:"rank_level"`
 	TaxonChangesCount    int                  `json:"taxon_changes_count"`
 	AtlasID              int                  `json:"atlas_id"`
 	ParentID             TaxonID              `json:"parent_id"`
@@ -73,16 +68,15 @@ type ConservationStatus struct {
 type TaxaFetcher struct {
 	list []*Taxon
 	sync.Mutex
-	ctx context.Context
 	includeChildren bool
-	includeSchemes bool
+	includeSchemes  bool
 }
 
 func NewTaxaFetcher(ctx context.Context, includeChildren, includeSchemes bool) *TaxaFetcher {
 	return &TaxaFetcher{
 		includeChildren: includeChildren,
-		includeSchemes: includeSchemes,
-		list: []*Taxon{},
+		includeSchemes:  includeSchemes,
+		list:            []*Taxon{},
 	}
 }
 
@@ -98,28 +92,27 @@ func (Ω *TaxaFetcher) IndexOf(æ TaxonID) int {
 }
 
 func (Ω *TaxaFetcher) Set(æ *Taxon) {
-
 	if æ == nil {
 		return
 	}
 	i := Ω.IndexOf(æ.ID)
+	Ω.Lock()
+	defer Ω.Unlock()
 	if i == -1 {
 		Ω.list = append(Ω.list, æ)
 	} else {
 		Ω.list[i] = æ
 	}
-	return
 }
-
 
 func (Ω *TaxaFetcher) FetchTaxa(parent_taxa ...TaxonID) ([]*Taxon, error) {
 
 	tmb := tomb.Tomb{}
 
-	tmb.Go(func()error {
+	tmb.Go(func() error {
 		for _, _taxonID := range parent_taxa {
 			taxonID := _taxonID
-			tmb.Go(func()error {
+			tmb.Go(func() error {
 				return Ω.fetchTaxon(taxonID)
 			})
 		}
@@ -178,11 +171,9 @@ func (Ω *TaxaFetcher) fetchTaxon(taxonID TaxonID) error {
 		}
 	}
 
-
 	if err := Ω.parseTaxon(response.Results[0], true); err != nil {
 		return err
 	}
-
 
 	// Fetch synonyms? Maybe be good to have a source connection for each of them,
 	// as well as a connection to the gbif.
@@ -199,7 +190,6 @@ func (Ω *TaxaFetcher) fetchTaxon(taxonID TaxonID) error {
 	return nil
 
 }
-
 
 func (Ω *TaxaFetcher) parseTaxon(txn *Taxon, isFromFullPageRequest bool) error {
 
@@ -223,7 +213,7 @@ func (Ω *TaxaFetcher) parseTaxon(txn *Taxon, isFromFullPageRequest bool) error 
 
 	// Fetch Schemes
 	if txn.TaxonSchemesCount > 0 && Ω.includeSchemes {
-		schemes, err := fetchTaxonSchemes(txn.ID)
+		schemes, err := txn.ID.FetchTaxonSchemes()
 		if err != nil {
 			return err
 		}
@@ -233,46 +223,3 @@ func (Ω *TaxaFetcher) parseTaxon(txn *Taxon, isFromFullPageRequest bool) error 
 	Ω.Set(txn)
 	return nil
 }
-
-type TaxonScheme struct {
-	SourceType datasources.SourceType
-	TargetID   datasources.TargetID
-}
-
-var taxonSchemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
-
-func fetchTaxonSchemes(taxonID TaxonID) ([]*TaxonScheme, error) {
-
-	url := fmt.Sprintf("http://www.inaturalist.org/taxa/%d/schemes", taxonID)
-
-	r := bytes.NewReader([]byte{})
-	if err := utils.RequestJSON(url, r); err != nil {
-		return nil, err
-	}
-
-	doc, err := goquery.NewDocumentFromReader(r)
-	if err != nil {
-		return nil, errors.Wrap(err, "could parse site for goquery")
-	}
-
-	res := []*TaxonScheme{}
-	doc.Find(`a[href*="/taxon_schemes/"]`).Each(func(i int, s *goquery.Selection) {
-		v, _ := s.Attr("href")
-		originID := datasources.SourceType(strings.TrimLeft(v, "/taxon_schemes/"))
-		if string(originID) == "" {
-			return
-		}
-		dataID := taxonSchemeRegex.FindString(s.Parent().Text())
-		if dataID == "" {
-			return
-		}
-		targetID := datasources.TargetID(strings.TrimRight(strings.TrimLeft(dataID, "("), ")"))
-		res = append(res, &TaxonScheme{
-			SourceType: originID,
-			TargetID:   targetID,
-		})
-	})
-	return res, nil
-
-}
-

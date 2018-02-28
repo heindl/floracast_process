@@ -12,6 +12,6 @@ func TestTaxonFetcher(t *testing.T) {
 	Convey("should generate wikipedia citation", t, func() {
 		c, err := Citation("https://en.wikipedia.org/wiki/Morchella_esculenta")
 		So(err, ShouldBeNil)
-		Println(c)
+		So(c, ShouldEqual, `Wikipedia contributors. "Morchella esculenta". Wikipedia, The Free Encyclopedia. 17 Feb. 2018. Web. 27 Feb. 2018.`)
 	})
 }

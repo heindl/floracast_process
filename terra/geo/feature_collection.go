@@ -24,7 +24,9 @@ var ErrInvalidFeature = errors.New("Invalid Feature")
 
 func (Ω *FeatureCollection) Append(features ...*Feature) error {
 	for i := range features {
-		features[i].Normalize()
+		if err := features[i].Normalize(); err != nil {
+			return err
+		}
 		if !features[i].Valid() {
 			return ErrInvalidFeature
 		}
@@ -212,7 +214,9 @@ func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFun
 		properties:   properties,
 	}
 
-	f.Normalize()
+	if err := f.Normalize(); err != nil {
+		return nil, err
+	}
 
 	return &f, nil
 }

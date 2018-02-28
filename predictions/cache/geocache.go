@@ -75,7 +75,7 @@ func (Ω *localGeoCacheWriter) ReadPredictions(lat, lng, radius float64, qDate s
 		return nil, err
 	}
 
-	Ω.DB.View(func(tx *buntdb.Tx) error {
+	if err := Ω.DB.View(func(tx *buntdb.Tx) error {
 		return tx.Intersects(column, bbox(lat, lng, radius), func(key, val string) bool {
 			k := strings.Split(strings.Split(key, ":")[1], ",")
 			taxonID := k[0]
@@ -86,7 +86,9 @@ func (Ω *localGeoCacheWriter) ReadPredictions(lat, lng, radius float64, qDate s
 			res = append(res, fmt.Sprintf("%s,%s,%s,%s,%s,%s", taxonID, areaID, prediction, scarcity, v[1], v[0]))
 			return true
 		})
-	})
+	}); err != nil {
+		return nil, err
+	}
 	return res, nil
 }
 

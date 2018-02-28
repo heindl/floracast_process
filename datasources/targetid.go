@@ -1,27 +1,48 @@
 package datasources
 
 import (
-	"strconv"
 	"github.com/dropbox/godropbox/errors"
+	"strconv"
+	"strings"
 )
 
 type TargetID string
 
+func NewTargetID(target string, sourceType SourceType) (TargetID, error) {
+	targetID := TargetID(target)
+	if !targetID.Valid(sourceType) {
+		return TargetID(""), errors.Newf("Invalid TargetID [%s] with SourceType [%s]", target, sourceType)
+	}
+	return targetID, nil
+}
+
 func (Ω TargetID) Valid(sourceType SourceType) bool {
 
-	if  string(Ω) == "" || string(Ω) == "0" {
+	if !sourceType.Valid() {
 		return false
 	}
 
-	intTypes := []SourceType{TypeGBIF, TypeINaturalist, TypeMushroomObserver}
+	intSourceTypes := []SourceType{TypeGBIF, TypeINaturalist, TypeMushroomObserver}
+	strSourceTypes := []SourceType{TypeNatureServe}
 
-	_, intParseErr := strconv.Atoi(string(Ω))
+	s := strings.TrimSpace(string(Ω))
 
-	if intParseErr != nil && HasDataSourceType(intTypes, sourceType) {
+	if s == "" || s == "0" {
 		return false
 	}
 
-	if intParseErr == nil && HasDataSourceType([]SourceType{TypeNatureServe}, sourceType) {
+	// Allow unchecked ones to fall through
+	if !HasDataSourceType(append(strSourceTypes, intSourceTypes...), sourceType) {
+		return true
+	}
+
+	_, intParseErr := strconv.Atoi(s)
+
+	if intParseErr != nil && HasDataSourceType(intSourceTypes, sourceType) {
+		return false
+	}
+
+	if intParseErr == nil && HasDataSourceType(strSourceTypes, sourceType) {
 		return false
 	}
 
@@ -36,17 +57,14 @@ func (Ω TargetID) ToInt() (int, error) {
 	return i, nil
 }
 
-func NewDataSourceTargetIDFromInt(i int) (TargetID, error) {
-	if i == 0 {
-		return TargetID(""), errors.New("Invalid TargetID: Received zero.")
-	}
-	return TargetID(strconv.Itoa(i)), nil
+func NewDataSourceTargetIDFromInt(sourceType SourceType, i int) (TargetID, error) {
+	return NewTargetID(strconv.Itoa(i), sourceType)
 }
 
-func NewDataSourceTargetIDFromInts(ints ...int) (TargetIDs, error) {
+func NewDataSourceTargetIDFromInts(sourceType SourceType, ints ...int) (TargetIDs, error) {
 	res := TargetIDs{}
 	for _, i := range ints {
-		id, err := NewDataSourceTargetIDFromInt(i)
+		id, err := NewDataSourceTargetIDFromInt(sourceType, i)
 		if err != nil {
 			return nil, err
 		}

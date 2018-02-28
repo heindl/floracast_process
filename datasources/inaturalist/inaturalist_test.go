@@ -1,46 +1,67 @@
 package inaturalist
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-	"golang.org/x/net/context"
-	"fmt"
-	"bitbucket.org/heindl/process/utils"
-	"time"
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/utils"
+	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
+	"testing"
+	"time"
 )
 
-func TestTaxonFetcher(t *testing.T) {
+func TestInaturalistFetcher(t *testing.T) {
 
 	t.Parallel()
 
-	SkipConvey("should fetch inaturalist", t, func() {
-
-		usages, err := FetchNameUsages(context.Background(), []string{"56830"}, nil)
+	Convey("should fetch taxon_schemes", t, func() {
+		schemes, err := TaxonID(56830).FetchTaxonSchemes()
 		So(err, ShouldBeNil)
-		fmt.Println(utils.JsonOrSpew(usages))
+		So(len(schemes), ShouldEqual, 1)
+		So(schemes[0].TargetID, ShouldEqual, datasources.TargetID("2594601"))
+		So(schemes[0].SourceType, ShouldEqual, datasources.SourceType("27"))
 
+		schemes, err = TaxonID(96710).FetchTaxonSchemes()
+		So(err, ShouldBeNil)
+		So(len(schemes), ShouldEqual, 3)
+		So(schemes[2].TargetID, ShouldEqual, datasources.TargetID("5184831"))
+		So(schemes[2].SourceType, ShouldEqual, datasources.SourceType("27"))
+		So(schemes[1].TargetID, ShouldEqual, datasources.TargetID("133384"))
+		So(schemes[1].SourceType, ShouldEqual, datasources.SourceType("26"))
+		So(schemes[0].TargetID, ShouldEqual, datasources.TargetID("133384"))
+		So(schemes[0].SourceType, ShouldEqual, datasources.SourceType("14"))
+	})
 
-		//fmt.Println(utils.JsonOrSpew(usages.Names()))
-		//fmt.Println(utils.JsonOrSpew(usages.TargetIDs(store.TypeGBIF)))
+	Convey("should fetch inaturalist", t, func() {
+
+		usages, err := FetchNameUsages(context.Background(), nil, datasources.TargetIDs{datasources.TargetID("56830")})
+		So(err, ShouldBeNil)
+		So(len(usages), ShouldEqual, 28)
 
 	})
 
 	Convey("should fetch photos", t, func() {
-		p, err := FetchPhotos(context.Background(), datasources.TargetID("58682"))
+		photos, err := FetchPhotos(context.Background(), datasources.TargetID("58682"))
 		So(err, ShouldBeNil)
-		fmt.Println(utils.JsonOrSpew(p))
+		So(len(photos), ShouldEqual, 1)
+		So(photos[0].Citation(), ShouldEqual, "(c) Leo Papandreou, some rights reserved (CC BY-NC-SA)")
+		So(photos[0].Large(), ShouldEqual, "https://farm5.staticflickr.com/4031/4710142661_38bb26fb1a_b.jpg")
+		So(photos[0].Thumbnail(), ShouldEqual, "https://farm5.staticflickr.com/4031/4710142661_38bb26fb1a_m.jpg")
+		So(photos[0].Source(), ShouldEqual, datasources.TypeINaturalist)
 	})
 
-	SkipConvey("should fetch occurrences", t, func() {
+	Convey("should fetch occurrences", t, func() {
+		// TODO: This test has a since time, so occurrence count may go up.
 
-		occurrences, err := FetchOccurrences(context.Background(), datasources.TargetID("58682"), utils.TimePtr(time.Now().Add(time.Hour * 24 * 60 * -1)))
+		baseTime, err := time.Parse("2006-01-02", "2017-12-29")
 		So(err, ShouldBeNil)
-		So(len(occurrences), ShouldEqual, 24)
+
+		occurrences, err := FetchOccurrences(context.Background(), datasources.TargetID("58682"), utils.TimePtr(baseTime))
+		So(err, ShouldBeNil)
+		So(len(occurrences), ShouldEqual, 8)
 
 		occurrences, err = FetchOccurrences(context.Background(), datasources.TargetID("58682"), nil)
 		So(err, ShouldBeNil)
-		So(len(occurrences), ShouldEqual, 100)
+		So(len(occurrences), ShouldEqual, 128)
 
 	})
 

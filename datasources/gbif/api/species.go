@@ -1,11 +1,8 @@
 package api
 
 import (
-	"encoding/json"
+	"bitbucket.org/heindl/process/utils"
 	"fmt"
-	"github.com/dropbox/godropbox/errors"
-	"io/ioutil"
-	"net/http"
 )
 
 // A name usage is the usage of a scientific name according to one particular Checklist including
@@ -18,65 +15,65 @@ func (s Species) url() string {
 }
 
 type NameUsage struct {
-	*Classification `json:",inline" bson:",inline"`
-	AccordingTo         string        `json:"accordingTo"`
-	Authorship          string        `json:"authorship"`
-	CanonicalName       string        `json:"canonicalName"`
-	Confidence          int           `json:"confidence"` // From search api.
-	Issues              []interface{} `json:"issues"`
-	Key                 TaxonID           `json:"key"`
-	LastCrawled         string        `json:"lastCrawled"`
-	LastInterpreted     string        `json:"lastInterpreted"`
-	MatchType           string        `json:"matchType"` // From search api.
-	Modified            string        `json:"modified"`
-	NameKey             int           `json:"nameKey"`
-	NameType            string        `json:"nameType"`
-	NomenclaturalStatus []interface{} `json:"nomenclaturalStatus"`
-	Note                string        `json:"note"` // From search api.
-	NubKey              int           `json:"nubKey"`
-	NumDescendants      int           `json:"numDescendants"`
-	Origin              string        `json:"origin"`
-	Parent              string        `json:"parent"`
-	ParentKey           TaxonID           `json:"parentKey"`
-	Rank                Rank        `json:"rank"`
-	ScientificName      string        `json:"scientificName"`
-	SourceTaxonKey      int           `json:"sourceTaxonKey,omitempty"`
-	Status              string        `json:"status"` // From search api.
-	Synonym             bool          `json:"synonym"`
-	TaxonID             string        `json:"taxonID"`
-	TaxonomicStatus     TaxonomicStatus        `json:"taxonomicStatus"`
-	UsageKey            TaxonID           `json:"usageKey"`    // From search api.
-	AcceptedKey         TaxonID           `json:"acceptedKey"` // From search api.
-	DatasetKey          string        `json:"datasetKey"`
-	ConstituentKey      string        `json:"constituentKey,omitempty"`
-	BasionymKey         int           `json:"basionymKey,omitempty"`
-	Basionym            string        `json:"basionym,omitempty"`
-	VernacularName      string        `json:"vernacularName,omitempty"`
-	Remarks             string        `json:"remarks,omitempty"`
-	PublishedIn         string        `json:"publishedIn,omitempty"`
-	Class               string        `json:"class,omitempty"`
-	References          string        `json:"references,omitempty"`
+	*Classification     `json:",inline" bson:",inline"`
+	AccordingTo         string          `json:"accordingTo"`
+	Authorship          string          `json:"authorship"`
+	CanonicalName       string          `json:"canonicalName"`
+	Confidence          int             `json:"confidence"` // From search api.
+	Issues              []interface{}   `json:"issues"`
+	Key                 TaxonID         `json:"key"`
+	LastCrawled         string          `json:"lastCrawled"`
+	LastInterpreted     string          `json:"lastInterpreted"`
+	MatchType           string          `json:"matchType"` // From search api.
+	Modified            string          `json:"modified"`
+	NameKey             int             `json:"nameKey"`
+	NameType            string          `json:"nameType"`
+	NomenclaturalStatus []interface{}   `json:"nomenclaturalStatus"`
+	Note                string          `json:"note"` // From search api.
+	NubKey              int             `json:"nubKey"`
+	NumDescendants      int             `json:"numDescendants"`
+	Origin              string          `json:"origin"`
+	Parent              string          `json:"parent"`
+	ParentKey           TaxonID         `json:"parentKey"`
+	Rank                Rank            `json:"rank"`
+	ScientificName      string          `json:"scientificName"`
+	SourceTaxonKey      int             `json:"sourceTaxonKey,omitempty"`
+	Status              string          `json:"status"` // From search api.
+	Synonym             bool            `json:"synonym"`
+	TaxonID             string          `json:"taxonID"`
+	TaxonomicStatus     TaxonomicStatus `json:"taxonomicStatus"`
+	UsageKey            TaxonID         `json:"usageKey"`    // From search api.
+	AcceptedKey         TaxonID         `json:"acceptedKey"` // From search api.
+	DatasetKey          string          `json:"datasetKey"`
+	ConstituentKey      string          `json:"constituentKey,omitempty"`
+	BasionymKey         int             `json:"basionymKey,omitempty"`
+	Basionym            string          `json:"basionym,omitempty"`
+	VernacularName      string          `json:"vernacularName,omitempty"`
+	Remarks             string          `json:"remarks,omitempty"`
+	PublishedIn         string          `json:"publishedIn,omitempty"`
+	Class               string          `json:"class,omitempty"`
+	References          string          `json:"references,omitempty"`
 }
 
-type Classification struct{
-	Class               string        `json:"class" bson:"class"`
-	ClassKey            int           `json:"classKey" bson:"classKey"`
-	Family              string        `json:"family" bson:"family"`
-	FamilyKey           int           `json:"familyKey" bson:"familyKey"`
-	Genus               string        `json:"genus" bson:"genus"`
-	GenusKey            int           `json:"genusKey" bson:"genusKey"`
-	Kingdom             string        `json:"kingdom" bson:"kingdom"`
-	KingdomKey          int           `json:"kingdomKey" bson:"kingdomKey"`
-	Order               string        `json:"order" bson:"order"`
-	OrderKey            int           `json:"orderKey" bson:"orderKey"`
-	Phylum              string        `json:"phylum" bson:"phylum"`
-	PhylumKey           int           `json:"phylumKey" bson:"phylumKey"`
-	Species             string        `json:"species" bson:"species"`
-	SpeciesKey          int           `json:"speciesKey" bson:"speciesKey"`
+type Classification struct {
+	Class      string `json:"class" bson:"class"`
+	ClassKey   int    `json:"classKey" bson:"classKey"`
+	Family     string `json:"family" bson:"family"`
+	FamilyKey  int    `json:"familyKey" bson:"familyKey"`
+	Genus      string `json:"genus" bson:"genus"`
+	GenusKey   int    `json:"genusKey" bson:"genusKey"`
+	Kingdom    string `json:"kingdom" bson:"kingdom"`
+	KingdomKey int    `json:"kingdomKey" bson:"kingdomKey"`
+	Order      string `json:"order" bson:"order"`
+	OrderKey   int    `json:"orderKey" bson:"orderKey"`
+	Phylum     string `json:"phylum" bson:"phylum"`
+	PhylumKey  int    `json:"phylumKey" bson:"phylumKey"`
+	Species    string `json:"species" bson:"species"`
+	SpeciesKey int    `json:"speciesKey" bson:"speciesKey"`
 }
 
 func (s Species) Name() (name NameUsage, err error) {
-	if err := request(s.url(), &name); err != nil {
+	if err := utils.RequestJSON(s.url(), &name); err != nil {
 		return NameUsage{}, err
 	}
 	return
@@ -98,7 +95,7 @@ type ParsedNameUsage struct {
 
 func (s Species) ParsedName() (name ParsedNameUsage, err error) {
 	url := fmt.Sprintf("%s/name", s.url())
-	if err := request(url, &name); err != nil {
+	if err := utils.RequestJSON(url, &name); err != nil {
 		return ParsedNameUsage{}, err
 	}
 	return
@@ -149,7 +146,7 @@ func (s Species) Descriptions() (descriptions []Description, err error) {
 			Results []Description `json:"results"`
 		}
 		url := fmt.Sprintf("%s/descriptions?offset=%d&limit=50", s.url(), offset)
-		if err := request(url, &response); err != nil {
+		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
 		descriptions = append(descriptions, response.Results...)
@@ -177,7 +174,7 @@ func (s Species) Distributions() (distributions []Distribution, err error) {
 			Results []Distribution `json:"results"`
 		}
 		url := fmt.Sprintf("%s/distributions?offset=%d&limit=50", s.url(), offset)
-		if err := request(url, &response); err != nil {
+		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
 		distributions = append(distributions, response.Results...)
@@ -212,7 +209,7 @@ func (s Species) Media() (media []Media, err error) {
 			Results []Media `json:"results"`
 		}
 		url := fmt.Sprintf("%s/media?offset=%d&limit=50", s.url(), offset)
-		if err := request(url, &response); err != nil {
+		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
 		media = append(media, response.Results...)
@@ -239,7 +236,7 @@ func (s Species) References() (references []Reference, err error) {
 			Results []Reference `json:"results"`
 		}
 		url := fmt.Sprintf("%s/references?offset=%d&limit=50", s.url(), offset)
-		if err := request(url, &response); err != nil {
+		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
 		references = append(references, response.Results...)
@@ -266,7 +263,7 @@ func (s Species) VernacularNames() (names []VernacularName, err error) {
 			Results []VernacularName `json:"results"`
 		}
 		url := fmt.Sprintf("%s/vernacularNames?offset=%d&limit=50", s.url(), offset)
-		if err := request(url, &response); err != nil {
+		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
 		names = append(names, response.Results...)
@@ -278,30 +275,6 @@ func (s Species) VernacularNames() (names []VernacularName, err error) {
 	return
 }
 
-func request(url string, response interface{}) error {
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return errors.Wrapf(err, "could not get gbif http response from request: %s", url)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		return errors.Wrapf(errors.New(resp.Status), "code: %d; request: %s", resp.StatusCode, url)
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return errors.Wrap(err, "could not read http response body")
-	}
-
-	if err := json.Unmarshal(b, &response); err != nil {
-		return errors.Wrap(err, "could not unmarshal http response")
-	}
-
-	return nil
-}
-
 func (s Species) nameUsagePage(path string) (names []NameUsage, err error) {
 	var offset int
 	for {
@@ -310,7 +283,7 @@ func (s Species) nameUsagePage(path string) (names []NameUsage, err error) {
 			Results []NameUsage `json:"results"`
 		}
 		url := fmt.Sprintf("%s/%s?offset=%d&limit=50", s.url(), path, offset)
-		if err := request(url, &response); err != nil {
+		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
 		names = append(names, response.Results...)
@@ -324,7 +297,7 @@ func (s Species) nameUsagePage(path string) (names []NameUsage, err error) {
 
 func (s Species) nameUsages(path string) (names []NameUsage, err error) {
 	url := fmt.Sprintf("%s/%s", s.url(), path)
-	if err := request(url, &names); err != nil {
+	if err := utils.RequestJSON(url, &names); err != nil {
 		return nil, err
 	}
 	return

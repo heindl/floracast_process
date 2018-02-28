@@ -40,12 +40,16 @@ func ReadFeatureCollectionFromGeoJSONFile(filepath string, property_filter func(
 	return &fc, nil
 }
 
-func ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath string, callback GeoJSONParsedCallback) error {
+func ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath string, callback GeoJSONParsedCallback) (err error) {
 	f, err := os.Open(filepath)
 	if err != nil {
-		panic(err)
+		return errors.Wrapf(err, "Could not open file [%s]", filepath)
 	}
-	defer f.Close()
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 	b, err := ioutil.ReadAll(bufio.NewReader(f))
 	if err != nil {
 		panic(err)
@@ -86,42 +90,48 @@ func ParseGeoJSONFeature(encoded_feature []byte, callback GeoJSONParsedCallback)
 		return errors.Wrap(err, "could not get geometry")
 	}
 
-	geometry, err := geojson.UnmarshalGeometry(encoded_geometry)
+	multipolygon, err := unmarshalGeometryAsMultiPolygon(encoded_geometry)
 	if err != nil {
-		return errors.Wrap(err, "could could not unmarshal geometry")
-	}
-
-	if !geometry.IsMultiPolygon() && !geometry.IsPolygon() {
-		return errors.Newf("unsupported geometry type: %s", geometry.Type)
-	}
-	var multipolygon MultiPolygon
-	if geometry.IsMultiPolygon() {
-		// MultiPolygon    [][][][]float64
-		for _, polygon_array := range geometry.MultiPolygon {
-			np, err := NewPolygon(polygon_array)
-			if err != nil {
-				return err
-			}
-			multipolygon, err = multipolygon.PushPolygon(np)
-			if err != nil {
-				return err
-			}
-		}
-	} else {
-		// Polygon         [][][]float64
-		np, err := NewPolygon(geometry.Polygon)
-		if err != nil {
-			return err
-		}
-		multipolygon, err = multipolygon.PushPolygon(np)
-		if err != nil {
-			return err
-		}
+		return err
 	}
 
 	f := Feature{}
-	f.PushMultiPolygon(multipolygon)
+	if err := f.PushMultiPolygon(multipolygon); err != nil {
+		return err
+	}
 	f.SetProperties(encoded_properties)
 
 	return callback(&f)
+}
+
+func unmarshalGeometryAsMultiPolygon(encoded_geometry []byte) (MultiPolygon, error) {
+	geometry, err := geojson.UnmarshalGeometry(encoded_geometry)
+	if err != nil {
+		return nil, errors.Wrap(err, "could could not unmarshal geometry")
+	}
+
+	if !geometry.IsMultiPolygon() && !geometry.IsPolygon() {
+		return nil, errors.Newf("unsupported geometry type: %s", geometry.Type)
+	}
+	if geometry.IsMultiPolygon() {
+		// MultiPolygon    [][][][]float64
+		mp := MultiPolygon{}
+		for _, polygon_array := range geometry.MultiPolygon {
+			np, err := NewPolygon(polygon_array)
+			if err != nil {
+				return nil, err
+			}
+			mp, err = mp.PushPolygon(np)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return mp, nil
+	}
+	// Polygon         [][][]float64
+	np, err := NewPolygon(geometry.Polygon)
+	if err != nil {
+		return nil, err
+	}
+	return MultiPolygon{}.PushPolygon(np)
 }

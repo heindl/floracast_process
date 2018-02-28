@@ -8,10 +8,14 @@ import (
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/mongodb/mongo-tools/common/json"
+	"gopkg.in/tomb.v2"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
+
+var fetchLmtr = utils.NewLimiter(5) // Should keep at five concurrently, because the API can not handle many requests.
 
 func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Observation, error) {
 
@@ -19,65 +23,90 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		return nil, errors.New("Invalid TargetID")
 	}
 
+	initRes := ObservationsResult{}
+	initURL := occurrenceURL(targetID, since, 1)
+	releaseOuterLmtr := fetchLmtr.Go()
+	if err := utils.RequestJSON(initURL, &initRes); err != nil {
+		releaseOuterLmtr()
+		return nil, errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", initURL)
+	}
+	releaseOuterLmtr()
+
+	observations := initRes.Results
+
+	if initRes.NumberOfPages > 1 {
+		lock := sync.Mutex{}
+		tmb := tomb.Tomb{}
+		tmb.Go(func() error {
+			for 𝝨 := 2; 𝝨 <= initRes.NumberOfPages; 𝝨++ {
+				releaseInnerLmtr := fetchLmtr.Go()
+				i := 𝝨
+				tmb.Go(func() error {
+					defer releaseInnerLmtr()
+					localRes := ObservationsResult{}
+					localURL := occurrenceURL(targetID, since, i)
+					if err := utils.RequestJSON(localURL, &localRes); err != nil {
+						return errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", localURL)
+					}
+					lock.Lock()
+					defer lock.Unlock()
+					observations = append(observations, localRes.Results...)
+					return nil
+				})
+			}
+			return nil
+		})
+		if err := tmb.Wait(); err != nil {
+			return nil, err
+		}
+	}
+
+	if len(observations) != initRes.NumberOfRecords {
+		return nil, errors.Newf("MushroomObserver fetched Observations [%d] are different than those expected [%d]", len(observations), initRes.NumberOfRecords)
+	}
+
 	res := []*Observation{}
-
-	page := 1
-	for {
-
-		parameters := []string{
-			fmt.Sprintf("name=%s", string(targetID)),
-			"format=json",
-			"detail=high",
-			"has_images=true",
-			"has_location=true",
-			"is_collection_location=true",
-			"east=-49.0",
-			"north=83.3",
-			"west=-178.2",
-			"south=6.6",
-			"confidence=2",
-			fmt.Sprintf("page=%d", page),
+	for _, observation := range observations {
+		taxonID, err := targetID.ToInt()
+		if err != nil {
+			return nil, err
 		}
-
-		if since != nil && !since.IsZero() {
-			parameters = append(parameters, fmt.Sprintf("updated_at=%s-%s", since.Format("2006-01-02"), time.Now().Format("2006-01-02")))
+		// Should be covered in search, but just in case.
+		if observation.Consensus.ID != taxonID {
+			return nil, errors.Newf("WARNING: MushroomObserver consensus id [%d] does not equal TaxonID [%d] in query.", observation.Consensus.ID, taxonID)
 		}
-
-		u := "http://mushroomobserver.org/api/observations?" + strings.Join(parameters, "&")
-
-		apiResult := ObservationsResult{}
-		if err := utils.RequestJSON(u, &apiResult); err != nil {
-			return nil, errors.Wrap(err, "could not fetch mushroom observer observations")
+		// Confidence should be covered by request, but just to be safe ...
+		if observation.Confidence < 2 && observation.Namings.VotesForTaxonID(taxonID) < 2 {
+			fmt.Println(fmt.Sprintf("WARNING: Insufficient Confidence [%f, %d]", observation.Confidence, observation.Namings.VotesForTaxonID(taxonID)))
+			continue
 		}
-
-		for _, observation := range apiResult.Results {
-
-			taxonID, err := targetID.ToInt()
-			if err != nil {
-				return nil, err
-			}
-
-			// Should be covered in search, but just in case.
-			if observation.Consensus.ID != taxonID {
-				return nil, errors.Newf("WARNING: MushroomObserver consensus id [%d] does not equal taxon id [%d] in query.", observation.Consensus.ID, taxonID)
-			}
-
-			// Confidence should be covered by request, but just to be safe ...
-			if observation.Confidence < 2 || observation.Namings.VotesForTaxonID(taxonID) < 2 {
-				return nil, nil
-			}
-
-			res = append(res, observation)
-
-		}
-
-		if page >= apiResult.NumberOfPages {
-			break
-		}
-		page += 1
+		res = append(res, observation)
 	}
 
 	return res, nil
+}
+
+func occurrenceURL(targetID datasources.TargetID, since *time.Time, page int) string {
+	parameters := []string{
+		fmt.Sprintf("name=%s", string(targetID)),
+		"format=json",
+		"detail=high",
+		"has_images=true",
+		"has_location=true",
+		"is_collection_location=true",
+		"east=-49.0",
+		"north=83.3",
+		"west=-178.2",
+		"south=6.6",
+		"confidence=2",
+		fmt.Sprintf("page=%d", page),
+	}
+
+	if since != nil && !since.IsZero() {
+		parameters = append(parameters, fmt.Sprintf("updated_at=%s-%s", since.Format("2006-01-02"), time.Now().Format("2006-01-02")))
+	}
+
+	return "http://mushroomobserver.org/api/observations?" + strings.Join(parameters, "&")
 }
 
 type ObservationsResult struct {

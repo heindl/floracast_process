@@ -1,17 +1,16 @@
 package mushroomobserver
 
 import (
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/utils"
+	"context"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"context"
-	"bitbucket.org/heindl/process/datasources"
 )
 
 func TestTaxonFetcher(t *testing.T) {
 
-	t.Parallel()
-
-	SkipConvey("Should generate a list of NameUsageSources", t, func() {
+	Convey("Should generate a list of NameUsageSources", t, func() {
 
 		names := []string{
 			"boletus edulis clavipes",
@@ -66,25 +65,25 @@ func TestTaxonFetcher(t *testing.T) {
 
 		res, err := FetchNameUsages(context.Background(), names, nil)
 		So(err, ShouldBeNil)
-
 		So(len(res), ShouldEqual, 4)
 
-		//requiredTargetIDs := datasources.TargetIDs{
-		//	datasources.TargetID("16103"),
-		//	datasources.TargetID("20594"),
-		//	datasources.TargetID("16041"),
-		//	datasources.TargetID("344"),
-		//}
-		//
-		//for _, src := range res {
-		//	targetID, err := src.TargetID()
-		//	So(err, ShouldBeNil)
-		//	So(requiredTargetIDs.Contains(targetID), ShouldBeTrue)
-		//}
+		for i, ex := range [][2]string{
+			{"boletus edulis", "344"},
+			{"boletus quercicola", "16103"},
+			{"boletus betulicola", "20594"},
+			{"boletus persoonii", "16041"},
+		} {
+			names, err := res[i].AllScientificNames()
+			So(err, ShouldBeNil)
+			So(names, ShouldContain, ex[0])
+			hasSrc, err := res[i].HasSource(datasources.TypeMushroomObserver, datasources.TargetID(ex[1]))
+			So(err, ShouldBeNil)
+			So(hasSrc, ShouldBeTrue)
+		}
 
 	})
 
-	Convey("Should fetch MushroomObserver OccurrenceAggregation ", t, func() {
+	SkipConvey("Should fetch MushroomObserver Occurrences", t, func() {
 
 		res, err := FetchOccurrences(context.Background(), datasources.TargetID("16103"), nil)
 		So(err, ShouldBeNil)
@@ -100,7 +99,13 @@ func TestTaxonFetcher(t *testing.T) {
 
 		res, err = FetchOccurrences(context.Background(), datasources.TargetID("344"), nil)
 		So(err, ShouldBeNil)
-		So(len(res), ShouldEqual, 16)
+		So(len(res), ShouldEqual, 80)
+		ids := []int{}
+		// Check for duplicates
+		for _, r := range res {
+			ids = utils.AddIntToSet(ids, r.ID)
+		}
+		So(len(ids), ShouldEqual, 80)
 
 	})
 }

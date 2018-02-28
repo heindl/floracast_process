@@ -14,7 +14,7 @@ func TestEcoRegionFetch(t *testing.T) {
 
 	t.Parallel()
 
-	SkipConvey("should explain routes", t, func() {
+	Convey("should explain routes", t, func() {
 		concentricLoopsPolygon := func(center s2.Point, numLoops, verticesPerLoop int) *s2.Polygon {
 			var loops []*s2.Loop
 			for li := 0; li < numLoops; li++ {

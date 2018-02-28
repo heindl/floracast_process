@@ -1,12 +1,13 @@
 package utils
 
 import (
-	"github.com/sethgrid/pester"
-	"io/ioutil"
 	"bytes"
-	"github.com/dropbox/godropbox/errors"
 	"encoding/json"
 	"encoding/xml"
+	"github.com/dropbox/godropbox/errors"
+	"github.com/sethgrid/pester"
+	"io/ioutil"
+	"time"
 )
 
 func RequestJSON(url string, response interface{}) error {
@@ -47,18 +48,25 @@ func RequestXML(url string, response interface{}) error {
 	return nil
 }
 
-func request(url string) ([]byte, error) {
+func request(url string) (res []byte, err error) {
 	client := pester.New()
 	client.Concurrency = 1
 	client.MaxRetries = 5
 	client.Backoff = pester.ExponentialJitterBackoff
 	client.KeepLog = true
+	client.Backoff = func(retry int) time.Duration {
+		return time.Duration(retry) * time.Second
+	}
 
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get http response")
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
 
 	if resp.StatusCode != 200 {
 		return nil, errors.Wrapf(errors.New(resp.Status), "StatusCode: %d; URL: %s", resp.StatusCode, url)
@@ -71,6 +79,4 @@ func request(url string) ([]byte, error) {
 
 	return body, nil
 
-
 }
-
