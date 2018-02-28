@@ -121,7 +121,7 @@ func (Ω *protectedArea) UpdateAccessLevel(level int) error {
 
 func (Ω *protectedArea) Valid() bool {
 
-	if !Ω.Valid() {
+	if Ω.GeoFeatureSet == nil {
 		return false
 	}
 
