@@ -8,6 +8,21 @@ import (
 	"unicode/utf8"
 )
 
+func StringContainsOnlyNumbers(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsNumber(r) {
+			return false
+		}
+		//if unicode.IsLetter(r) {
+		//	return false
+		//}
+	}
+	return true
+}
+
 func CapitalizeString(s string) string {
 	if s == "" {
 		return ""
@@ -67,6 +82,15 @@ func IndexOfString(haystack []string, needle string) int {
 
 func ContainsString(haystack []string, needle string) bool {
 	return IndexOfString(haystack, needle) != -1
+}
+
+func WordInArrayIsASubstring(title string, potentialSubstrings []string) bool {
+	for _, a := range potentialSubstrings {
+		if strings.Contains(title, a) {
+			return true
+		}
+	}
+	return false
 }
 
 func IntersectsStrings(a []string, b []string) bool {

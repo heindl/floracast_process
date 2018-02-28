@@ -1,4 +1,4 @@
-package protected_areas
+package protectedarea
 
 import (
 	"bitbucket.org/heindl/process/store"
@@ -9,7 +9,8 @@ import (
 
 var ErrNotFound = errors.New("Not Found")
 
-func FetchOne(cxt context.Context, florastore store.FloraStore, coordinateKey geoembed.CoordinateKey) (*ProtectedArea, error) {
+// FetchOne fetches a ProtectedArea from Cloud Firestore
+func FetchOne(cxt context.Context, florastore store.FloraStore, coordinateKey geoembed.CoordinateKey) (ProtectedArea, error) {
 
 	if !coordinateKey.Valid() {
 		return nil, errors.Newf("Invalid CoordinateKey [%s]", coordinateKey)
@@ -24,7 +25,7 @@ func FetchOne(cxt context.Context, florastore store.FloraStore, coordinateKey ge
 	if err != nil {
 		return nil, errors.Wrapf(err, "Could not get ProtectedArea [%s]", coordinateKey)
 	}
-	w := ProtectedArea{}
+	w := protectedArea{}
 	if err := snap.DataTo(&w); err != nil {
 		return nil, errors.Wrap(err, "could not type cast ProtectedArea")
 	}

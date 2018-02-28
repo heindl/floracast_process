@@ -52,7 +52,7 @@ func ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath string, callback GeoJ
 	}()
 	b, err := ioutil.ReadAll(bufio.NewReader(f))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	return ParseGeoJSONFeatureCollection(b, callback)
 }

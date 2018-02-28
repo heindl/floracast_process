@@ -97,7 +97,7 @@ func (Ω Predictions) Upload(cxt context.Context, florastore store.FloraStore, w
 
 	// TODO: Get all ProtectedArea Names.
 	// Skip for now ...
-	//areaCache, err := protected_areas.NewProtectedAreaCache(florastore)
+	//areaCache, err := protectedarea.NewProtectedAreaCache(florastore)
 	//if err != nil {
 	//	return err
 	//}
