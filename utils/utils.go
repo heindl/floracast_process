@@ -3,10 +3,10 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/davecgh/go-spew/spew"
-	"os"
-	"io/ioutil"
 	"fmt"
+	"github.com/davecgh/go-spew/spew"
+	"io/ioutil"
+	"os"
 )
 
 func GetFileContents(path string) []byte {
@@ -40,7 +40,6 @@ func ContainsInt(haystack []int, needle int) bool {
 	}
 	return false
 }
-
 
 func JsonOrSpew(o interface{}) string {
 	j, err := json.Marshal(o)

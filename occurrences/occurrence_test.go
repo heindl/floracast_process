@@ -1,11 +1,11 @@
 package occurrences
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-	"golang.org/x/net/context"
-	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/store"
+	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
+	"testing"
 )
 
 func TestOccurrenceFetcher(t *testing.T) {

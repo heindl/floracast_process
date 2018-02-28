@@ -2,13 +2,13 @@ package gbif
 
 import (
 	"bitbucket.org/heindl/process/datasources"
-	"context"
 	"bitbucket.org/heindl/process/datasources/gbif/api"
+	"context"
 	"github.com/dropbox/godropbox/errors"
 )
 
 type MaterializedPhoto struct {
-	Link string `json:""`
+	Link        string `json:""`
 	Attribution string `json:""`
 }
 

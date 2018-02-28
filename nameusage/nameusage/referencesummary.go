@@ -1,8 +1,8 @@
 package nameusage
 
 import (
-	"strings"
 	"sort"
+	"strings"
 )
 
 type NameReferenceSummary struct {

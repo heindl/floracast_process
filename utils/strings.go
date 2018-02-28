@@ -1,20 +1,19 @@
 package utils
 
-
 import (
-	"strings"
-	"unicode/utf8"
-	"unicode"
 	"gopkg.in/tomb.v2"
+	"strings"
 	"sync"
+	"unicode"
+	"unicode/utf8"
 )
 
 func CapitalizeString(s string) string {
-		if s == "" {
-			return ""
-		}
-		r, n := utf8.DecodeRuneInString(s)
-		return string(unicode.ToUpper(r)) + s[n:]
+	if s == "" {
+		return ""
+	}
+	r, n := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[n:]
 }
 
 func ForEachStringToStrings(æ []string, callback func(string) ([]string, error)) ([]string, error) {
@@ -78,7 +77,6 @@ func IntersectsStrings(a []string, b []string) bool {
 	}
 	return false
 }
-
 
 func StringsToLower(a ...string) []string {
 	res := []string{}

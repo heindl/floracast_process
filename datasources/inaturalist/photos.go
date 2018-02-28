@@ -1,8 +1,8 @@
 package inaturalist
 
 import (
-	"context"
 	"bitbucket.org/heindl/process/datasources"
+	"context"
 	"github.com/dropbox/godropbox/errors"
 )
 

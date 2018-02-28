@@ -2,9 +2,9 @@ package store
 
 import (
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/storage"
 	"context"
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
-	"cloud.google.com/go/storage"
 	"github.com/dropbox/godropbox/errors"
 )
 
@@ -52,9 +52,9 @@ func NewTestFloraStore(ctx context.Context) (FloraStore, error) {
 
 	return &store{
 		gcsBucketHandle: gcsBucketHandle,
-		isTest: true,
+		isTest:          true,
 		firestoreClient: firestoreClient,
-		algoliaClient: algoliaClient,
+		algoliaClient:   algoliaClient,
 	}, nil
 }
 
@@ -103,11 +103,10 @@ type store struct {
 func (Ω *store) FirestoreCollection(æ FirestoreCollection) (*firestore.CollectionRef, error) {
 	name := string(æ)
 	if Ω.isTest {
-		name = "Test"+name
+		name = "Test" + name
 	}
 	return Ω.firestoreClient.Collection(name), nil
 }
-
 
 func (Ω *store) FirestoreBatch() *firestore.WriteBatch {
 	return Ω.firestoreClient.Batch()

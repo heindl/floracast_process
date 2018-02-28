@@ -1,15 +1,15 @@
 package nameusage
 
 import (
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/utils"
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"sort"
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/canonicalname"
-	"bitbucket.org/heindl/process/utils"
-	"context"
-	"bitbucket.org/heindl/process/store"
-	"encoding/json"
 )
 
 type NameUsage interface {
@@ -33,11 +33,11 @@ type NameUsage interface {
 const storeKeyScientificName = "ScientificNames"
 
 type usage struct {
-	Id                    NameUsageID`json:"-" firestore:"-"`
-	Cn         *canonicalname.CanonicalName `json:"CanonicalName" firestore:"CanonicalName"`
-	Occrrncs int `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
-	SciNames         map[string]bool `json:"ScientificNames,omitempty" firestore:"ScientificNames,omitempty"`
-	Srcs             map[datasources.SourceType]map[datasources.TargetID]*source `json:"Sources,omitempty" firestore:"Sources,omitempty"`
+	Id       NameUsageID                                                 `json:"-" firestore:"-"`
+	Cn       *canonicalname.CanonicalName                                `json:"CanonicalName" firestore:"CanonicalName"`
+	Occrrncs int                                                         `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
+	SciNames map[string]bool                                             `json:"ScientificNames,omitempty" firestore:"ScientificNames,omitempty"`
+	Srcs     map[datasources.SourceType]map[datasources.TargetID]*source `json:"Sources,omitempty" firestore:"Sources,omitempty"`
 }
 
 func NewNameUsage(src Source) (NameUsage, error) {
@@ -48,8 +48,8 @@ func NewNameUsage(src Source) (NameUsage, error) {
 	}
 
 	u := usage{
-		Id:                    id,
-		Cn:         src.CanonicalName(),
+		Id: id,
+		Cn: src.CanonicalName(),
 	}
 
 	if err := u.AddSources(src); err != nil {
@@ -187,7 +187,6 @@ func (Ω *usage) CanonicalName() *canonicalname.CanonicalName {
 	return Ω.Cn
 }
 
-
 func (Ω *usage) Synonyms() (canonicalname.CanonicalNames, error) {
 	res := canonicalname.CanonicalNames{}
 	srcs, err := Ω.Sources()
@@ -205,7 +204,7 @@ func (Ω *usage) Synonyms() (canonicalname.CanonicalNames, error) {
 	return res, nil
 }
 
-func (Ω *usage) AllScientificNames() ([]string, error){
+func (Ω *usage) AllScientificNames() ([]string, error) {
 	synonyms, err := Ω.Synonyms()
 	if err != nil {
 		return nil, err
@@ -359,7 +358,7 @@ func (a *usage) Combine(b NameUsage) (NameUsage, error) {
 		return nil, nil
 	}
 
-	switch{
+	switch {
 	case namesEquivalent:
 		c.Cn = b.CanonicalName()
 	case bNameIsSynonym && !aNameIsSynonym:

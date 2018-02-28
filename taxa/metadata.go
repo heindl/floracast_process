@@ -1,21 +1,21 @@
 package taxa
 
 import (
-	"bitbucket.org/heindl/process/datasources/sourcefetchers"
-	"golang.org/x/net/context"
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/sourcefetchers"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"gopkg.in/tomb.v2"
-	"sync"
 	"github.com/grokify/html-strip-tags-go"
+	"golang.org/x/net/context"
+	"gopkg.in/tomb.v2"
 	"strings"
+	"sync"
 )
 
 type photo struct {
-	Citation string `json:",omitempty" firestore:",omitempty"`
+	Citation  string `json:",omitempty" firestore:",omitempty"`
 	Thumbnail string `json:",omitempty" firestore:",omitempty"`
-	Large string `json:",omitempty" firestore:",omitempty"`
-	Rank int `json:"-" firestore:"-"`
+	Large     string `json:",omitempty" firestore:",omitempty"`
+	Rank      int    `json:"-" firestore:"-"`
 }
 
 func fetchPhoto(ctx context.Context, usage nameusage.NameUsage) (*photo, error) {
@@ -92,8 +92,8 @@ func fetchPhoto(ctx context.Context, usage nameusage.NameUsage) (*photo, error) 
 
 type description struct {
 	Citation string `json:",omitempty" firestore:",omitempty"`
-	Text string `json:",omitempty" firestore:",omitempty"`
-	Rank string `json:"-" firestore:"-"`
+	Text     string `json:",omitempty" firestore:",omitempty"`
+	Rank     string `json:"-" firestore:"-"`
 }
 
 func fetchDescription(ctx context.Context, usage nameusage.NameUsage) (*description, error) {
@@ -156,7 +156,7 @@ func fetchDescription(ctx context.Context, usage nameusage.NameUsage) (*descript
 						highestRank = rank
 						leadDescription = description{
 							Citation: citation,
-							Text: text,
+							Text:     text,
 						}
 					}
 					lock.Unlock()

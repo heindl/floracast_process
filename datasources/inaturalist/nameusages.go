@@ -1,12 +1,12 @@
 package inaturalist
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"context"
-	"strings"
-	"github.com/dropbox/godropbox/errors"
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"context"
+	"github.com/dropbox/godropbox/errors"
+	"strings"
 )
 
 // namesToMatch []string, keysToMatch datasources.TargetIDs
@@ -69,7 +69,6 @@ func FetchNameUsages(cxt context.Context, namesToMatch []string, ids datasources
 		}
 
 		res = append(res, usage)
-
 
 	}
 

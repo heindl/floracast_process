@@ -1,10 +1,10 @@
 package natureserve
 
 import (
-	"context"
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/nameusage/canonicalname"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"context"
 )
 
 func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.TargetIDs) ([]nameusage.NameUsage, error) {

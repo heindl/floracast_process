@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"cloud.google.com/go/storage"
 	"context"
@@ -9,9 +10,7 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
 )
-
 
 func NewGCSPredictionSource(cxt context.Context, florastore store.FloraStore) (PredictionSource, error) {
 	gcsHandle, err := florastore.CloudStorageBucket()
@@ -25,7 +24,6 @@ type gcsSource struct {
 	gcsBucketHandle *storage.BucketHandle
 }
 
-
 func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id nameusage.NameUsageID, date string) ([]string, error) {
 
 	if !id.Valid() {
@@ -35,7 +33,6 @@ func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id name
 	if len(date) != 8 && date != "*" {
 		return nil, errors.New("Date must be in format YYYYMMDD")
 	}
-
 
 	prefix := path.Join(GCSPredictionsPath, string(id))
 	if date != "" {
@@ -90,7 +87,7 @@ func (Ω *gcsSource) FetchPredictions(cxt context.Context, gcsFilePath string) (
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get prediction object: %s", gcsFilePath)
 	}
-	defer func(){
+	defer func() {
 		if closeErr := r.Close(); closeErr != nil && err != nil {
 			err = closeErr
 			res = nil

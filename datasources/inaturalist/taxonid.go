@@ -1,8 +1,8 @@
 package inaturalist
 
 import (
-	"strconv"
 	"bitbucket.org/heindl/process/datasources"
+	"strconv"
 )
 
 type TaxonID int64

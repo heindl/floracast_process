@@ -2,18 +2,18 @@ package taxa
 
 import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"context"
 	"bitbucket.org/heindl/process/store"
-	"github.com/dropbox/godropbox/errors"
 	"bitbucket.org/heindl/process/utils"
+	"context"
+	"github.com/dropbox/godropbox/errors"
 	"strings"
 )
 
 type materializedTaxon struct {
-	ScientificName string    `json:",omitempty" firestore:",omitempty"`
-	CommonName string        `json:",omitempty" firestore:",omitempty"`
-	Photo *photo             `json:",omitempty" firestore:",omitempty"`
-	Description *description `json:",omitempty" firestore:",omitempty"`
+	ScientificName string       `json:",omitempty" firestore:",omitempty"`
+	CommonName     string       `json:",omitempty" firestore:",omitempty"`
+	Photo          *photo       `json:",omitempty" firestore:",omitempty"`
+	Description    *description `json:",omitempty" firestore:",omitempty"`
 }
 
 func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.NameUsageID) error {
@@ -82,9 +82,9 @@ func materialize(ctx context.Context, usage nameusage.NameUsage) (*materializedT
 
 	mt := materializedTaxon{
 		ScientificName: utils.CapitalizeString(usage.CanonicalName().ScientificName()),
-		CommonName: strings.Title(commonName),
-		Photo: photo,
-		Description: description,
+		CommonName:     strings.Title(commonName),
+		Photo:          photo,
+		Description:    description,
 	}
 
 	return &mt, nil

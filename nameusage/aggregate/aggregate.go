@@ -1,16 +1,16 @@
 package aggregate
 
 import (
-	"sync"
-	"gopkg.in/tomb.v2"
-	"context"
+	"bitbucket.org/heindl/process/algolia"
+	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/nameusage/canonicalname"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/algolia"
 	"bitbucket.org/heindl/process/taxa"
 	"bitbucket.org/heindl/process/utils"
+	"context"
+	"gopkg.in/tomb.v2"
+	"sync"
 )
 
 type Aggregate struct {
@@ -34,7 +34,6 @@ func (Ω *Aggregate) Each(ctx context.Context, handler EachFunction) error {
 	return tmb.Wait()
 }
 
-
 type FilterFunction func(usage nameusage.NameUsage) (bool, error)
 
 func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
@@ -42,7 +41,7 @@ func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 	for _, u := range Ω.list {
 		should, err := shouldFilter(u)
 		if err != nil {
-			return nil,err
+			return nil, err
 		}
 		if should {
 			continue

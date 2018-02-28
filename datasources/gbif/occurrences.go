@@ -1,12 +1,12 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/process/datasources/gbif/api"
-	"time"
-	"github.com/dropbox/godropbox/errors"
-	"fmt"
-	"context"
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/gbif/api"
+	"context"
+	"fmt"
+	"github.com/dropbox/godropbox/errors"
+	"time"
 )
 
 func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*api.Occurrence, error) {
@@ -22,7 +22,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 	}
 
 	apiList, err := api.Occurrences(api.OccurrenceSearchQuery{
-		TaxonKey: int(taxonID),
+		TaxonKey:        int(taxonID),
 		LastInterpreted: lastInterpreted,
 	})
 	if err != nil {
@@ -41,7 +41,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		if gbifO.Issues.HasIssue(api.OCCURRENCE_ISSUE_PRESUMED_SWAPPED_COORDINATE) {
 			fmt.Println("WARNING:", api.OCCURRENCE_ISSUE_PRESUMED_SWAPPED_COORDINATE, fmt.Sprintf("Latitude/Longitude [%f, %f]", gbifO.DecimalLatitude, gbifO.DecimalLongitude))
 			continue
-			}
+		}
 
 		if coordinateIssueIsUncertain(gbifO.Issues) {
 			continue

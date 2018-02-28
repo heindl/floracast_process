@@ -1,12 +1,12 @@
 package gbif
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
-	"golang.org/x/net/context"
-	"fmt"
-	"bitbucket.org/heindl/process/utils"
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/utils"
+	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
+	"testing"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -21,20 +21,20 @@ func TestTaxonFetcher(t *testing.T) {
 	})
 
 	SkipConvey("should fetch gbif name usages from match strings", t, func() {
-		taxa, err := FetchNamesUsages(context.Background(),  []string{"Morchella esculenta"}, nil)
+		taxa, err := FetchNamesUsages(context.Background(), []string{"Morchella esculenta"}, nil)
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(taxa))
 	})
 
 	Convey("should fetch photos", t, func() {
-		photos, err := FetchPhotos(context.Background(),  datasources.TargetID("2594602"))
+		photos, err := FetchPhotos(context.Background(), datasources.TargetID("2594602"))
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(photos))
 	})
 
 	SkipConvey("should fetch gbif name usages from keys", t, func() {
 
-		names := []string {
+		names := []string{
 			"morchella brunnea",
 			"morchella snyderi",
 			"morchella importuna",

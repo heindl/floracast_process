@@ -1,10 +1,10 @@
 package nameusage
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
-	"testing"
 	"bitbucket.org/heindl/process/utils"
 	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
 )
 
 var usageJSON = []byte(`

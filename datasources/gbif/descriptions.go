@@ -2,15 +2,15 @@ package gbif
 
 import (
 	"bitbucket.org/heindl/process/datasources"
-	"context"
 	"bitbucket.org/heindl/process/datasources/gbif/api"
-	"github.com/dropbox/godropbox/errors"
 	"bitbucket.org/heindl/process/utils"
+	"context"
+	"github.com/dropbox/godropbox/errors"
 )
 
 type MaterializedDescription struct {
 	attribution string `json:""`
-	text string `json:""`
+	text        string `json:""`
 }
 
 func (p *MaterializedDescription) Citation() (string, error) {

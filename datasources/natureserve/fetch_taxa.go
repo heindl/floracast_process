@@ -1,16 +1,16 @@
 package natureserve
 
 import (
-	"context"
-	"os"
-	"fmt"
 	"bitbucket.org/heindl/process/utils"
-	"sync"
-	"gopkg.in/tomb.v2"
-	"strings"
-	"github.com/kennygrant/sanitize"
-	url2 "net/url"
+	"context"
+	"fmt"
 	"github.com/dropbox/godropbox/errors"
+	"github.com/kennygrant/sanitize"
+	"gopkg.in/tomb.v2"
+	url2 "net/url"
+	"os"
+	"strings"
+	"sync"
 )
 
 var natureServeAPIKey = os.Getenv("FLORACAST_NATURESERVE_API_KEY")
@@ -29,7 +29,7 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 	limit := utils.NewLimiter(100)
 
 	tmb := tomb.Tomb{}
-	tmb.Go(func()error {
+	tmb.Go(func() error {
 		for _, _name := range names {
 			name := _name
 			tmb.Go(func() error {
@@ -101,7 +101,7 @@ func FetchTaxonWithUID(cxt context.Context, uid string, referencedCanonicalName 
 }
 
 func FetchTaxaWithUID(cxt context.Context, uids ...string) ([]*Taxon, error) {
-	
+
 	if len(uids) == 0 {
 		return nil, nil
 	}
@@ -110,8 +110,8 @@ func FetchTaxaWithUID(cxt context.Context, uids ...string) ([]*Taxon, error) {
 		"https://services.natureserve.org/idd/rest/ns/v1.1/globalSpecies/comprehensive?NSAccessKeyId=%s&uid=%s",
 		natureServeAPIKey,
 		strings.Join(uids, ","),
-		)
-	
+	)
+
 	speciesList := GlobalSpeciesList{}
 	if err := utils.RequestXML(url, &speciesList); err != nil {
 		return nil, err
@@ -140,10 +140,10 @@ type Taxon struct {
 	//Order string `json:",omitempty"`
 	//Family string `json:",omitempty"`
 	//Genus string `json:",omitempty"`
-	ID string `json:",omitempty"`
-	ScientificName *TaxonScientificName `json:",omitempty"`
-	Synonyms []*TaxonScientificName `json:",omitempty"`
-	CommonNames []*TaxonCommonName `json:",omitempty"`
+	ID             string                 `json:",omitempty"`
+	ScientificName *TaxonScientificName   `json:",omitempty"`
+	Synonyms       []*TaxonScientificName `json:",omitempty"`
+	CommonNames    []*TaxonCommonName     `json:",omitempty"`
 }
 
 func (Ω *Taxon) ScientificNameStrings() []string {
@@ -156,20 +156,19 @@ func (Ω *Taxon) ScientificNameStrings() []string {
 
 // TODO: Convert CommonName to struct with language field.
 
-
 type TaxonScientificName struct {
-	Name string `json:",omitempty"`
-	Author string `json:",omitempty"`
-	ConceptReferenceCode string `json:",omitempty"`
-	ConceptReferenceFullCitation string `json:",omitempty"`
-	ConceptReferenceNameUsed string `json:",omitempty"`
+	Name                                 string `json:",omitempty"`
+	Author                               string `json:",omitempty"`
+	ConceptReferenceCode                 string `json:",omitempty"`
+	ConceptReferenceFullCitation         string `json:",omitempty"`
+	ConceptReferenceNameUsed             string `json:",omitempty"`
 	ConceptReferenceClassificationStatus string `json:",omitempty"`
 }
 
 type TaxonCommonName struct {
 	LanguageCode string `json:",omitempty"`
-	IsPrimary bool `json:",omitempty"`
-	Name string `json:",omitempty"`
+	IsPrimary    bool   `json:",omitempty"`
+	Name         string `json:",omitempty"`
 }
 
 // TODO: Really dig more into various available information. InformalTaxonomy is useful for choosing broad categories
@@ -179,7 +178,7 @@ type TaxonCommonName struct {
 // https://services.natureserve.org/idd/rest/ns/v1.1/globalSpecies/comprehensive?NSAccessKeyId=b2374ab2-275c-48eb-b3c1-8f7afe9af5c4&uid=ELEMENT_GLOBAL.2.116078,ELEMENT_GLOBAL.2.121086,ELEMENT_GLOBAL.2.735443,ELEMENT_GLOBAL.2.735442,ELEMENT_GLOBAL.9.24619,ELEMENT_GLOBAL.9.24616,ELEMENT_GLOBAL.2.108328,ELEMENT_GLOBAL.2.114107,ELEMENT_GLOBAL.2.121010,ELEMENT_GLOBAL.2.107284,ELEMENT_GLOBAL.2.111490,ELEMENT_GLOBAL.2.108561,ELEMENT_GLOBAL.2.107412,ELEMENT_GLOBAL.2.115920,ELEMENT_GLOBAL.2.108251,ELEMENT_GLOBAL.2.116121,ELEMENT_GLOBAL.2.841062,ELEMENT_GLOBAL.2.841061,ELEMENT_GLOBAL.9.24619
 
 func parseGlobalSpecies(species *GlobalSpecies) (*Taxon, error) {
-	
+
 	if species.Classification == nil {
 		fmt.Println(fmt.Sprintf("Warning: Invalid/missing NatureServe species [%s]", species.Attruid))
 		return nil, nil
@@ -221,16 +220,16 @@ func parseGlobalSpecies(species *GlobalSpecies) (*Taxon, error) {
 		if names.NatureServePrimaryGlobalCommonName != nil {
 			txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
 				IsPrimary: true,
-				Name: names.NatureServePrimaryGlobalCommonName.Text,
+				Name:      names.NatureServePrimaryGlobalCommonName.Text,
 			})
 		}
 
 		if names.OtherGlobalCommonNames != nil && len(names.OtherGlobalCommonNames.CommonName) > 0 {
 			for _, cn := range names.OtherGlobalCommonNames.CommonName {
 				txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
-					IsPrimary: false,
-					Name: cn.Text,
-					LanguageCode:cn.Attrlanguage,
+					IsPrimary:    false,
+					Name:         cn.Text,
+					LanguageCode: cn.Attrlanguage,
 				})
 			}
 		}
@@ -240,9 +239,7 @@ func parseGlobalSpecies(species *GlobalSpecies) (*Taxon, error) {
 
 }
 
-
 // Dumb that these are exactly the same but I have to move on.
-
 
 func parseXMLSynonymName(given *SynonymName) *TaxonScientificName {
 
@@ -306,7 +303,6 @@ func parseXMLScientificName(given *ScientificName) *TaxonScientificName {
 				} else {
 					txn.ConceptReferenceNameUsed = sanitize.HTML(crnu.FormattedName.Text)
 				}
-
 
 			}
 		}

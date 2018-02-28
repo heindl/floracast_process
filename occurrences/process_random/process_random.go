@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bitbucket.org/heindl/process/occurrences"
+	"bitbucket.org/heindl/process/store"
 	"flag"
 	"fmt"
-	"bitbucket.org/heindl/process/store"
 	"golang.org/x/net/context"
-	"bitbucket.org/heindl/process/occurrences"
 )
 
 func main() {

@@ -1,22 +1,22 @@
 package gbif
 
 import (
-	"context"
-	"fmt"
-	"net/url"
-	"bitbucket.org/heindl/process/utils"
-	"gopkg.in/tomb.v2"
-	"strings"
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/datasources/gbif/api"
-	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/utils"
+	"context"
+	"fmt"
+	"github.com/dropbox/godropbox/errors"
+	"gopkg.in/tomb.v2"
+	"net/url"
+	"strings"
 	"sync"
 )
 
 type orchestrator struct {
-	Usages []nameusage.NameUsage
+	Usages  []nameusage.NameUsage
 	Context context.Context
 	sync.Mutex
 }
@@ -39,7 +39,7 @@ func (Ω *orchestrator) hasCanonicalName(name string) (bool, error) {
 func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 
 	o := orchestrator{
-		Usages: []nameusage.NameUsage{},
+		Usages:  []nameusage.NameUsage{},
 		Context: cxt,
 	}
 
@@ -198,22 +198,21 @@ func (Ω *orchestrator) fashionCanonicalNameUsage(scientificName, vernacularName
 	return nil
 }
 
-
 type MatchResult struct {
-	UsageKey       api.TaxonID    `json:"usageKey"`
-	ScientificName string `json:"scientificName"`
-	CanonicalName  string `json:"canonicalName"`
-	Rank           api.Rank `json:"rank"`
-	Status         string `json:"status"`
-	Confidence     int    `json:"confidence"`
-	Note           string `json:"note"`
-	MatchType      string `json:"matchType"`
-	Synonym    bool   `json:"synonym"`
+	UsageKey       api.TaxonID `json:"usageKey"`
+	ScientificName string      `json:"scientificName"`
+	CanonicalName  string      `json:"canonicalName"`
+	Rank           api.Rank    `json:"rank"`
+	Status         string      `json:"status"`
+	Confidence     int         `json:"confidence"`
+	Note           string      `json:"note"`
+	MatchType      string      `json:"matchType"`
+	Synonym        bool        `json:"synonym"`
 }
 
 func matchSynonyms(id api.TaxonID) ([]nameusage.Source, error) {
 
-	synonymUsages, err := fetchNameUsages(fmt.Sprintf( "http://api.gbif.org/v1/species/%d/synonyms?", id))
+	synonymUsages, err := fetchNameUsages(fmt.Sprintf("http://api.gbif.org/v1/species/%d/synonyms?", id))
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +231,7 @@ func matchSynonyms(id api.TaxonID) ([]nameusage.Source, error) {
 			api.TaxonomicStatusHETEROTYPIC_SYNONYM,
 			api.TaxonomicStatusHOMOTYPIC_SYNONYM,
 			api.TaxonomicStatusPROPARTE_SYNONYM,
-			}
+		}
 
 		if !acceptedTaxonomicStatuses.Contains(synonym.TaxonomicStatus) || !synonym.Synonym {
 			fmt.Println(fmt.Sprintf("Warning: usage [%d] is not a synonym [%s], so skipping", synonym.Key, synonym.TaxonomicStatus))
@@ -269,10 +268,10 @@ func fetchNameUsages(url string) ([]*api.NameUsage, error) {
 
 	for {
 		var res struct {
-			Offset int `json:"offset"`
-			Limit int `json:"limit"`
-			EndOfRecords bool `json:"endOfRecords"`
-			Results []*api.NameUsage `json:"results"`
+			Offset       int              `json:"offset"`
+			Limit        int              `json:"limit"`
+			EndOfRecords bool             `json:"endOfRecords"`
+			Results      []*api.NameUsage `json:"results"`
 		}
 
 		nUrl := url + fmt.Sprintf("&offset=%d&limit=300", offset)

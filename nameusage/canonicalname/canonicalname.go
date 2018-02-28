@@ -1,9 +1,9 @@
 package canonicalname
 
 import (
+	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"strings"
-	"bitbucket.org/heindl/process/utils"
 )
 
 // The canonical Name is the scientific Name of the species, subspecies, variety, etc. Anything under Genus.
@@ -39,7 +39,7 @@ func NewCanonicalName(name string, rank string) (*CanonicalName, error) {
 	return &CanonicalName{
 		Name: s,
 		Rank: rank,
-		}, nil
+	}, nil
 }
 
 func (a *CanonicalName) Equals(b *CanonicalName) bool {

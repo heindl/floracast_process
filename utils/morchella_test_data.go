@@ -1,21 +1,20 @@
 package utils
 
 import (
-  "fmt"
+	"fmt"
 )
 
 func GetFetchedMorchellaAggregateTestData() []byte {
-  return []byte(fmt.Sprintf(`{"eM3R8X2YQyLJWiLMVIGzZaU1I": %s}`, morchellaFetched))
+	return []byte(fmt.Sprintf(`{"eM3R8X2YQyLJWiLMVIGzZaU1I": %s}`, morchellaFetched))
 }
 
 func GetUnFetchedMorchellaAggregateTestData() []byte {
-  return []byte(fmt.Sprintf(`{"eM3R8X2YQyLJWiLMVIGzZaU1I": %s}`, morchellaUnfetched))
+	return []byte(fmt.Sprintf(`{"eM3R8X2YQyLJWiLMVIGzZaU1I": %s}`, morchellaUnfetched))
 }
 
 func GetFetchedMorchellaUsageTestData() []byte {
-  return []byte(morchellaFetched)
+	return []byte(morchellaFetched)
 }
-
 
 var morchellaFetched = `{
     "CanonicalName": {
@@ -1282,7 +1281,6 @@ var morchellaFetched = `{
     "CreatedAt": "2018-02-11T18:57:46.971291-05:00",
     "ModifiedAt": "2018-02-11T18:58:09.279379-05:00"
   }`
-
 
 var morchellaUnfetched = `{
     "CanonicalName": {

@@ -1,10 +1,10 @@
 package nameusage
 
 import (
-	"github.com/elgs/gostrgen"
 	"github.com/dropbox/godropbox/errors"
-	"strings"
+	"github.com/elgs/gostrgen"
 	"math"
+	"strings"
 )
 
 // https://github.com/cheekybits/genny -> Look into generation
@@ -36,7 +36,6 @@ func (Ω NameUsageIDs) Contains(æ NameUsageID) bool {
 	return false
 }
 
-
 func (Ω NameUsageIDs) Batch(maxBatchSize float64) []NameUsageIDs {
 
 	if len(Ω) == 0 {
@@ -46,7 +45,7 @@ func (Ω NameUsageIDs) Batch(maxBatchSize float64) []NameUsageIDs {
 	batchCount := math.Ceil(float64(len(Ω)) / maxBatchSize)
 
 	res := []NameUsageIDs{}
-	for i := 0.0; i <= batchCount - 1; i++ {
+	for i := 0.0; i <= batchCount-1; i++ {
 		start := int(i * maxBatchSize)
 		end := int(((i + 1) * maxBatchSize) - 1)
 
@@ -60,7 +59,6 @@ func (Ω NameUsageIDs) Batch(maxBatchSize float64) []NameUsageIDs {
 	return res
 }
 
-
 func NameUsageIDsFromStrings(æ []string) (NameUsageIDs, error) {
 	res := NameUsageIDs{}
 	for _, strID := range æ {
@@ -72,7 +70,6 @@ func NameUsageIDsFromStrings(æ []string) (NameUsageIDs, error) {
 	}
 	return res, nil
 }
-
 
 const nameUsageIDLength = 25
 

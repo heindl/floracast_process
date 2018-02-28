@@ -1,16 +1,16 @@
 package main
 
 import (
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/sourcefetchers"
+	"bitbucket.org/heindl/process/nameusage/aggregate"
+	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/utils"
+	"context"
+	"encoding/json"
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
-	"context"
-	"fmt"
-	"bitbucket.org/heindl/process/utils"
-	"bitbucket.org/heindl/process/nameusage/aggregate"
-	"encoding/json"
-	"bitbucket.org/heindl/process/datasources/sourcefetchers"
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/store"
 )
 
 func TestNameUsageProcessor(t *testing.T) {
@@ -23,7 +23,7 @@ func TestNameUsageProcessor(t *testing.T) {
 			datasources.TypeINaturalist,
 			nil,
 			datasources.TargetIDs{"58682"},
-			)
+		)
 		So(err, ShouldBeNil)
 		So(len(usages), ShouldEqual, 2)
 	})
@@ -54,7 +54,6 @@ func TestNameUsageProcessor(t *testing.T) {
 		So(occurrenceAggr.Count(), ShouldEqual, 238)
 
 		fmt.Println(utils.JsonOrSpew(occurrenceAggr))
-
 
 	})
 

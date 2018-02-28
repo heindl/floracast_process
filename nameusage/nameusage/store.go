@@ -2,9 +2,9 @@ package nameusage
 
 import (
 	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/utils"
 	"context"
 	"fmt"
-	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 )
 
@@ -31,7 +31,6 @@ func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (delet
 		return nil, err
 	}
 
-
 	Ω.Occrrncs, err = Ω.Occurrences()
 	if err != nil {
 		return nil, err
@@ -55,11 +54,11 @@ func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (delet
 }
 
 func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsageIDs NameUsageIDs) error {
-	
+
 	if len(allUsageIDs) == 0 {
 		return nil
 	}
-	
+
 	for _, usageIDs := range allUsageIDs.Batch(500) {
 		if len(usageIDs) == 0 {
 			return nil
@@ -92,7 +91,7 @@ func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) 
 	}
 
 	wait := store.NewFirestoreLimiter()
-	list, err := utils.ForEachStringToStrings(names, func(name string) ([]string, error){
+	list, err := utils.ForEachStringToStrings(names, func(name string) ([]string, error) {
 		<-wait
 		synonymMatch := fmt.Sprintf("%s.%s", storeKeyScientificName, name)
 		snaps, err := col.Where(synonymMatch, "==", true).Documents(ctx).GetAll()

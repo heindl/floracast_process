@@ -1,18 +1,17 @@
 package nameusage
 
 import (
-	"time"
-	"github.com/dropbox/godropbox/errors"
-	"bitbucket.org/heindl/process/utils"
-	"strings"
-	"sync"
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/utils"
+	"github.com/dropbox/godropbox/errors"
 	"github.com/mongodb/mongo-tools/common/json"
+	"strings"
+	"sync"
+	"time"
 )
 
-
-type Source interface{
+type Source interface {
 	RegisterOccurrenceFetch(count int) error
 	AddCommonNames(names ...string) error
 	SourceType() (datasources.SourceType, error)
@@ -29,13 +28,13 @@ type Source interface{
 type source struct {
 	mutex              *sync.Mutex
 	TaxonomicReference bool                         `json:",omitempty" firestore:",omitempty"`
-	SrcType         datasources.SourceType       `json:"-" firestore:"-"`
-	TrgtID           datasources.TargetID         `json:"-" firestore:"-"`
-	CnnclNm      *canonicalname.CanonicalName `json:"CanonicalName,omitempty" firestore:"CanonicalName,omitempty"`
-	Snnms           canonicalname.CanonicalNames `json:"Synonyms,omitempty" firestore:"Synonyms,omitempty"`
-	CmmnNms        []string                     `json:"CommonNames,omitempty" firestore:"CommonNames,omitempty"`
-	Occurrences    int                          `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
-	LastFtchdAt      *time.Time                   `json:"LastFetchedAt,omitempty" firestore:"LastFetchedAt,omitempty"`
+	SrcType            datasources.SourceType       `json:"-" firestore:"-"`
+	TrgtID             datasources.TargetID         `json:"-" firestore:"-"`
+	CnnclNm            *canonicalname.CanonicalName `json:"CanonicalName,omitempty" firestore:"CanonicalName,omitempty"`
+	Snnms              canonicalname.CanonicalNames `json:"Synonyms,omitempty" firestore:"Synonyms,omitempty"`
+	CmmnNms            []string                     `json:"CommonNames,omitempty" firestore:"CommonNames,omitempty"`
+	Occurrences        int                          `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
+	LastFtchdAt        *time.Time                   `json:"LastFetchedAt,omitempty" firestore:"LastFetchedAt,omitempty"`
 }
 
 type Sources []Source
@@ -104,10 +103,10 @@ func NewSource(sourceType datasources.SourceType, targetID datasources.TargetID,
 	return &source{
 		mutex:              &sync.Mutex{},
 		TaxonomicReference: isTaxonomic,
-		SrcType:         sourceType,
-		TrgtID:           targetID,
-		CnnclNm:      canonicalName,
-		}, nil
+		SrcType:            sourceType,
+		TrgtID:             targetID,
+		CnnclNm:            canonicalName,
+	}, nil
 }
 
 func (Ω *source) SourceType() (datasources.SourceType, error) {
@@ -128,7 +127,7 @@ func (Ω *source) TargetID() (datasources.TargetID, error) {
 	return Ω.TrgtID, nil
 }
 
-func (Ω *source) CanonicalName() *canonicalname.CanonicalName{
+func (Ω *source) CanonicalName() *canonicalname.CanonicalName {
 	return Ω.CnnclNm
 }
 
