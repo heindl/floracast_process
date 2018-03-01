@@ -17,7 +17,7 @@ func TestProtectedAreaDatabaseParser(t *testing.T) {
 		collections, metrics, err := processor.ProcessFeatureCollections()
 		So(err, ShouldBeNil)
 		So(len(collections), ShouldEqual, 20)
-		So(metrics.total, ShouldEqual, 40)
+		So(metrics.Total, ShouldEqual, 40)
 
 	})
 }

@@ -6,10 +6,8 @@ import (
 	"bitbucket.org/heindl/process/utils"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
-	"github.com/elgs/gostrgen"
 	"io/ioutil"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 )
@@ -33,7 +31,7 @@ func NewProcessor(inpath, outpath string) (Processor, error) {
 		inPath:  inpath,
 		outPath: outpath,
 		metrics: &metrics{
-			stats: map[string]int{},
+			Stats: map[string]int{},
 		},
 	}, nil
 }
@@ -47,16 +45,16 @@ type orchestrator struct {
 }
 
 type metrics struct {
-	stats                  map[string]int
-	publicAccessClosed     int
-	publicAccessRestricted int
-	golfCourse             int
-	publicAccessUnknown    int
-	unassignedIUCNCategory int
-	total                  int
-	emptyAreas             int
-	localParks             int
-	marineProtectedArea    int
+	Stats                  map[string]int `json:""`
+	PublicAccessClosed     int            `json:""`
+	PublicAccessRestricted int            `json:""`
+	//golfCourse             int
+	PublicAccessUnknown int `json:""`
+	//unassignedIUCNCategory int
+	Total      int `json:""`
+	EmptyAreas int `json:""`
+	//localParks          int
+	//marineProtectedArea int
 }
 
 // ProcessFeatureCollections reads, parses, groups, and filters PAD-US GeoJSON
@@ -73,11 +71,11 @@ func (Ω *orchestrator) ProcessFeatureCollections() (geo.FeatureCollections, *me
 		return nil, nil, err
 	}
 
-	Ω.stats["After Centroid Distance Filter"] = len(centroidDistanceFiltered)
+	Ω.Stats["After Centroid Distance Filter"] = len(centroidDistanceFiltered)
 
 	minimumAreaFiltered := centroidDistanceFiltered.FilterByMinimumArea(0.50)
 
-	Ω.stats["After Minimum Area Filter"] = len(minimumAreaFiltered)
+	Ω.Stats["After Minimum Area Filter"] = len(minimumAreaFiltered)
 
 	// TODO: Sort based on additional fields, particularly protected or access status.
 	decimatedClusters, err := minimumAreaFiltered.DecimateClusters(15)
@@ -85,7 +83,7 @@ func (Ω *orchestrator) ProcessFeatureCollections() (geo.FeatureCollections, *me
 		return nil, nil, err
 	}
 
-	Ω.stats["After Cluster Decimation"] = len(decimatedClusters)
+	Ω.Stats["After Cluster Decimation"] = len(decimatedClusters)
 
 	return decimatedClusters, Ω.metrics, nil
 }
@@ -119,7 +117,7 @@ func (Ω *orchestrator) readGroupAndFilter() (geo.FeatureCollections, error) {
 		return nil, err
 	}
 
-	Ω.stats["Initial Filtered total"] = Ω.aggregated.Count()
+	Ω.Stats["Initial Filtered Total"] = Ω.aggregated.Count()
 
 	filteredUnitNames, err := Ω.aggregated.FilterByProperty(func(i interface{}) bool {
 		s := strings.ToLower(string(i.([]byte)))
@@ -132,14 +130,14 @@ func (Ω *orchestrator) readGroupAndFilter() (geo.FeatureCollections, error) {
 		return nil, err
 	}
 
-	Ω.stats["After Name Filter"] = filteredUnitNames.Count()
+	Ω.Stats["After Name Filter"] = filteredUnitNames.Count()
 
 	nameGrouped, err := filteredUnitNames.GroupByProperties("Unit_Nm", "Loc_Nm")
 	if err != nil {
 		return nil, err
 	}
 
-	Ω.stats["After Name Group"] = len(nameGrouped)
+	Ω.Stats["After Name Group"] = len(nameGrouped)
 
 	return nameGrouped, nil
 }
@@ -164,23 +162,6 @@ func (Ω *orchestrator) filterByCentroidDistance(collections geo.FeatureCollecti
 	return validCentroidDistance, nil
 }
 
-func (Ω *metrics) print() {
-
-	fmt.Println("total", Ω.total)
-	fmt.Println("publicAccessClosed", Ω.publicAccessClosed)
-	fmt.Println("publicAccessRestricted", Ω.publicAccessRestricted)
-	fmt.Println("publicAccessUnknown", Ω.publicAccessUnknown)
-	fmt.Println("golfCourse", Ω.golfCourse)
-	fmt.Println("IsZero Areas", Ω.emptyAreas)
-	fmt.Println("unassignedIUCNCategory", Ω.unassignedIUCNCategory)
-	fmt.Println("marineProtectedArea", Ω.marineProtectedArea)
-	fmt.Println("localParks", Ω.localParks)
-
-	for k, v := range Ω.stats {
-		fmt.Println(k, v)
-	}
-}
-
 type fieldValidator interface {
 	Valid() bool
 }
@@ -188,7 +169,7 @@ type fieldValidator interface {
 func (Ω *orchestrator) shouldSaveProtectedArea(feature *geo.Feature) (bool, error) {
 
 	if !feature.Valid() {
-		Ω.emptyAreas++
+		Ω.EmptyAreas++
 		return false, nil
 	}
 
@@ -199,12 +180,12 @@ func (Ω *orchestrator) shouldSaveProtectedArea(feature *geo.Feature) (bool, err
 
 	switch pa.Access {
 	case padus.PublicAccessClosed:
-		Ω.publicAccessClosed++
+		Ω.PublicAccessClosed++
 		return false, nil
 	case padus.PublicAccessRestricted: // In Alabama, this includes Wildlife Refuges and WMAs.
-		Ω.publicAccessRestricted++
+		Ω.PublicAccessRestricted++
 	case padus.PublicAccessUnknown: // There are so many of these that look valid, we should ignore this.
-		Ω.publicAccessUnknown++
+		Ω.PublicAccessUnknown++
 	}
 
 	for _, field := range []struct {
@@ -237,30 +218,30 @@ func (Ω *orchestrator) shouldSaveProtectedArea(feature *geo.Feature) (bool, err
 	return true, nil
 }
 
-func (Ω *orchestrator) getID(nf *geo.Feature) string {
-	pa := padus.ProtectedArea{}
-	if err := nf.GetProperties(&pa); err != nil {
-		panic(err)
-	}
-
-	if pa.WDPACd != 0 {
-		return "wdpa_" + strconv.Itoa(int(pa.WDPACd))
-	}
-
-	if pa.SourcePAI != "" {
-		return "pai_" + pa.SourcePAI
-	}
-
-	randID, err := gostrgen.RandGen(20, gostrgen.Lower|gostrgen.Digit, "", "")
-	if err != nil {
-		panic(err)
-	}
-	return "unidentified_" + randID
-}
+//func (Ω *orchestrator) getID(nf *geo.Feature) string {
+//	pa := padus.ProtectedArea{}
+//	if err := nf.GetProperties(&pa); err != nil {
+//		panic(err)
+//	}
+//
+//	if pa.WDPACd != 0 {
+//		return "wdpa_" + strconv.Itoa(int(pa.WDPACd))
+//	}
+//
+//	if pa.SourcePAI != "" {
+//		return "pai_" + pa.SourcePAI
+//	}
+//
+//	randID, err := gostrgen.RandGen(20, gostrgen.Lower|gostrgen.Digit, "", "")
+//	if err != nil {
+//		panic(err)
+//	}
+//	return "unidentified_" + randID
+//}
 
 func (Ω *orchestrator) receiveFeature(nf *geo.Feature) error {
 
-	Ω.total++
+	Ω.Total++
 
 	shouldSave, err := Ω.shouldSaveProtectedArea(nf)
 	if err != nil {
