@@ -4,7 +4,6 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
 	pmgeo "github.com/paulmach/go.geo"
-	"github.com/paulmach/go.geojson"
 	"math"
 )
 
@@ -112,31 +111,4 @@ func (Ω *Point) DistanceKilometers(np *Point) float64 {
 	p1 := pmgeo.NewPointFromLatLng(Ω.Latitude(), Ω.Longitude())
 	p2 := pmgeo.NewPointFromLatLng(np.Latitude(), np.Longitude())
 	return p1.GeoDistanceFrom(p2) / 1000.0
-}
-
-type Points []*Point
-
-func (Ω Points) Centroid() (*Point, error) {
-	pointset := &pmgeo.PointSet{}
-	for _, p := range Ω {
-		pointset = pointset.Push(pmgeo.NewPointFromLatLng(p.Latitude(), p.Longitude()))
-	}
-	centroid := pointset.GeoCentroid()
-	return NewPoint(centroid.Lat(), centroid.Lng())
-}
-
-func (Ω Points) GeoJSON() ([]byte, error) {
-	fc := geojson.NewFeatureCollection()
-	for _, pt := range Ω {
-		f := geojson.NewPointFeature(pt.AsArray())
-		for k, v := range pt.properties {
-			f.SetProperty(k, v)
-		}
-		fc = fc.AddFeature(f)
-	}
-	b, err := fc.MarshalJSON()
-	if err != nil {
-		return nil, errors.Wrap(err, "could not marshal points")
-	}
-	return b, nil
 }

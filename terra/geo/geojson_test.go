@@ -439,7 +439,6 @@ func TestEcoRegionFetch(t *testing.T) {
 			return nil
 		}), ShouldBeNil)
 
-		//fmt.Println(string(f))
 		So(multipolygon.Contains(33.735760815044635, -118.06564807891844), ShouldBeFalse) // Within Hole
 		So(multipolygon.Contains(33.745252, -118.0801775), ShouldBeTrue)
 		So(multipolygon.Contains(33.7387304, -118.0735578), ShouldBeTrue)

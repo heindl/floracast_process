@@ -1,15 +1,18 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
+	"sync"
+
 	"bitbucket.org/heindl/process/protectedarea/padus"
 	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/utils"
-	"fmt"
 	"github.com/dropbox/godropbox/errors"
-	"io/ioutil"
-	"os"
-	"strings"
-	"sync"
+	"gopkg.in/tomb.v2"
 )
 
 // Processor parses, groups, filters and writes PAD-US GeoJSON.
@@ -78,7 +81,7 @@ func (Ω *orchestrator) ProcessFeatureCollections() (geo.FeatureCollections, *me
 	Ω.Stats["After Minimum Area Filter"] = len(minimumAreaFiltered)
 
 	// TODO: Sort based on additional fields, particularly protected or access status.
-	decimatedClusters, err := minimumAreaFiltered.DecimateClusters(15)
+	decimatedClusters, err := minimumAreaFiltered.DecimateClusters(clusterDecimationKm)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -91,28 +94,33 @@ func (Ω *orchestrator) ProcessFeatureCollections() (geo.FeatureCollections, *me
 // WriteCollections writes grouped feature collections to a geojson file
 // The collection polylabel is used for the filename
 func (Ω *orchestrator) WriteCollections(collections geo.FeatureCollections) error {
-
-	for _, v := range collections {
-		polyLabel, err := v.PolyLabel()
-		if err != nil {
-			return err
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, 𝝨 := range collections {
+			col := 𝝨
+			tmb.Go(func() error {
+				polyLabel, err := col.PolyLabel()
+				if err != nil {
+					return err
+				}
+				filePath := path.Join(Ω.outPath, fmt.Sprintf("%.6f_%.6f.geojson", polyLabel.Latitude(), polyLabel.Longitude()))
+				gj, err := col.GeoJSON()
+				if err != nil {
+					return err
+				}
+				if err := ioutil.WriteFile(filePath, gj, os.ModePerm); err != nil {
+					return errors.Wrapf(err, "Could not write GeoJSON [%s]", filePath)
+				}
+				return nil
+			})
 		}
-
-		fname := fmt.Sprintf("%s/%.6f_%.6f.geojson", Ω.outPath, polyLabel.Latitude(), polyLabel.Longitude())
-
-		gj, err := v.GeoJSON()
-		if err != nil {
-			return err
-		}
-
-		if err := ioutil.WriteFile(fname, gj, os.ModePerm); err != nil {
-			return err
-		}
-	}
-	return nil
+		return nil
+	})
+	return tmb.Wait()
 }
 
 func (Ω *orchestrator) readGroupAndFilter() (geo.FeatureCollections, error) {
+
 	if err := geo.ReadFeaturesFromGeoJSONFeatureCollectionFile(Ω.inPath, Ω.receiveFeature); err != nil {
 		return nil, err
 	}
@@ -121,10 +129,7 @@ func (Ω *orchestrator) readGroupAndFilter() (geo.FeatureCollections, error) {
 
 	filteredUnitNames, err := Ω.aggregated.FilterByProperty(func(i interface{}) bool {
 		s := strings.ToLower(string(i.([]byte)))
-		if utils.WordInArrayIsASubstring(s, flagsToFilter) || utils.StringContainsOnlyNumbers(s) {
-			return true
-		}
-		return false
+		return utils.WordInArrayIsASubstring(s, flagsToFilter) || utils.StringContainsOnlyNumbers(s)
 	}, "Unit_Nm")
 	if err != nil {
 		return nil, err
@@ -144,29 +149,51 @@ func (Ω *orchestrator) readGroupAndFilter() (geo.FeatureCollections, error) {
 
 func (Ω *orchestrator) filterByCentroidDistance(collections geo.FeatureCollections) (geo.FeatureCollections, error) {
 	// Filter by distance from cluster centroid to avoid widely dispersed parks.
-	validCentroidDistance := geo.FeatureCollections{}
-	for _, v := range collections {
-		if v.Count() == 1 {
-			validCentroidDistance = append(validCentroidDistance, v)
-			continue
+	res := geo.FeatureCollections{}
+	tmb := tomb.Tomb{}
+	lock := sync.Mutex{}
+	tmb.Go(func() error {
+		for _, 𝝨 := range collections {
+			col := 𝝨
+			tmb.Go(func() error {
+				if col.Count() == 1 {
+					lock.Lock()
+					defer lock.Unlock()
+					res = append(res, col)
+					return nil
+				}
+				// TODO: Explode and regroup those that are too large by Unit_Nm & Loc_Nm
+				maxDistance, err := col.MaxDistanceFromCentroid()
+				if err != nil {
+					return err
+				}
+				lock.Lock()
+				defer lock.Unlock()
+				if maxDistance <= maxCentroidDistance {
+					res = append(res, col)
+				} else {
+					cols, err := col.Explode()
+					if err != nil {
+						return err
+					}
+					res = append(res, cols...)
+				}
+				return nil
+			})
 		}
-		// TODO: Explode and regroup those that are too large by Unit_Nm & Loc_Nm
-		maxDistance, err := v.MaxDistanceFromCentroid()
-		if err != nil {
-			panic(err)
-		}
-		if maxDistance <= maxCentroidDistance {
-			validCentroidDistance = append(validCentroidDistance, v)
-		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
 	}
-	return validCentroidDistance, nil
+	return res, nil
 }
 
 type fieldValidator interface {
 	Valid() bool
 }
 
-func (Ω *orchestrator) shouldSaveProtectedArea(feature *geo.Feature) (bool, error) {
+func (Ω *orchestrator) isFeatureValid(feature *geo.Feature) (bool, error) {
 
 	if !feature.Valid() {
 		Ω.EmptyAreas++
@@ -179,13 +206,13 @@ func (Ω *orchestrator) shouldSaveProtectedArea(feature *geo.Feature) (bool, err
 	}
 
 	switch pa.Access {
-	case padus.PublicAccessClosed:
-		Ω.PublicAccessClosed++
-		return false, nil
 	case padus.PublicAccessRestricted: // In Alabama, this includes Wildlife Refuges and WMAs.
 		Ω.PublicAccessRestricted++
 	case padus.PublicAccessUnknown: // There are so many of these that look valid, we should ignore this.
 		Ω.PublicAccessUnknown++
+	case padus.PublicAccessClosed:
+		Ω.PublicAccessClosed++
+		return false, nil
 	}
 
 	for _, field := range []struct {
@@ -210,7 +237,7 @@ func (Ω *orchestrator) shouldSaveProtectedArea(feature *geo.Feature) (bool, err
 			//	Ω.marineProtectedArea += 1
 			//	return false
 			//}
-			fmt.Println(fmt.Sprintf(`GapStatus("%s"): "%s", | %s`, pa.GAPStatusCode, pa.DGAPSts, pa.UnitNm))
+			//fmt.Println(field.s)
 			return false, nil
 		}
 	}
@@ -243,7 +270,7 @@ func (Ω *orchestrator) receiveFeature(nf *geo.Feature) error {
 
 	Ω.Total++
 
-	shouldSave, err := Ω.shouldSaveProtectedArea(nf)
+	shouldSave, err := Ω.isFeatureValid(nf)
 	if err != nil {
 		return err
 	}

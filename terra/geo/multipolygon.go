@@ -2,7 +2,6 @@ package geo
 
 import (
 	"bytes"
-	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
 )
 
@@ -145,7 +144,7 @@ func PolygonToArray(polygon *s2.Polygon) [][][]float64 {
 func (Ω MultiPolygon) PolylabelOfLargestPolygon() (*Point, error) {
 	largestPolygon := Ω.LargestPolygon()
 	if largestPolygon == nil {
-		return nil, errors.New("could not find polylabel of empty polygon")
+		return nil, nil
 	}
 	return PolyLabel(PolygonToArray(largestPolygon), 0)
 }

@@ -1,9 +1,10 @@
 package geo
 
 import (
+	"strings"
+
 	"github.com/dropbox/godropbox/errors"
 	"github.com/paulmach/go.geojson"
-	"strings"
 )
 
 type FeatureCollection struct {
@@ -21,6 +22,18 @@ func (Ω *FeatureCollection) Features() []*Feature {
 }
 
 var ErrInvalidFeature = errors.New("Invalid Feature")
+
+func (Ω *FeatureCollection) Explode() (FeatureCollections, error) {
+	res := FeatureCollections{}
+	for _, f := range Ω.features {
+		fc := FeatureCollection{}
+		if err := fc.Append(f); err != nil {
+			return nil, err
+		}
+		res = append(res, &fc)
+	}
+	return res, nil
+}
 
 func (Ω *FeatureCollection) Append(features ...*Feature) error {
 	for i := range features {
@@ -106,7 +119,9 @@ func (Ω *FeatureCollection) FilterByProperty(should_filter func(interface{}) bo
 	}
 	fc := FeatureCollection{}
 	// Ignore internal validate error because features must have been valid to be created.
-	_ = fc.Append(output_holder...)
+	if err := fc.Append(output_holder...); err != nil {
+		return nil, err
+	}
 	return &fc, nil
 }
 
@@ -154,7 +169,7 @@ func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) (Feature
 	return output, nil
 }
 
-func (Ω *FeatureCollection) FilterByMinimumArea(minimum_area_kilometers float64) *FeatureCollection {
+func (Ω *FeatureCollection) FilterByMinimumArea(minimum_area_kilometers float64) (*FeatureCollection, error) {
 	output_holder := []*Feature{}
 	for _, ic := range Ω.features {
 		if ic.Area() < minimum_area_kilometers {
@@ -164,8 +179,10 @@ func (Ω *FeatureCollection) FilterByMinimumArea(minimum_area_kilometers float64
 	}
 	fc := FeatureCollection{}
 	// Ignore internal validate error because features must have been valid to be created.
-	_ = fc.Append(output_holder...)
-	return &fc
+	if err := fc.Append(output_holder...); err != nil {
+		return nil, err
+	}
+	return &fc, nil
 }
 
 func (Ω FeatureCollection) MaxDistanceFromCentroid() (float64, error) {
@@ -219,103 +236,4 @@ func (Ω FeatureCollection) Condense(merge_properties CondenseMergePropertiesFun
 	}
 
 	return &f, nil
-}
-
-/////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////
-
-type FeatureCollections []*FeatureCollection
-
-func (Ω FeatureCollections) FilterByMinimumArea(minimum_area_kilometers float64) FeatureCollections {
-	out := FeatureCollections{}
-	for _, ic := range Ω {
-		if ic.Area() < minimum_area_kilometers {
-			continue
-		}
-		out = append(out, ic)
-	}
-	return out
-}
-
-func (Ω FeatureCollections) PolyLabels() (Points, error) {
-	labels := Points{}
-	for _, ic := range Ω {
-		p, err := ic.PolyLabel()
-		if err != nil {
-			return nil, err
-		}
-		labels = append(labels, p)
-	}
-	return labels, nil
-}
-
-func (Ω FeatureCollections) Condense(merge_properties CondenseMergePropertiesFunc) (*FeatureCollection, error) {
-	features := []*Feature{}
-	for _, fc := range Ω {
-		condensed, err := fc.Condense(merge_properties)
-		if err != nil {
-			return nil, err
-		}
-		features = append(features, condensed)
-	}
-	fc := FeatureCollection{}
-	if err := fc.Append(features...); err != nil {
-		return nil, err
-	}
-	return &fc, nil
-}
-
-// Sorter accepts two property maps and returns true if a is greater than b. If sorter is nil, the area will be used.
-func (Ω FeatureCollections) DecimateClusters(minKm float64) (FeatureCollections, error) {
-
-	a := FeatureCollections{}
-	a = append(a, Ω...)
-	// Slow process. Would be more efficient to cluster. Could grab bounding box seperate into quadrants.
-	complete := false
-
-Restart:
-	for !complete {
-		for i := range a {
-			// Find nearest Point.
-			nearest_distance := 0.0
-			array_position := 0
-			for k := range a {
-				if k == i {
-					continue
-				}
-				p1, err := a[k].PolyLabel()
-				if err != nil {
-					return nil, err
-				}
-				p2, err := a[i].PolyLabel()
-				if err != nil {
-					return nil, err
-				}
-				distance := p1.DistanceKilometers(p2)
-				// If the distance between the two is less than the required minimum.
-				if distance > minKm {
-					continue
-				}
-
-				if nearest_distance == 0 || distance < nearest_distance {
-					array_position = k
-					nearest_distance = distance
-				}
-			}
-			if nearest_distance > 0 {
-				if a[i].Area() > a[array_position].Area() {
-					a = append(a[:array_position], a[array_position+1:]...)
-				} else {
-					a = append(a[:i], a[i+1:]...)
-				}
-				continue Restart
-			}
-		}
-		complete = true
-	}
-
-	return a, nil
 }

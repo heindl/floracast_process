@@ -5,7 +5,6 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/paulmach/go.geojson"
-	"gopkg.in/tomb.v2"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -58,37 +57,43 @@ func ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath string, callback GeoJ
 }
 
 func ParseGeoJSONFeatureCollection(encodedFeatureCollection []byte, callback GeoJSONParsedCallback) error {
-	tmb := tomb.Tomb{}
-	tmb.Go(func() error {
-		_, err := jsonparser.ArrayEach(encodedFeatureCollection, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
-			tmb.Go(func() error {
-				if err != nil {
-					return errors.Wrapf(err, "could not parse features array: %s", string(value))
-				}
-				if err := ParseGeoJSONFeature(value, callback); err != nil {
-					return errors.Wrapf(err, "could not parse features array: %s", string(value))
-				}
-				return nil
-			})
-		}, "features")
-		return err
-	})
-	return tmb.Wait()
+
+	featureBytes := [][]byte{}
+	if _, err := jsonparser.ArrayEach(encodedFeatureCollection, func(f []byte, _ jsonparser.ValueType, _ int, _ error) {
+		featureBytes = append(featureBytes, f)
+	}, "features"); err != nil {
+		return errors.Wrap(err, "Unable to Encoded FeatureCollection")
+	}
+
+	//tmb := tomb.Tomb{}
+	//tmb.Go(func() error {
+	for _, fb := range featureBytes {
+		//_fb := 𝝨
+		//tmb.Go(func() error {
+		//	fb := _fb
+		if err := ParseGeoJSONFeature(fb, callback); err != nil {
+			return err
+		}
+		//})
+	}
+	return nil
+	//})
+	//return tmb.Wait()
 }
 
-func ParseGeoJSONFeature(encoded_feature []byte, callback GeoJSONParsedCallback) error {
+func ParseGeoJSONFeature(encodedFeature []byte, callback GeoJSONParsedCallback) error {
 
-	encoded_properties, _, _, err := jsonparser.Get(encoded_feature, "properties")
+	encodedProperties, _, _, err := jsonparser.Get(encodedFeature, "properties")
 	if err != nil {
 		return errors.Wrap(err, "could not get properties")
 	}
 
-	encoded_geometry, _, _, err := jsonparser.Get(encoded_feature, "geometry")
+	encodedGeometry, _, _, err := jsonparser.Get(encodedFeature, "geometry")
 	if err != nil {
 		return errors.Wrap(err, "could not get geometry")
 	}
 
-	multipolygon, err := unmarshalGeometryAsMultiPolygon(encoded_geometry)
+	multipolygon, err := unmarshalGeometryAsMultiPolygon(encodedGeometry)
 	if err != nil {
 		return err
 	}
@@ -97,13 +102,13 @@ func ParseGeoJSONFeature(encoded_feature []byte, callback GeoJSONParsedCallback)
 	if err := f.PushMultiPolygon(multipolygon); err != nil {
 		return err
 	}
-	f.SetProperties(encoded_properties)
+	f.SetProperties(encodedProperties)
 
 	return callback(&f)
 }
 
-func unmarshalGeometryAsMultiPolygon(encoded_geometry []byte) (MultiPolygon, error) {
-	geometry, err := geojson.UnmarshalGeometry(encoded_geometry)
+func unmarshalGeometryAsMultiPolygon(encodedGeometry []byte) (MultiPolygon, error) {
+	geometry, err := geojson.UnmarshalGeometry(encodedGeometry)
 	if err != nil {
 		return nil, errors.Wrap(err, "could could not unmarshal geometry")
 	}
@@ -114,8 +119,8 @@ func unmarshalGeometryAsMultiPolygon(encoded_geometry []byte) (MultiPolygon, err
 	if geometry.IsMultiPolygon() {
 		// MultiPolygon    [][][][]float64
 		mp := MultiPolygon{}
-		for _, polygon_array := range geometry.MultiPolygon {
-			np, err := NewPolygon(polygon_array)
+		for _, polygonArray := range geometry.MultiPolygon {
+			np, err := NewPolygon(polygonArray)
 			if err != nil {
 				return nil, err
 			}

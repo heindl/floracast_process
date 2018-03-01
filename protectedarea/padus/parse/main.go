@@ -12,6 +12,7 @@ var flagsToFilter = []string{
 }
 
 const maxCentroidDistance = 20.0
+const clusterDecimationKm = 10.0
 
 func main() {
 	in := flag.String("in", "/tmp/gap_analysis/ID/state.geojson", "Input json file")
