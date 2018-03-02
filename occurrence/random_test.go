@@ -1,4 +1,4 @@
-package occurrences
+package occurrence
 
 import (
 	"bitbucket.org/heindl/process/store"

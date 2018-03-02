@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/occurrences"
+	"bitbucket.org/heindl/process/occurrence"
 	"bitbucket.org/heindl/process/store"
 	"context"
 	"flag"
@@ -19,11 +19,11 @@ func main() {
 		panic(err)
 	}
 
-	if err := occurrences.ClearRandomPoints(ctx, floraStore); err != nil {
+	if err := occurrence.ClearRandomPoints(ctx, floraStore); err != nil {
 		panic(err)
 	}
 
-	aggr, err := occurrences.GenerateRandomOccurrences(*cellLevel, *batches)
+	aggr, err := occurrence.GenerateRandomOccurrences(*cellLevel, *batches)
 	if err != nil {
 		panic(err)
 	}

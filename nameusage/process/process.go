@@ -5,7 +5,7 @@ import (
 	"bitbucket.org/heindl/process/datasources/sourcefetchers"
 	"bitbucket.org/heindl/process/nameusage/aggregate"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/occurrences"
+	"bitbucket.org/heindl/process/occurrence"
 	"bitbucket.org/heindl/process/store"
 	"context"
 	"flag"
@@ -125,12 +125,12 @@ func InitialAggregation(cxt context.Context, inaturalistTaxonIDs ...int) (*aggre
 	return &snowball, nil
 }
 
-func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*occurrences.OccurrenceAggregation, error) {
+func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*occurrence.Aggregation, error) {
 
-	res := occurrences.OccurrenceAggregation{}
+	res := occurrence.Aggregation{}
 
 	// Fetch Inaturalist and GBIF occurrences.
-	if err := aggregation.Each(cxt, occurrenceFetcher(&res, datasources.TypeGBIF, datasources.TypeINaturalist)); err != nil {
+	if err := aggregation.Each(cxt, occurrenceFetcher(&res, datasources.TypeINaturalist, datasources.TypeGBIF)); err != nil {
 		return nil, err
 	}
 
@@ -167,48 +167,18 @@ func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*oc
 
 }
 
-func occurrenceFetcher(oAggr *occurrences.OccurrenceAggregation, srcTypes ...datasources.SourceType) aggregate.EachFunction {
+func occurrenceFetcher(oAggr *occurrence.Aggregation, sourceTypes ...datasources.SourceType) aggregate.EachFunction {
 	return func(ctx context.Context, usage nameusage.NameUsage) error {
 
-		usageOccurrenceAggr := occurrences.OccurrenceAggregation{}
-
-		srcs, err := usage.Sources(srcTypes...)
+		aggr, err := occurrence.FetchOccurrences(ctx, usage, false, sourceTypes...)
 		if err != nil {
 			return err
 		}
 
-		for _, src := range srcs {
-
-			srcType, err := src.SourceType()
-			if err != nil {
-				return err
-			}
-
-			targetID, err := src.TargetID()
-			if err != nil {
-				return err
-			}
-
-			srcOccurrenceAggregation, err := occurrences.FetchOccurrences(ctx, srcType, targetID, src.LastFetchedAt())
-			if err != nil {
-				return err
-			}
-
-			if err := src.RegisterOccurrenceFetch(srcOccurrenceAggregation.Count()); err != nil {
-				return err
-			}
-			if err := oAggr.Merge(srcOccurrenceAggregation); err != nil {
-				return err
-			}
-		}
-
-		if usageOccurrenceAggr.Count() >= minimumOccurrenceCount {
-			if err := oAggr.Merge(&usageOccurrenceAggr); err != nil {
-				return err
-			}
+		if aggr.Count() >= minimumOccurrenceCount {
+			return oAggr.Merge(aggr)
 		}
 
 		return nil
-
 	}
 }

@@ -1,4 +1,4 @@
-package occurrences
+package occurrence
 
 import (
 	"bitbucket.org/heindl/process/datasources"
@@ -14,11 +14,11 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 	Convey("Should Fetch Occurrences for Taxon", t, func() {
 
-		iNatAggr, err := FetchOccurrences(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
+		iNatAggr, err := fetchOccurrencesForTarget(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
 		So(err, ShouldBeNil)
 		So(iNatAggr.Count(), ShouldEqual, 121)
 
-		gbifAggr, err := FetchOccurrences(context.Background(), datasources.TypeGBIF, datasources.TargetID("2594602"), nil)
+		gbifAggr, err := fetchOccurrencesForTarget(context.Background(), datasources.TypeGBIF, datasources.TargetID("2594602"), nil)
 		So(err, ShouldBeNil)
 		So(gbifAggr.Count(), ShouldEqual, 205)
 
@@ -40,7 +40,7 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 		Convey("Should generate a list of Random points and upload to FireStore", func() {
 
-			aggr, err := FetchOccurrences(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
+			aggr, err := fetchOccurrencesForTarget(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
 			So(err, ShouldBeNil)
 			So(aggr.Count(), ShouldEqual, 121)
 

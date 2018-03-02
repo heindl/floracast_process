@@ -19,7 +19,7 @@ type localStructForJSON struct {
 	EcoRealm             ecoregions.Realm  `json:""`
 	EcoBiome             ecoregions.Biome  `json:""`
 	EcoNum               ecoregions.EcoNum `json:""`
-	Elevation            *int              `json:""`
+	Elevation            *int              `json:",omitempty"`
 	CoordinateKey        CoordinateKey     `json:""`
 	S2Tokens             map[int]string    `json:""`
 }

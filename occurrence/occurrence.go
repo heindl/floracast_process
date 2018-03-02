@@ -1,4 +1,4 @@
-package occurrences
+package occurrence
 
 import (
 	"bitbucket.org/heindl/process/datasources"
@@ -12,7 +12,7 @@ import (
 	"strconv"
 )
 
-// Occurrence represents both a species occurrence and random point.
+// Occurrence represents both a species record and random point.
 type Occurrence interface {
 	ID() (string, error)
 	Collection(florastore store.FloraStore) (*firestore.CollectionRef, error)
@@ -36,17 +36,17 @@ func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID
 		return nil, dropboxError.Newf("Invalid target id [%s]", targetID)
 	}
 	if occurrenceID == "" {
-		return nil, dropboxError.Newf("Invalid occurrence id")
+		return nil, dropboxError.Newf("Invalid record id")
 	}
 
-	return &occurrence{
+	return &record{
 		SrcType:         srcType,
 		TgtID:           targetID,
 		SrcOccurrenceID: occurrenceID,
 	}, nil
 }
 
-type occurrence struct {
+type record struct {
 	SrcType         datasources.SourceType  `json:"SourceType"`
 	TgtID           datasources.TargetID    `json:"TargetID"`
 	SrcOccurrenceID string                  `json:"SourceOccurrenceID"`
@@ -54,14 +54,14 @@ type occurrence struct {
 	GeoFeatureSet   *geoembed.GeoFeatureSet `json:""`
 }
 
-func (Ω *occurrence) Collection(florastore store.FloraStore) (*firestore.CollectionRef, error) {
+func (Ω *record) Collection(florastore store.FloraStore) (*firestore.CollectionRef, error) {
 	if Ω.SourceType() == datasources.TypeRandom {
 		return florastore.FirestoreCollection(store.CollectionRandom)
 	}
 	return florastore.FirestoreCollection(store.CollectionOccurrences)
 }
 
-func (Ω *occurrence) MarshalJSON() ([]byte, error) {
+func (Ω *record) MarshalJSON() ([]byte, error) {
 	o := *Ω
 	return json.Marshal(o)
 
@@ -97,18 +97,18 @@ func (Ω *occurrence) MarshalJSON() ([]byte, error) {
 	//return json.Marshal(om)
 }
 
-func (Ω *occurrence) Coordinates() (lat, lng float64, err error) {
+func (Ω *record) Coordinates() (lat, lng float64, err error) {
 	return Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng(), nil
 }
 
-func (Ω *occurrence) UnmarshalJSON(b []byte) error {
+func (Ω *record) UnmarshalJSON(b []byte) error {
 
 	gf := geoembed.GeoFeatureSet{}
 	if err := json.Unmarshal(b, &gf); err != nil {
 		return err
 	}
 
-	o := occurrence{}
+	o := record{}
 	if err := json.Unmarshal(b, &o); err != nil {
 		return err
 	}
@@ -120,26 +120,26 @@ func (Ω *occurrence) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (Ω *occurrence) SourceType() datasources.SourceType {
+func (Ω *record) SourceType() datasources.SourceType {
 	return Ω.SrcType
 }
 
-func (Ω *occurrence) TargetID() datasources.TargetID {
+func (Ω *record) TargetID() datasources.TargetID {
 	return Ω.TgtID
 }
 
-func (Ω *occurrence) SourceOccurrenceID() string {
+func (Ω *record) SourceOccurrenceID() string {
 	return Ω.SrcOccurrenceID
 }
 
-func (Ω *occurrence) Date() (string, error) {
+func (Ω *record) Date() (string, error) {
 	if len(Ω.FormattedDate) != 8 {
 		return "", dropboxError.Newf("Invalid Occurrence Date [%s]", Ω.FormattedDate)
 	}
 	return Ω.FormattedDate, nil
 }
 
-func (Ω *occurrence) LocationKey() (string, error) {
+func (Ω *record) LocationKey() (string, error) {
 	if Ω == nil {
 		return "", dropboxError.New("Occurrence is Invalid")
 	}
@@ -164,8 +164,8 @@ func (Ω *occurrence) LocationKey() (string, error) {
 // ErrInvalidDate flags a date that isn't in the format 20060101
 var ErrInvalidDate = errors.New("invalid date")
 
-// SetGeoSpatial creates and adds the occurrence GeoFeatureSet.
-func (Ω *occurrence) SetGeoSpatial(lat, lng float64, date string, coordinatesEstimated bool) error {
+// SetGeoSpatial creates and adds the record GeoFeatureSet.
+func (Ω *record) SetGeoSpatial(lat, lng float64, date string, coordinatesEstimated bool) error {
 
 	var err error
 	// GeoFeatureSet placeholder should validate for decimal places.
@@ -191,7 +191,7 @@ func (Ω *occurrence) SetGeoSpatial(lat, lng float64, date string, coordinatesEs
 	// Not going to store time because it's useless for the date model.
 	// But do need to cast time to the local for that coordinate, to be certain we have the correct day.
 	//if Ω.Lat() == 0 || Ω.Lng() == 0 {
-	//	return errors.New("Could not calculate timezone because occurrence location is invalid")
+	//	return errors.New("Could not calculate timezone because record location is invalid")
 	//}
 	//tz, err := time.LoadLocation(latlong.LookupZoneName(Ω.Lat(), Ω.Lng()))
 	//if err != nil {

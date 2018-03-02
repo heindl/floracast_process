@@ -1,4 +1,4 @@
-package occurrences
+package occurrence
 
 import (
 	"math"
@@ -46,7 +46,7 @@ var Winter = Season{
 
 type randomOccurrenceGenerator struct {
 	gridGenerator        grid.Generator
-	occurrenceAggregator *OccurrenceAggregation
+	occurrenceAggregator *Aggregation
 	sync.Mutex
 }
 
@@ -68,7 +68,7 @@ func newRandomOccurrenceGenerator() (*randomOccurrenceGenerator, error) {
 // GenerateRandomOccurrences generates an evenly distributed list of Random Occurrences
 // across southern Canada, northern Mexico, and the United States.
 // There will be one for each season.
-func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*OccurrenceAggregation, error) {
+func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, error) {
 	gen, err := newRandomOccurrenceGenerator()
 	if err != nil {
 		return nil, err

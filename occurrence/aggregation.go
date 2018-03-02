@@ -1,4 +1,4 @@
-package occurrences
+package occurrence
 
 import (
 	"bitbucket.org/heindl/process/datasources"
@@ -11,24 +11,24 @@ import (
 	"sync"
 )
 
-// OccurrenceAggregation handles collecting occurrences, validating them, avoiding collisions,
+// Aggregation handles collecting occurrences, validating them, avoiding collisions,
 // and uploading them to FireStore.
-type OccurrenceAggregation struct {
+type Aggregation struct {
 	collisions int
 	sync.Mutex
 	list []Occurrence
 }
 
 // NewOccurrenceAggregation creates one.
-func NewOccurrenceAggregation() *OccurrenceAggregation {
-	oa := OccurrenceAggregation{
+func NewOccurrenceAggregation() *Aggregation {
+	oa := Aggregation{
 		list: []Occurrence{},
 	}
 	return &oa
 }
 
 // Count returns the length of the aggregation.
-func (Ω *OccurrenceAggregation) Count() int {
+func (Ω *Aggregation) Count() int {
 	if Ω == nil {
 		return 0
 	}
@@ -41,7 +41,7 @@ func (Ω *OccurrenceAggregation) Count() int {
 }
 
 // Merge combines aggregations selects between collisions.
-func (Ω *OccurrenceAggregation) Merge(æ *OccurrenceAggregation) error {
+func (Ω *Aggregation) Merge(æ *Aggregation) error {
 	if æ == nil {
 		return nil
 	}
@@ -57,9 +57,9 @@ func (Ω *OccurrenceAggregation) Merge(æ *OccurrenceAggregation) error {
 // ErrCollision warns of a collision.
 var ErrCollision = errors.New("Occurrence Collision")
 
-// AddOccurrence adds a new occurrence to the aggregation and returns error if it's
-// an unselected occurrence in collision.
-func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
+// AddOccurrence adds a new record to the aggregation and returns error if it's
+// an unselected record in collision.
+func (Ω *Aggregation) AddOccurrence(b Occurrence) error {
 
 	if b == nil {
 		return nil
@@ -110,7 +110,7 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 }
 
 // GeoJSON creates a GeoJSON point collection
-func (Ω *OccurrenceAggregation) GeoJSON() ([]byte, error) {
+func (Ω *Aggregation) GeoJSON() ([]byte, error) {
 	points := geo.Points{}
 	for _, o := range Ω.list {
 		lat, lng, err := o.Coordinates()
@@ -133,14 +133,14 @@ func (Ω *OccurrenceAggregation) GeoJSON() ([]byte, error) {
 	return points.GeoJSON()
 }
 
-// MarshalJSON will convert occurrence list to JSON
-func (Ω *OccurrenceAggregation) MarshalJSON() ([]byte, error) {
+// MarshalJSON will convert record list to JSON
+func (Ω *Aggregation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(Ω.list)
 }
 
 // UnmarshalJSON takes a list of occurrences and creates an aggregation
-func (Ω *OccurrenceAggregation) UnmarshalJSON(b []byte) error {
-	list := []*occurrence{}
+func (Ω *Aggregation) UnmarshalJSON(b []byte) error {
+	list := []*record{}
 	if err := json.Unmarshal(b, &list); err != nil {
 		return err
 	}

@@ -75,7 +75,7 @@ func main() {
 
 func newHandler(ctx context.Context, floraStore store.FloraStore, bucket, mode string) (res *handler, err error) {
 
-	res := handler{}
+	res = &handler{}
 	if bucket == "" {
 		res.source, err = parser.NewLocalPredictionSource(ctx, "/tmp/floracast-datamining/")
 		if err != nil {
