@@ -2,6 +2,7 @@ package parser
 
 import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"bitbucket.org/heindl/process/utils"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"io/ioutil"
@@ -80,13 +81,7 @@ func (Ω *localSource) FetchPredictions(cxt context.Context, filePath string) (r
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not open prediction file [%s]", filePath)
 	}
-	defer func() {
-		if closeErr := f.Close(); closeErr != nil && err != nil {
-			err = closeErr
-			res = nil
-			return
-		}
-	}()
+	defer utils.SafeClose(f, &err)
 
 	nameUsageID, err := parseNameUsageIDFromFilePath(filePath)
 	if err != nil {

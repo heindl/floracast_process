@@ -31,8 +31,8 @@ func (Ω *OccurrenceAggregation) Upload(cxt context.Context, floraStore store.Fl
 	return nil
 }
 
-// ClearRandomOccurrences clears all occurrences from the Random collection.
-func ClearRandomOccurrences(cxt context.Context, florastore store.FloraStore) error {
+// ClearRandomPoints clears all points from the Random collection.
+func ClearRandomPoints(cxt context.Context, florastore store.FloraStore) error {
 
 	col, err := florastore.FirestoreCollection(store.CollectionRandom)
 	if err != nil {
@@ -48,7 +48,7 @@ func ClearRandomOccurrences(cxt context.Context, florastore store.FloraStore) er
 			return errors.Wrap(err, "Could not get random occurrence snapshot")
 		}
 		if _, err := snap.Ref.Delete(cxt); err != nil {
-			return errors.Wrap(err, "Could not delete random occurrence")
+			return errors.Wrap(err, "Could not delete Random occurrence")
 		}
 	}
 

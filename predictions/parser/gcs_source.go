@@ -3,6 +3,7 @@ package parser
 import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/utils"
 	"cloud.google.com/go/storage"
 	"context"
 	"github.com/dropbox/godropbox/errors"
@@ -87,13 +88,7 @@ func (Ω *gcsSource) FetchPredictions(cxt context.Context, gcsFilePath string) (
 	if err != nil {
 		return nil, errors.Wrapf(err, "could not get prediction object: %s", gcsFilePath)
 	}
-	defer func() {
-		if closeErr := r.Close(); closeErr != nil && err != nil {
-			err = closeErr
-			res = nil
-			return
-		}
-	}()
+	defer utils.SafeClose(r, &err)
 
 	nameUsageID, err := parseNameUsageIDFromFilePath(gcsFilePath)
 	if !nameUsageID.Valid() {

@@ -38,7 +38,10 @@ func TestRandomProvider(t *testing.T) {
 		})
 
 		Reset(func() {
-			So(floraStore.ClearTestCollection(ctx, randomCollectionRef), ShouldBeNil)
+			So(ClearRandomPoints(ctx, floraStore), ShouldBeNil)
+			floraStoreRandomCount, err := floraStore.CountTestCollection(ctx, randomCollectionRef)
+			So(err, ShouldBeNil)
+			So(floraStoreRandomCount, ShouldEqual, 0)
 		})
 
 	})

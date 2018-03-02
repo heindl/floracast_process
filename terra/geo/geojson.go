@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"bitbucket.org/heindl/process/utils"
 	"bufio"
 	"github.com/buger/jsonparser"
 	"github.com/dropbox/godropbox/errors"
@@ -44,11 +45,8 @@ func ReadFeaturesFromGeoJSONFeatureCollectionFile(filepath string, callback GeoJ
 	if err != nil {
 		return errors.Wrapf(err, "Could not open file [%s]", filepath)
 	}
-	defer func() {
-		if closeErr := f.Close(); closeErr != nil && err == nil {
-			err = closeErr
-		}
-	}()
+	defer utils.SafeClose(f, &err)
+
 	b, err := ioutil.ReadAll(bufio.NewReader(f))
 	if err != nil {
 		return err

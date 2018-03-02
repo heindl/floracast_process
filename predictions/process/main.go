@@ -33,57 +33,27 @@ func main() {
 		panic(err)
 	}
 
-	florastore, err := store.NewFloraStore(cxt)
+	floraStore, err := store.NewFloraStore(cxt)
 	if err != nil {
 		panic(err)
 	}
 
-	var src parser.PredictionSource
-	if *bucket == "" {
-		src, err = parser.NewLocalPredictionSource(cxt, "/tmp/floracast-datamining/")
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		src, err = parser.NewGCSPredictionSource(cxt, florastore)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	predictionParser, err := parser.NewPredictionParser(src)
+	h, err := newHandler(cxt, floraStore, *bucket, *mode)
 	if err != nil {
 		panic(err)
-	}
-
-	predictions, err := predictionParser.FetchPredictions(cxt, parsedUsageIDs, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	var predictionCache cache.PredictionCache
-
-	switch *mode {
-	case "write":
-		predictionCache, _, err = cache.NewLocalFileCache()
-		if err != nil {
-			panic(err)
-		}
-	case "serve":
-		predictionCache, _, err = cache.NewLocalGeoCache()
-		if err != nil {
-			panic(err)
-		}
-	default:
-		panic("Expected mode to be write or serve")
 	}
 	defer func() {
-		if err := predictionCache.Close(); err != nil {
+		if err := h.close(); err != nil {
 			panic(err)
 		}
 	}()
 
-	if err := predictions.Upload(cxt, florastore, predictionCache); err != nil {
+	predictions, err := h.prsr.FetchPredictions(cxt, parsedUsageIDs, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := predictions.Upload(cxt, floraStore, h.cache); err != nil {
 		panic(err)
 	}
 
@@ -93,57 +63,107 @@ func main() {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/{taxon}/{location}", func(w http.ResponseWriter, r *http.Request) {
-
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-
-		vars := mux.Vars(r)
-
-		date := r.URL.Query().Get("date")
-
-		fmt.Println("recieving request", vars["taxon"], vars["location"], date)
-
-		loc := strings.Split(vars["location"], ",")
-
-		lat, err := strconv.ParseFloat(loc[0], 64)
-		if err != nil {
-			http.Error(w, "Invalid latitude", http.StatusBadRequest)
-			return
-		}
-		lng, err := strconv.ParseFloat(loc[1], 64)
-		if err != nil {
-			http.Error(w, "Invalid longitude", http.StatusBadRequest)
-			return
-		}
-		rad, err := strconv.ParseFloat(loc[2], 64)
-		if err != nil {
-			http.Error(w, "Invalid radius", http.StatusBadRequest)
-			return
-		}
-
-		var usageID nameusage.NameUsageID
-		if _, ok := vars["nameUsageID"]; ok {
-			usageID = nameusage.NameUsageID(vars["nameUsageID"])
-			if !usageID.Valid() {
-				http.Error(w, "Invalid NameUsageID", http.StatusBadRequest)
-				return
-			}
-		}
-
-		l, err := predictionCache.ReadPredictions(lat, lng, rad, date, &usageID)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		fmt.Fprint(w, strings.Join(l, "\n"))
-
-	})
+	router.HandleFunc("/{taxon}/{location}", h.handleRequest)
 
 	fmt.Println("Server Ready at http://localhost:8081")
 
 	if err := http.ListenAndServe(":8081", router); err != nil {
 		panic(err)
 	}
+
+}
+
+func newHandler(ctx context.Context, floraStore store.FloraStore, bucket, mode string) (res *handler, err error) {
+
+	res := handler{}
+	if bucket == "" {
+		res.source, err = parser.NewLocalPredictionSource(ctx, "/tmp/floracast-datamining/")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		res.source, err = parser.NewGCSPredictionSource(ctx, floraStore)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	res.prsr, err = parser.NewPredictionParser(res.source)
+	if err != nil {
+		return nil, err
+	}
+
+	switch mode {
+	case "write":
+		res.cache, _, err = cache.NewLocalFileCache()
+		if err != nil {
+			return nil, err
+		}
+	case "serve":
+		res.cache, _, err = cache.NewLocalGeoCache()
+		if err != nil {
+			return nil, err
+		}
+	default:
+		panic("Expected mode to be write or serve")
+	}
+
+	return res, nil
+}
+
+type handler struct {
+	cache  cache.PredictionCache
+	prsr   parser.PredictionParser
+	source parser.PredictionSource
+}
+
+func (Ω *handler) close() error {
+	return Ω.cache.Close()
+}
+
+func (Ω *handler) handleRequest(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	vars := mux.Vars(r)
+
+	date := r.URL.Query().Get("date")
+
+	fmt.Println("recieving request", vars["taxon"], vars["location"], date)
+
+	loc := strings.Split(vars["location"], ",")
+
+	lat, err := strconv.ParseFloat(loc[0], 64)
+	if err != nil {
+		http.Error(w, "Invalid latitude", http.StatusBadRequest)
+		return
+	}
+	lng, err := strconv.ParseFloat(loc[1], 64)
+	if err != nil {
+		http.Error(w, "Invalid longitude", http.StatusBadRequest)
+		return
+	}
+	rad, err := strconv.ParseFloat(loc[2], 64)
+	if err != nil {
+		http.Error(w, "Invalid radius", http.StatusBadRequest)
+		return
+	}
+
+	var usageID nameusage.NameUsageID
+	if _, ok := vars["nameUsageID"]; ok {
+		usageID = nameusage.NameUsageID(vars["nameUsageID"])
+		if !usageID.Valid() {
+			http.Error(w, "Invalid NameUsageID", http.StatusBadRequest)
+			return
+		}
+	}
+
+	l, err := Ω.cache.ReadPredictions(lat, lng, rad, date, &usageID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprint(w, strings.Join(l, "\n"))
 
 }

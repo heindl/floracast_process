@@ -62,11 +62,7 @@ func request(url string) (res []byte, err error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get http response")
 	}
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
-			err = closeErr
-		}
-	}()
+	defer SafeClose(resp.Body, &err)
 
 	if resp.StatusCode != 200 {
 		return nil, errors.Wrapf(errors.New(resp.Status), "StatusCode: %d; URL: %s", resp.StatusCode, url)
