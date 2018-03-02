@@ -5,17 +5,21 @@ import (
 	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/utils"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/dropbox/godropbox/errors"
+	dropboxErrors "github.com/dropbox/godropbox/errors"
 	"sync"
 )
 
+// OccurrenceAggregation handles collecting occurrences, validating them, avoiding collisions,
+// and uploading them to FireStore.
 type OccurrenceAggregation struct {
 	collisions int
 	sync.Mutex
 	list []Occurrence
 }
 
+// NewOccurrenceAggregation creates one.
 func NewOccurrenceAggregation() *OccurrenceAggregation {
 	oa := OccurrenceAggregation{
 		list: []Occurrence{},
@@ -23,12 +27,7 @@ func NewOccurrenceAggregation() *OccurrenceAggregation {
 	return &oa
 }
 
-func (Ω *OccurrenceAggregation) Collisions() int {
-	Ω.Lock()
-	defer Ω.Unlock()
-	return Ω.collisions
-}
-
+// Count returns the length of the aggregation.
 func (Ω *OccurrenceAggregation) Count() int {
 	if Ω == nil {
 		return 0
@@ -41,6 +40,7 @@ func (Ω *OccurrenceAggregation) Count() int {
 	return len(Ω.list)
 }
 
+// Merge combines aggregations selects between collisions.
 func (Ω *OccurrenceAggregation) Merge(æ *OccurrenceAggregation) error {
 	if æ == nil {
 		return nil
@@ -54,8 +54,11 @@ func (Ω *OccurrenceAggregation) Merge(æ *OccurrenceAggregation) error {
 	return nil
 }
 
+// ErrCollision warns of a collision.
 var ErrCollision = errors.New("Occurrence Collision")
 
+// AddOccurrence adds a new occurrence to the aggregation and returns error if it's
+// an unselected occurrence in collision.
 func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 
 	if b == nil {
@@ -87,16 +90,17 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 		}
 		aSourceType := Ω.list[i].SourceType()
 
-		fmt.Println("Warning: Collision",
-			aKey,
-			"["+fmt.Sprint(Ω.list[i].SourceType(), ",", Ω.list[i].TargetID(), ",", Ω.list[i].SourceOccurrenceID())+"]",
-			"["+fmt.Sprint(b.SourceType(), ",", b.TargetID(), ",", b.SourceOccurrenceID())+"]")
-
 		if aSourceType != bSourceType && bSourceType == datasources.TypeGBIF {
 			Ω.list[i] = b
 		}
 
-		return ErrCollision
+		return dropboxErrors.Wrapf(
+			ErrCollision,
+			"Key [%s] - [%s] [%s]",
+			aKey,
+			fmt.Sprint(Ω.list[i].SourceType(), ",", Ω.list[i].TargetID(), ",", Ω.list[i].SourceOccurrenceID()),
+			fmt.Sprint(b.SourceType(), ",", b.TargetID(), ",", b.SourceOccurrenceID()),
+		)
 	}
 
 	Ω.list = append(Ω.list, b)
@@ -105,6 +109,7 @@ func (Ω *OccurrenceAggregation) AddOccurrence(b Occurrence) error {
 
 }
 
+// GeoJSON creates a GeoJSON point collection
 func (Ω *OccurrenceAggregation) GeoJSON() ([]byte, error) {
 	points := geo.Points{}
 	for _, o := range Ω.list {
@@ -128,10 +133,12 @@ func (Ω *OccurrenceAggregation) GeoJSON() ([]byte, error) {
 	return points.GeoJSON()
 }
 
+// MarshalJSON will convert occurrence list to JSON
 func (Ω *OccurrenceAggregation) MarshalJSON() ([]byte, error) {
 	return json.Marshal(Ω.list)
 }
 
+// UnmarshalJSON takes a list of occurrences and creates an aggregation
 func (Ω *OccurrenceAggregation) UnmarshalJSON(b []byte) error {
 	list := []*occurrence{}
 	if err := json.Unmarshal(b, &list); err != nil {

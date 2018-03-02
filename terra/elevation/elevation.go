@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+const elevationBatchSize = 30
+
 var global = processor{
 	queued:  []string{},
 	fetched: map[string]*int{},
@@ -60,7 +62,7 @@ func (Ω *processor) queue(lat, lng float64) error {
 	}
 	Ω.Lock()
 	Ω.queued = append(Ω.queued, key(lat, lng))
-	shouldFetch := len(Ω.queued) >= 20
+	shouldFetch := len(Ω.queued) >= elevationBatchSize
 	Ω.Unlock()
 
 	if shouldFetch {

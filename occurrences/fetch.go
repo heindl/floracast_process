@@ -9,12 +9,12 @@ import (
 	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/utils"
 	"context"
-	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
 	"time"
 )
 
+// OccurrenceProvider is a standard interface for sources that fetch occurrences.
 type OccurrenceProvider interface {
 	Lat() (float64, error)
 	Lng() (float64, error)
@@ -23,6 +23,7 @@ type OccurrenceProvider interface {
 	SourceOccurrenceID() string
 }
 
+// FetchOccurrences from datasource with given SourceType and TargetID.
 func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) (*OccurrenceAggregation, error) {
 
 	// Only fetch once a day.
@@ -30,84 +31,19 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 		return nil, nil
 	}
 
-	provided := []OccurrenceProvider{}
-
-	switch sourceType {
-	case datasources.TypeGBIF:
-		providers, err := gbif.FetchOccurrences(ctx, targetID, since)
-		if err != nil {
-			return nil, err
-		}
-		for _, _provider := range providers {
-			provided = append(provided, _provider)
-		}
-	case datasources.TypeINaturalist:
-		providers, err := inaturalist.FetchOccurrences(ctx, targetID, since)
-		if err != nil {
-			return nil, err
-		}
-		for _, _provider := range providers {
-			provided = append(provided, _provider)
-		}
-	case datasources.TypeMushroomObserver:
-		providers, err := mushroomobserver.FetchOccurrences(ctx, targetID, since)
-		if err != nil {
-			return nil, err
-		}
-		for _, _provider := range providers {
-			provided = append(provided, _provider)
-		}
-	default:
-		return nil, errors.Newf("Unsupported SourceType [%s]", sourceType)
-	}
-
-	if len(provided) == 0 {
-		return nil, nil
+	providers, err := fetchOccurrencesFromSource(ctx, sourceType, targetID, since)
+	if err != nil {
+		return nil, err
 	}
 
 	aggregation := OccurrenceAggregation{}
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _p := range provided {
-			p := _p
+		for _, 𝝨 := range providers {
+			provided := 𝝨
 			tmb.Go(func() error {
-				o, err := NewOccurrence(sourceType, targetID, p.SourceOccurrenceID())
-				if err != nil {
-					return err
-				}
-				lng, err := p.Lng()
-				if err != nil {
-					return errors.Wrap(err, "Could not get Occurrence Longitude")
-				}
-				lat, err := p.Lat()
-				if err != nil {
-					return errors.Wrap(err, "Could not get Occurrence Latitude")
-				}
-
-				err = o.SetGeospatial(lat, lng, p.DateString(), p.CoordinatesEstimated())
-				if err != nil && utils.ContainsError(err, geo.ErrInvalidCoordinates) {
-					//fmt.Println(fmt.Sprintf("Invalid Coordinate [%.4f, %.4f] from SourceType [%s, %s]", lat, lng, sourceType, targetID))
-					return nil
-				}
-				if err != nil && utils.ContainsError(err, ErrInvalidDate) {
-					return nil
-				}
-				if err != nil && utils.ContainsError(err, ecoregions.ErrNotFound) {
-					fmt.Println(err.Error())
-					return nil
-				}
-				if err != nil {
-					return errors.Wrap(err, "Could not set Occurrence Geospatial")
-				}
-				err = aggregation.AddOccurrence(o)
-				if err != nil && err == ErrCollision {
-					return nil
-				}
-				if err != nil {
-					return err
-				}
-				return nil
+				return parseOccurrenceProvider(sourceType, targetID, provided, &aggregation)
 			})
 		}
 		return nil
@@ -117,4 +53,59 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 	}
 
 	return &aggregation, nil
+}
+
+func fetchOccurrencesFromSource(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) ([]OccurrenceProvider, error) {
+	res := []OccurrenceProvider{}
+	switch sourceType {
+	case datasources.TypeGBIF:
+		gvn, err := gbif.FetchOccurrences(ctx, targetID, since)
+		for i := range gvn {
+			res = append(res, gvn[i])
+		}
+		return res, err
+	case datasources.TypeINaturalist:
+		gvn, err := inaturalist.FetchOccurrences(ctx, targetID, since)
+		for i := range gvn {
+			res = append(res, gvn[i])
+		}
+		return res, err
+	case datasources.TypeMushroomObserver:
+		gvn, err := mushroomobserver.FetchOccurrences(ctx, targetID, since)
+		for i := range gvn {
+			res = append(res, gvn[i])
+		}
+		return res, err
+	default:
+		return nil, errors.Newf("Unsupported SourceType [%s]", sourceType)
+	}
+}
+
+func parseOccurrenceProvider(sourceType datasources.SourceType, targetID datasources.TargetID, provided OccurrenceProvider, aggr *OccurrenceAggregation) error {
+	o, err := NewOccurrence(sourceType, targetID, provided.SourceOccurrenceID())
+	if err != nil {
+		return err
+	}
+
+	lat, latErr := provided.Lat()
+	lng, lngErr := provided.Lng()
+	if latErr != nil || lngErr != nil {
+		return errors.Wrap(err, "Invalid Coordinate")
+	}
+
+	err = o.SetGeoSpatial(lat, lng, provided.DateString(), provided.CoordinatesEstimated())
+	if utils.ContainsError(err, geo.ErrInvalidCoordinates) ||
+		utils.ContainsError(err, ErrInvalidDate) ||
+		utils.ContainsError(err, ecoregions.ErrNotFound) {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "Invalid Occurrence GeoSpatial")
+	}
+
+	err = aggr.AddOccurrence(o)
+	if err != nil && !utils.ContainsError(err, ErrCollision) {
+		return err
+	}
+	return nil
 }

@@ -9,7 +9,6 @@ import (
 	"bitbucket.org/heindl/process/store"
 	"context"
 	"flag"
-	"fmt"
 	"strconv"
 	"strings"
 )
@@ -172,8 +171,6 @@ func occurrenceFetcher(oAggr *occurrences.OccurrenceAggregation, srcTypes ...dat
 	return func(ctx context.Context, usage nameusage.NameUsage) error {
 
 		usageOccurrenceAggr := occurrences.OccurrenceAggregation{}
-
-		fmt.Println("SRCTYPES", srcTypes)
 
 		srcs, err := usage.Sources(srcTypes...)
 		if err != nil {

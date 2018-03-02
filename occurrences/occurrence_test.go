@@ -10,42 +10,51 @@ import (
 
 func TestOccurrenceFetcher(t *testing.T) {
 
-	t.Parallel()
+	// These numbers may change because there is no end date.
 
-	Convey("should fetch occurrences for taxon", t, func() {
+	Convey("Should Fetch Occurrences for Taxon", t, func() {
 
-		aggr, err := FetchOccurrences(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
+		iNatAggr, err := FetchOccurrences(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
 		So(err, ShouldBeNil)
-		So(aggr.Count(), ShouldEqual, 120)
+		So(iNatAggr.Count(), ShouldEqual, 121)
 
 		gbifAggr, err := FetchOccurrences(context.Background(), datasources.TypeGBIF, datasources.TargetID("2594602"), nil)
 		So(err, ShouldBeNil)
 		So(gbifAggr.Count(), ShouldEqual, 205)
 
-		So(aggr.Merge(gbifAggr), ShouldBeNil)
+		So(iNatAggr.Merge(gbifAggr), ShouldBeNil)
 
-		So(aggr.Count(), ShouldEqual, 238)
+		So(iNatAggr.Count(), ShouldEqual, 239)
 
-		cxt := context.Background()
+	})
 
-		florastore, err := store.NewTestFloraStore(cxt)
+	Convey("Should Fetch Occurrences and Upload to FireStore", t, func() {
+
+		ctx := context.Background()
+
+		floraStore, err := store.NewTestFloraStore(ctx)
 		So(err, ShouldBeNil)
 
-		So(aggr.Upload(cxt, florastore), ShouldBeNil)
-
-		col, err := florastore.FirestoreCollection(store.CollectionOccurrences)
+		occurrenceCollectionRef, err := floraStore.FirestoreCollection(store.CollectionOccurrences)
 		So(err, ShouldBeNil)
 
-		snaps, err := col.Documents(cxt).GetAll()
-		So(err, ShouldBeNil)
-		So(len(snaps), ShouldEqual, 238)
+		Convey("Should generate a list of Random points and upload to FireStore", func() {
 
-		// TODO: Test duplication avoidance here.
+			aggr, err := FetchOccurrences(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
+			So(err, ShouldBeNil)
+			So(aggr.Count(), ShouldEqual, 121)
 
-		//for _, s := range snaps {
-		//	_, err := s.Ref.Delete(cxt)
-		//	So(err, ShouldBeNil)
-		//}
+			So(aggr.Upload(context.Background(), floraStore), ShouldBeNil)
+
+			floraStoreOccurrenceCount, err := floraStore.CountTestCollection(ctx, occurrenceCollectionRef)
+			So(err, ShouldBeNil)
+			So(floraStoreOccurrenceCount, ShouldEqual, 121)
+
+		})
+
+		Reset(func() {
+			So(floraStore.ClearTestCollection(ctx, occurrenceCollectionRef), ShouldBeNil)
+		})
 
 	})
 }
