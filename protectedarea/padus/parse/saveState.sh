@@ -15,15 +15,6 @@ rm -rf "$AREAS_PATH"
 mkdir -p "$STATE_PATH"
 mkdir -p "$AREAS_PATH"
 
-# Input srs_def should be Albers Conical Equal Area. EPSG:4326 is expected by GeojSON.
-#ogr2ogr -f 'ESRI Shapefile' \
-#    -t_srs 'EPSG:4326' \
-#    -where "d_State_Nm IN ('$1')" \
-#    "$STATE_PATH/state.shp" \
-#    "$PA_SHAPE_COMBINED"
-
-#rm "$STATE_PATH/state.geojson"
-#
 ogr2ogr -f 'ESRI Shapefile' \
     -t_srs 'CRS:84' \
     -f GeoJSON \
@@ -33,5 +24,3 @@ ogr2ogr -f 'ESRI Shapefile' \
 
 
 #shp2json "$STATE_PATH/state.shp" -o "$STATE_PATH/state.json"
-
-#go run ./parse.go --in "$STATE_PATH/state.geojson" --out "$AREAS_PATH/"

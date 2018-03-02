@@ -94,7 +94,7 @@ func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, ta
 					return nil
 				}
 				if err != nil && utils.ContainsError(err, ecoregions.ErrNotFound) {
-					fmt.Println(fmt.Sprintf("Invalid EcoRegion [%.4f, %.4f]", lat, lng))
+					fmt.Println(err.Error())
 					return nil
 				}
 				if err != nil {

@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"
+	"strings"
 )
 
 type FloraStore interface {
@@ -17,12 +18,18 @@ type FloraStore interface {
 	Close() error
 }
 
+type TestFloraStore interface {
+	FloraStore
+	CountTestCollection(context.Context, *firestore.CollectionRef) (int, error)
+	ClearTestCollection(context.Context, *firestore.CollectionRef) error
+}
+
 const (
 	GCSTestBucket = "floracast-datamining-test"
 	GCSLiveBucket = "floracast-datamining"
 )
 
-func NewTestFloraStore(ctx context.Context) (FloraStore, error) {
+func NewTestFloraStore(ctx context.Context) (TestFloraStore, error) {
 	//s := store{
 	//	Clock: clockwork.NewRealClock(),
 	//}
@@ -124,6 +131,33 @@ func (Ω *store) AlgoliaIndex(æ AlgoliaIndexFunc) (AlgoliaIndex, error) {
 
 func (Ω *store) CloudStorageBucket() (*storage.BucketHandle, error) {
 	return Ω.gcsBucketHandle, nil
+}
+
+func (Ω *store) CountTestCollection(ctx context.Context, col *firestore.CollectionRef) (int, error) {
+	if !strings.Contains(strings.ToLower(col.ID), "test") {
+		return 0, errors.Newf("Collection [%s] should include 'Test' in name", col.ID)
+	}
+	snaps, err := col.Documents(ctx).GetAll()
+	if err != nil {
+		return 0, errors.Newf("Could not count test collection [%s] documents", col.ID)
+	}
+	return len(snaps), nil
+}
+
+func (Ω *store) ClearTestCollection(ctx context.Context, col *firestore.CollectionRef) error {
+	if !strings.Contains(strings.ToLower(col.ID), "test") {
+		return errors.Newf("Collection [%s] should include 'Test' in name", col.ID)
+	}
+	snaps, err := col.Documents(ctx).GetAll()
+	if err != nil {
+		return errors.Wrapf(err, "Could get test collection [%s] documents", col.ID)
+	}
+	for _, snap := range snaps {
+		if _, err := snap.Ref.Delete(ctx); err != nil {
+			return errors.Wrapf(err, "Could not delete test collection [%s] record [%]", col.ID, snap.Ref.ID)
+		}
+	}
+	return nil
 }
 
 func (Ω *store) Close() error {

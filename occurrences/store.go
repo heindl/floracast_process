@@ -9,8 +9,8 @@ import (
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/terra/geoembed"
 	"cloud.google.com/go/firestore"
+	"encoding/json"
 	"github.com/dropbox/godropbox/errors"
-	"github.com/mongodb/mongo-tools/common/json"
 	"google.golang.org/api/iterator"
 )
 

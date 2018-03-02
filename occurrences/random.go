@@ -11,6 +11,7 @@ import (
 	"bitbucket.org/heindl/process/terra/ecoregions"
 	"bitbucket.org/heindl/process/terra/ecoregions/cache"
 	"bitbucket.org/heindl/process/terra/grid"
+	"bitbucket.org/heindl/process/utils"
 	"gopkg.in/tomb.v2"
 )
 
@@ -117,7 +118,7 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 		lng := (float64(rand.Intn(xDelta)) * rand.Float64()) + bounds.West
 
 		_, err := cache.FetchEcologicalRegion(lat, lng)
-		if err == ecoregions.ErrNotFound {
+		if utils.ContainsError(err, ecoregions.ErrNotFound) {
 			continue
 		}
 		if err != nil {

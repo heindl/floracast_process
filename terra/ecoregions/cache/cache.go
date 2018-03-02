@@ -61,7 +61,7 @@ func FetchEcologicalRegion(lat, lng float64) (*ecoregions.Region, error) {
 	}
 
 	if region == nil {
-		return nil, ecoregions.ErrNotFound
+		return nil, errors.Wrapf(ecoregions.ErrNotFound, "[%f, %f]", lat, lng)
 	}
 
 	return region, nil

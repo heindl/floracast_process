@@ -1,26 +1,64 @@
 package utils
 
 import (
+	"github.com/dropbox/godropbox/errors"
+	"github.com/kennygrant/sanitize"
 	"gopkg.in/tomb.v2"
+	"strconv"
 	"strings"
 	"sync"
 	"unicode"
 	"unicode/utf8"
 )
 
-func StringContainsOnlyNumbers(s string) bool {
+func StringContainsNoLetters(s string) bool {
 	if len(s) == 0 {
-		return false
+		return true
 	}
 	for _, r := range s {
-		if !unicode.IsNumber(r) {
+		if !unicode.IsLetter(r) {
 			return false
 		}
-		//if unicode.IsLetter(r) {
-		//	return false
-		//}
 	}
+
 	return true
+}
+
+func FormatTitle(s string) (string, error) {
+
+	if !utf8.ValidString(s) {
+		return "", errors.Newf("Invalid utf8 character in title [%s]", s)
+	}
+
+	s = strings.ToLower(s)
+	s = sanitize.HTML(s)
+
+	stopWords := []string{"a", "about", "an", "are", "as", "at", "be", "by", "com", "for", "from", "how", "in", "is", "it", "of", "on", "or", "that", "the", "this", "to", "was", "what", "when", "where", "who", "will", "with", "the"}
+
+	fields := strings.Fields(s)
+	for i := range fields {
+
+		var err error
+		fields[i], err = strconv.Unquote(`"` + fields[i] + `"`)
+		if err != nil {
+			return "", errors.Wrapf(err, "Problem unquoting title [%s]", s)
+		}
+
+		fields[i] = strings.Trim(fields[i], `"`)
+
+		if i == 0 {
+			fields[i] = strings.Title(fields[i])
+			continue
+		}
+		if ContainsString(stopWords, fields[i]) {
+			fields[i] = strings.ToLower(fields[i])
+			continue
+		}
+		fields[i] = strings.Title(fields[i])
+	}
+
+	return strings.Join(fields, " "), nil
+
 }
 
 func CapitalizeString(s string) string {

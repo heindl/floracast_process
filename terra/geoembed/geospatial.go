@@ -6,6 +6,7 @@ import (
 	"bitbucket.org/heindl/process/terra/elevation"
 	"bitbucket.org/heindl/process/terra/geo"
 	"cloud.google.com/go/firestore"
+	"fmt"
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
@@ -22,32 +23,29 @@ import (
 // The fifth decimal place is worth up to 1.1 m: it distinguish trees from each other. Accuracy to this level with commercial GPS units can only be achieved with differential correction.
 // The sixth decimal place is worth up to 0.11 m: you can use this for laying out structures in detail, for designing landscapes, building roads. It should be more than good enough for tracking movements of glaciers and rivers. This can be achieved by taking painstaking measures with GPS, such as differentially corrected GPS.
 
+// GeoFeatureSet holds geographical features that can be used in storage, mapping, and machine learning
+// The intention was to create a unified set of fields across ProtectedAreas, Occurrences, and RandomPoints
 type GeoFeatureSet struct {
 	coordinatesEstimated bool
 	biome                ecoregions.Biome
 	realm                ecoregions.Realm
 	ecoNum               ecoregions.EcoNum
 	elevation            *int
-	geopoint             *latlng.LatLng
+	geoPoint             *latlng.LatLng
 }
 
-const keyGeoPoint = "GeoPoint"
-const keyCoordinatesEstimated = "CoordinatesEstimated"
-const keyEcoRealm = "EcoRealm"
-const keyEcoBiome = "EcoBiome"
-const keyEcoNum = "EcoNum"
-const keyS2Tokens = "S2Tokens"
-const keyElevation = "Elevation"
-const keyCoordinate = "CoordinateKey"
-
+// Lat returns the latitude
 func (Ω *GeoFeatureSet) Lat() float64 {
-	return Ω.geopoint.GetLatitude()
+	return Ω.geoPoint.GetLatitude()
 }
 
+// Lng returns the longitude
 func (Ω *GeoFeatureSet) Lng() float64 {
-	return Ω.geopoint.GetLongitude()
+	return Ω.geoPoint.GetLongitude()
 }
 
+// NewGeoFeatureSet validates the coordinates, fetches additional data, and returns a new FeatureSet
+// Note that the elevation and s2 cells will not be generated until the FeatureSet is marshalled into JSON
 func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureSet, error) {
 
 	if err := geo.ValidateCoordinates(lat, lng); err != nil {
@@ -64,7 +62,7 @@ func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureS
 	}
 
 	return &GeoFeatureSet{
-		geopoint:             &latlng.LatLng{Latitude: lat, Longitude: lng},
+		geoPoint:             &latlng.LatLng{Latitude: lat, Longitude: lng},
 		coordinatesEstimated: coordinatesEstimated,
 		biome:                region.Biome(),
 		realm:                region.Realm(),
@@ -72,11 +70,12 @@ func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureS
 	}, nil
 }
 
+// CoordinateQuery generates a FireStore query that can be used for all collections that incorporate a FeatureSet
 func CoordinateQuery(collection *firestore.CollectionRef, lat, lng float64) (*firestore.Query, error) {
 	k, err := NewCoordinateKey(lat, lng)
 	if err != nil {
 		return nil, err
 	}
-	q := collection.Where(keyCoordinate, "==", k)
+	q := collection.Where(fmt.Sprintf("GeoFeatureSet.%s", keyCoordinate), "==", k)
 	return &q, nil
 }

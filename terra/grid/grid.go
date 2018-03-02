@@ -3,6 +3,7 @@ package grid
 import (
 	"bitbucket.org/heindl/process/terra/ecoregions"
 	"bitbucket.org/heindl/process/terra/ecoregions/cache"
+	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
 	"github.com/paulmach/go.geojson"
@@ -109,7 +110,7 @@ func (Ω *generator) parseCell(cellID s2.CellID) error {
 
 	for _, loc := range f.Geometry.Polygon[0][:3] {
 		_, err := cache.FetchEcologicalRegion(loc[1], loc[0])
-		if err == ecoregions.ErrNotFound {
+		if utils.ContainsError(err, ecoregions.ErrNotFound) {
 			continue
 		}
 		if err != nil {

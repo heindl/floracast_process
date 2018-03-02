@@ -1,7 +1,8 @@
 package geo
 
 import (
-	"github.com/dropbox/godropbox/errors"
+	"errors"
+	dropboxErrors "github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
 	pmgeo "github.com/paulmach/go.geo"
 	"math"
@@ -28,17 +29,17 @@ var ErrInvalidCoordinates = errors.New("Invalid Coordinates")
 func ValidateCoordinates(lat, lng float64) error {
 
 	if lat < 6.6 || lat > 83.3 {
-		return errors.Wrapf(ErrInvalidCoordinates, "latitude [%f] is out of bounds", lat)
+		return dropboxErrors.Wrapf(ErrInvalidCoordinates, "Latitude [%f] is out of bounds", lat)
 	}
 	if lng < -178.2 || lng > -49.0 {
-		return errors.Wrapf(ErrInvalidCoordinates, "longitude [%f] is out of bounds", lng)
+		return dropboxErrors.Wrapf(ErrInvalidCoordinates, "Longitude [%f] is out of bounds", lng)
 	}
 	// We need the decimal precision to be at least a football field, so require at least three decimal places (110m).
 	if hasDecimalPlaces(2, lat) || hasDecimalPlaces(1, lat) {
-		return errors.Wrapf(ErrInvalidCoordinates, "latitude [%f] has insufficient precision", lat)
+		return dropboxErrors.Wrapf(ErrInvalidCoordinates, "Latitude [%f] has insufficient precision", lat)
 	}
 	if hasDecimalPlaces(2, lng) || hasDecimalPlaces(1, lng) {
-		return errors.Wrapf(ErrInvalidCoordinates, "longitude [%f] has insufficient precision", lng)
+		return dropboxErrors.Wrapf(ErrInvalidCoordinates, "Longitude [%f] has insufficient precision", lng)
 	}
 	return nil
 }

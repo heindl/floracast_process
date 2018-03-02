@@ -1,9 +1,9 @@
 package geo
 
 import (
+	"encoding/json"
 	"github.com/buger/jsonparser"
 	"github.com/dropbox/godropbox/errors"
-	"github.com/mongodb/mongo-tools/common/json"
 	"github.com/paulmach/go.geojson"
 )
 

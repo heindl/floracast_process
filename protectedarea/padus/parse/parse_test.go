@@ -4,61 +4,61 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"io/ioutil"
+	"os"
+	"strings"
 )
 
 func TestProtectedAreaDatabaseParser(t *testing.T) {
 
-	SkipConvey("should parse protected area json file", t, func() {
+	Convey("Given an Alabama state.geojson file and output directory", t, func() {
 
-		processor, err := NewProcessor("/tmp/gap_analysis/GA/state.geojson", "/tmp/gap_analysis/GA/areas/")
+		// Note: Need to launch parser in advance: ./parse.sh AL
+		stateGeoJSONFile := "/tmp/gap_analysis/AL/state.geojson"
+		tmpDir, err := ioutil.TempDir("/tmp", "gap_analysis_test_")
 		So(err, ShouldBeNil)
 
-		collections, metrics, err := processor.ProcessFeatureCollections()
-		So(err, ShouldBeNil)
+		Convey("Should create a new PAD-US processor, parse and write FeatureCollections to output directory", func() {
 
-		So(metrics.Total, ShouldEqual, 4230)
-		So(metrics.Stats["Initial Filtered Total"], ShouldEqual, 1664)
+			processor, err := NewProcessor(stateGeoJSONFile, tmpDir)
+			So(err, ShouldBeNil)
 
-		So(metrics.PublicAccessClosed, ShouldEqual, 910)
-		So(metrics.PublicAccessUnknown, ShouldEqual, 671)
-		So(metrics.PublicAccessRestricted, ShouldEqual, 49)
-		So(metrics.EmptyAreas, ShouldEqual, 0)
+			collections, metrics, err := processor.ProcessFeatureCollections()
+			So(err, ShouldBeNil)
 
-		So(metrics.Stats["After Name Filter"], ShouldEqual, 1358)
-		So(metrics.Stats["After Name Group"], ShouldEqual, 1173)
-		So(metrics.Stats["After Centroid Distance Filter"], ShouldEqual, 1231)
+			So(metrics.Total, ShouldEqual, 1083)
+			So(metrics.Stats["Initial Filtered Total"], ShouldEqual, 520)
 
-		So(metrics.Stats["After Minimum Area Filter"], ShouldEqual, 502)
-		So(metrics.Stats["After Cluster Decimation"], ShouldEqual, 216)
+			So(metrics.PublicAccessClosed, ShouldEqual, 209)
+			So(metrics.PublicAccessUnknown, ShouldEqual, 119)
+			So(metrics.PublicAccessRestricted, ShouldEqual, 163)
+			So(metrics.EmptyAreas, ShouldEqual, 0)
 
-		So(len(collections), ShouldEqual, 216)
+			So(metrics.Stats["After Name Filter"], ShouldEqual, 459)
+			So(metrics.Stats["After Name Group"], ShouldEqual, 410)
+			So(metrics.Stats["After Centroid Distance Filter"], ShouldEqual, 437)
 
-	})
+			So(metrics.Stats["After Minimum Area Filter"], ShouldEqual, 259)
+			So(metrics.Stats["After Cluster Decimation"], ShouldEqual, 110)
 
-	Convey("should parse protected area json file", t, func() {
+			So(len(collections), ShouldEqual, 110)
 
-		processor, err := NewProcessor("/tmp/gap_analysis/OR/state.geojson", "/tmp/gap_analysis/OR/areas/")
-		So(err, ShouldBeNil)
+			So(processor.WriteCollections(collections), ShouldBeNil)
 
-		collections, metrics, err := processor.ProcessFeatureCollections()
-		So(err, ShouldBeNil)
+			// Ensure all files are accounted for and not empty.
+			files, err := ioutil.ReadDir(tmpDir)
+			So(err, ShouldBeNil)
+			So(len(files), ShouldEqual, 110)
+			for _, f := range files {
+				So(f.Size(), ShouldBeGreaterThan, 0)
+			}
+		})
 
-		So(metrics.Total, ShouldEqual, 7079)
-		So(metrics.Stats["Initial Filtered Total"], ShouldEqual, 5360)
-
-		So(metrics.PublicAccessClosed, ShouldEqual, 432)
-		So(metrics.PublicAccessUnknown, ShouldEqual, 217)
-		So(metrics.PublicAccessRestricted, ShouldEqual, 2141)
-		So(metrics.EmptyAreas, ShouldEqual, 1)
-
-		So(metrics.Stats["After Name Filter"], ShouldEqual, 4429)
-		So(metrics.Stats["After Name Group"], ShouldEqual, 3690)
-		So(metrics.Stats["After Centroid Distance Filter"], ShouldEqual, 4247)
-
-		So(metrics.Stats["After Minimum Area Filter"], ShouldEqual, 1085)
-		So(metrics.Stats["After Cluster Decimation"], ShouldEqual, 377)
-
-		So(len(collections), ShouldEqual, 377)
+		Reset(func() {
+			// This reset is run after each `Convey` at the same scope.
+			So(strings.HasPrefix(tmpDir, "/tmp"), ShouldBeTrue)
+			So(os.RemoveAll(tmpDir), ShouldBeNil)
+		})
 
 	})
 }

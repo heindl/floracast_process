@@ -1,13 +1,9 @@
 package protectedarea
 
 import (
-	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/terra/geoembed"
 	"bitbucket.org/heindl/process/utils"
-	"context"
 	"github.com/saleswise/errors/errors"
-	"gopkg.in/tomb.v2"
-	"math"
 	"strings"
 )
 
@@ -24,12 +20,12 @@ type ProtectedArea interface {
 
 // NewProtectedArea creates one, and fails if the location is invalid.
 func NewProtectedArea(lat, lng float64, squareKilometers float64) (ProtectedArea, error) {
-	geofeatures, err := geoembed.NewGeoFeatureSet(lat, lng, true)
+	geoFeatures, err := geoembed.NewGeoFeatureSet(lat, lng, true)
 	if err != nil {
 		return nil, err
 	}
 	return &protectedArea{
-		GeoFeatureSet:    geofeatures,
+		GeoFeatureSet:    geoFeatures,
 		ProtectionLevel:  ProtectionLevelUnknown,
 		AccessLevel:      AccessLevelUnknown,
 		SquareKilometers: squareKilometers,
@@ -37,58 +33,35 @@ func NewProtectedArea(lat, lng float64, squareKilometers float64) (ProtectedArea
 }
 
 type protectedArea struct {
-	Name             string                  `firestore:"" json:""`
-	SquareKilometers float64                 `firestore:"" json:""` // Kilometers
-	ProtectionLevel  ProtectionLevel         `firestore:"" json:""`
-	Designation      string                  `firestore:"" json:""`
-	Owner            string                  `firestore:"" json:""`
-	AccessLevel      AccessLevel             `firestore:"" json:""`
-	GeoFeatureSet    *geoembed.GeoFeatureSet `json:",omitempty"`
+	Name             string                  `json:""`
+	SquareKilometers float64                 `json:""` // Kilometers
+	ProtectionLevel  ProtectionLevel         `json:""`
+	Designation      string                  `json:""`
+	Owner            string                  `json:""`
+	AccessLevel      AccessLevel             `json:""`
+	GeoFeatureSet    *geoembed.GeoFeatureSet `json:""`
 }
 
 func (Ω *protectedArea) ID() (geoembed.CoordinateKey, error) {
-	return geoembed.NewCoordinateKey(Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lat())
-}
-
-func selectBetweenWordsForUpdate(a, b string) string {
-
-	wordFlags := []string{"unknown", "other", "easement", "private"}
-
-	a = strings.TrimSpace(a)
-	b = strings.TrimSpace(b)
-
-	aHasFlag := utils.ContainsString(wordFlags, strings.ToLower(a))
-	bHasFlag := utils.ContainsString(wordFlags, strings.ToLower(b))
-
-	if a == b || b == "" || (!aHasFlag && bHasFlag && a != "") {
-		return a
-	}
-
-	if a == "" || (aHasFlag && !bHasFlag) {
-		return b
-	}
-
-	if len(a) < len(b) {
-		return b
-	}
-
-	return a
-
+	return geoembed.NewCoordinateKey(Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng())
 }
 
 func (Ω *protectedArea) UpdateName(name string) error {
-	Ω.Name = selectBetweenWordsForUpdate(Ω.Name, name)
-	return nil
+	var err error
+	Ω.Name, err = selectBetweenTitleSentences(Ω.Name, name)
+	return err
 }
 
 func (Ω *protectedArea) UpdateDesignation(name string) error {
-	Ω.Designation = selectBetweenWordsForUpdate(Ω.Designation, name)
-	return nil
+	var err error
+	Ω.Designation, err = selectBetweenTitleSentences(Ω.Designation, name)
+	return err
 }
 
 func (Ω *protectedArea) UpdateOwner(name string) error {
-	Ω.Owner = selectBetweenWordsForUpdate(Ω.Owner, name)
-	return nil
+	var err error
+	Ω.Owner, err = selectBetweenTitleSentences(Ω.Owner, name)
+	return err
 }
 
 func (Ω *protectedArea) UpdateProtectionLevel(level int) error {
@@ -184,83 +157,6 @@ const (
 //}
 
 //
-//type ProtectedAreas []ProtectedArea
-//
-//func (a ProtectedAreas) Len() int           { return len(a) }
-//func (a ProtectedAreas) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-//func (a ProtectedAreas) Less(i, j int) bool { return a[i].GISAcres > a[j].GISAcres }
-
-// ProtectedAreas is intended for bulk uploading.
-type ProtectedAreas []ProtectedArea
-
-func (Ω ProtectedAreas) batches(maxBatchSize float64) []ProtectedAreas {
-
-	if len(Ω) == 0 {
-		return nil
-	}
-
-	batchCount := math.Ceil(float64(len(Ω)) / maxBatchSize)
-
-	res := []ProtectedAreas{}
-	for i := 0.0; i <= batchCount-1; i++ {
-		start := int(i * maxBatchSize)
-		end := int(((i + 1) * maxBatchSize) - 1)
-		if end > len(Ω) {
-			end = len(Ω)
-		}
-		o := Ω[start:end]
-		res = append(res, o)
-	}
-
-	return res
-}
-
-// Upload validates all ProtectedAreas and saves them to Firestore
-func (Ω ProtectedAreas) Upload(cxt context.Context, florastore store.FloraStore) (int, error) {
-
-	batches := Ω.batches(500)
-
-	col, err := florastore.FirestoreCollection(store.CollectionProtectedAreas)
-	if err != nil {
-		return 0, err
-	}
-
-	// TODO: Make parallel
-	tmb := tomb.Tomb{}
-	invalidCount := 0
-	tmb.Go(func() error {
-		for _, _batch := range batches {
-			batch := _batch
-			tmb.Go(func() error {
-				firestoreBatch := florastore.FirestoreBatch()
-				for _, area := range batch {
-					if !area.Valid() {
-						invalidCount++
-						continue
-					}
-					id, err := area.ID()
-					if err != nil {
-						return err
-					}
-					firestoreBatch = firestoreBatch.Set(col.Doc(string(id)), area)
-				}
-				if _, err := firestoreBatch.Commit(cxt); err != nil {
-					return errors.Wrap(err, "could not commit firestore batch")
-				}
-				return nil
-			})
-		}
-		return nil
-	})
-
-	if err := tmb.Wait(); err != nil {
-		return 0, err
-	}
-
-	return len(Ω) - invalidCount, nil
-}
-
-//
 //var validProtectedAreaStates = map[string]string{
 //	"AL": "Alabama",
 //	//"AK": "Alaska",
@@ -327,3 +223,39 @@ func (Ω ProtectedAreas) Upload(cxt context.Context, florastore store.FloraStore
 //	//"AE": "Armed Forces Europe",
 //	//"AP": "Armed Forces Pacific",
 //}
+
+func selectBetweenTitleSentences(a, b string) (string, error) {
+
+	b, err := formatTitleWord(b)
+	if err != nil {
+		return "", err
+	}
+
+	wordFlags := []string{"unknown", "other", "easement", "private"}
+
+	aHasFlag := utils.ContainsString(wordFlags, strings.ToLower(a))
+	bHasFlag := utils.ContainsString(wordFlags, strings.ToLower(b))
+
+	if a == "" || (aHasFlag && !bHasFlag && b != "") || len(a) < len(b) {
+		return b, nil
+	}
+
+	return a, nil
+}
+
+func formatTitleWord(s string) (string, error) {
+
+	s = strings.Replace(s, "_", " ", -1)
+	s = strings.ToLower(strings.TrimSpace(s))
+	for suffix, replacement := range map[string]string{
+		"wa":  "Wilderness Area",
+		"sp":  "State Park",
+		"wma": "Wildlife Management Area",
+	} {
+		if strings.HasSuffix(s, suffix) {
+			s = strings.Replace(s, suffix, replacement, -1)
+		}
+	}
+
+	return utils.FormatTitle(s)
+}

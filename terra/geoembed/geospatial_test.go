@@ -1,24 +1,67 @@
 package geoembed
 
 import (
+	"encoding/json"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
 func TestGeoFeatureGeneration(t *testing.T) {
 
-	t.Parallel()
+	Convey("Should properly create GeoFeatureSet and marshal/unmarshal JSON on struct where it is embedded", t, func() {
 
-	Convey("should fetch geo features", t, func() {
+		type geoEmbeddedStruct struct {
+			Name          string         `json:""`
+			GeoFeatureSet *GeoFeatureSet `json:""`
+		}
 
-		for _, a := range [][2]float64{
-			{41.1491573, -115.4622611},
-			{41.1491573, -115.4622611},
-			{47.2600975, -120.2742729},
-			{46.4411401, -117.8572807},
+		initialSet, err := NewGeoFeatureSet(43.4732679, -110.7998022, false)
+		So(err, ShouldBeNil)
+
+		embed := geoEmbeddedStruct{
+			Name:          "test",
+			GeoFeatureSet: initialSet,
+		}
+
+		b, err := json.Marshal(embed)
+		So(err, ShouldBeNil)
+
+		unembedded := geoEmbeddedStruct{}
+		So(json.Unmarshal(b, &unembedded), ShouldBeNil)
+		So(unembedded.Name, ShouldEqual, "test")
+		So(unembedded.GeoFeatureSet.Lat(), ShouldEqual, 43.4732679)
+		So(unembedded.GeoFeatureSet.Lng(), ShouldEqual, -110.7998022)
+
+	})
+
+	Convey("Should consistently generate GeoFeatureSets", t, func() {
+
+		for _, a := range [][6]float64{
+			// Lat, Lng, Elevation, Biome, Realm, EcoNum
+			{43.4732679, -110.7998022, 1874, 5, 5, 28}, // Jackson Hole, Wyoming
+			{40.0292888, -105.310018, 1932, 5, 5, 11},  // Boulder, Colorado
+			{33.5309219, -87.1303357, 140, 4, 5, 2},    // Birmingham, Alabama
+			{40.4313473, -80.050541, 340, 4, 5, 2},     // Pittsburg, Pennsylvania
+			{37.9318439, -122.295833, 207, 12, 5, 2},   // Berkeley, California
+			{38.57654, -109.5816315, 1236, 13, 5, 4},   // Moab, Utah
 		} {
-			_, err := NewGeoFeatureSet(a[0], a[1], false)
+			initialSet, err := NewGeoFeatureSet(a[0], a[1], false)
 			So(err, ShouldBeNil)
+
+			b, err := json.Marshal(initialSet)
+			So(err, ShouldBeNil)
+
+			newSet := GeoFeatureSet{}
+			So(json.Unmarshal(b, &newSet), ShouldBeNil)
+
+			So(newSet.geoPoint.GetLongitude(), ShouldEqual, a[1])
+			So(newSet.geoPoint.GetLatitude(), ShouldEqual, a[0])
+			So(newSet.elevation, ShouldNotBeNil)
+			So(*newSet.elevation, ShouldEqual, a[2])
+			So(newSet.biome, ShouldEqual, a[3])
+			So(newSet.realm, ShouldEqual, a[4])
+			So(newSet.ecoNum, ShouldEqual, a[5])
+
 		}
 	})
 }

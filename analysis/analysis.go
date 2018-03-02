@@ -8,7 +8,7 @@ package main
 //	"context"
 //	"flag"
 //	"fmt"
-//	"github.com/mongodb/mongo-tools/common/json"
+//	"encoding/json"
 //	"github.com/dropbox/godropbox/errors"
 //	"google.golang.org/api/iterator"
 //	"gopkg.in/tomb.v2"

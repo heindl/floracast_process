@@ -128,8 +128,8 @@ func (Ω *orchestrator) readGroupAndFilter() (geo.FeatureCollections, error) {
 	Ω.Stats["Initial Filtered Total"] = Ω.aggregated.Count()
 
 	filteredUnitNames, err := Ω.aggregated.FilterByProperty(func(i interface{}) bool {
-		s := strings.ToLower(string(i.([]byte)))
-		return utils.WordInArrayIsASubstring(s, flagsToFilter) || utils.StringContainsOnlyNumbers(s)
+		name := strings.ToLower(string(i.([]byte)))
+		return utils.WordInArrayIsASubstring(name, flagsToFilter) || utils.StringContainsNoLetters(name)
 	}, "Unit_Nm")
 	if err != nil {
 		return nil, err

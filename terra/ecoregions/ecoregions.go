@@ -1,7 +1,8 @@
 package ecoregions
 
 import (
-	"github.com/dropbox/godropbox/errors"
+	"errors"
+	dropboxError "github.com/dropbox/godropbox/errors"
 	"strconv"
 )
 
@@ -46,7 +47,7 @@ func NewRegion(ecoIDInt int) (*Region, error) {
 		ecoID: ecoID(ecoIDInt),
 	}
 	if !region.ecoID.Valid() {
-		return nil, errors.Newf("Invalid ecoID [%ecoIDStr]", region.ecoID)
+		return nil, dropboxError.Newf("Invalid ecoID [%ecoIDStr]", region.ecoID)
 	}
 	var err error
 	region.name, err = region.ecoID.name()
@@ -62,25 +63,25 @@ func NewRegion(ecoIDInt int) (*Region, error) {
 
 	realmInt, err := strconv.Atoi(ecoIDStr[0:2])
 	if err != nil {
-		return nil, errors.Wrap(err, "Invalid Realm")
+		return nil, dropboxError.Wrap(err, "Invalid Realm")
 	}
 	region.realm = Realm(realmInt)
 	if !region.realm.Valid() {
-		return nil, errors.Newf("Invalid Realm [%d]", region.realm)
+		return nil, dropboxError.Newf("Invalid Realm [%d]", region.realm)
 	}
 
 	biomeInt, err := strconv.Atoi(ecoIDStr[2:4])
 	if err != nil {
-		return nil, errors.Wrap(err, "Invalid Biome")
+		return nil, dropboxError.Wrap(err, "Invalid Biome")
 	}
 	region.biome = Biome(biomeInt)
 	if !region.biome.Valid() {
-		return nil, errors.Newf("Invalid Biome [%d]", region.biome)
+		return nil, dropboxError.Newf("Invalid Biome [%d]", region.biome)
 	}
 
 	ecoNumInt, err := strconv.Atoi(ecoIDStr[4:6])
 	if err != nil {
-		return nil, errors.Wrap(err, "Invalid EcoNum")
+		return nil, dropboxError.Wrap(err, "Invalid EcoNum")
 	}
 	region.ecoNum = EcoNum(ecoNumInt)
 
@@ -184,7 +185,7 @@ func (Ω ecoID) name() (string, error) {
 	if v, ok := neotropicEcoIDDefinitions[Ω]; ok {
 		return v, nil
 	}
-	return "", errors.Newf("Name not found [%s]", Ω)
+	return "", dropboxError.Newf("Name not found [%s]", Ω)
 }
 
 var nearticEcoIDDefinitions = map[ecoID]string{
