@@ -8,6 +8,8 @@ import (
 
 type TargetID string
 
+type TargetIDProvider func() (TargetID, error)
+
 func NewTargetID(target string, sourceType SourceType) (TargetID, error) {
 	targetID := TargetID(target)
 	if !targetID.Valid(sourceType) {

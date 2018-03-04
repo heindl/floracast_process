@@ -15,7 +15,17 @@ type Description interface {
 	Source() datasources.SourceType
 }
 
-func FetchDescriptions(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID) ([]Description, error) {
+func FetchDescriptions(ctx context.Context, sourceTypeProvider datasources.SourceTypeProvider, targetIDProvider datasources.TargetIDProvider) ([]Description, error) {
+
+	sourceType, err := sourceTypeProvider()
+	if err != nil {
+		return nil, err
+	}
+
+	targetID, err := targetIDProvider()
+	if err != nil {
+		return nil, err
+	}
 
 	res := []Description{}
 	switch sourceType {

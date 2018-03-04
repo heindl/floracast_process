@@ -4,6 +4,8 @@ import "github.com/dropbox/godropbox/errors"
 
 type SourceType string
 
+type SourceTypeProvider func() (SourceType, error)
+
 func NewSourceType(s string) (SourceType, error) {
 	srcType := SourceType(s)
 	if !srcType.Valid() {

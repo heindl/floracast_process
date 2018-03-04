@@ -44,6 +44,28 @@ func NewCanonicalName(name string, rank string) (*Name, error) {
 	}, nil
 }
 
+//type TaxonRank string
+//
+//const (
+//	// Originating from INaturalist:
+//	RankKingdom     = TaxonRank("Kingdom")
+//	RankPhylum      = TaxonRank("Phylum")
+//	RankSubPhylum   = TaxonRank("SubPhylum")
+//	RankClass       = TaxonRank("Class")
+//	RankSubClass    = TaxonRank("SubClass")
+//	RankOrder       = TaxonRank("Order")
+//	RankSuperFamily = TaxonRank("SuperFamily")
+//	RankFamily      = TaxonRank("Family")
+//	RankSubFamily   = TaxonRank("SubFamily")
+//	RankTribe       = TaxonRank("Tribe")
+//	RankSubTribe    = TaxonRank("SubTribe")
+//	RankGenus       = TaxonRank("Genus")
+//	RankSpecies     = TaxonRank("Species")
+//	RankSubSpecies  = TaxonRank("SubSpecies")
+//	RankForm        = TaxonRank("Form")
+//	RankVariety     = TaxonRank("Variety")
+//)
+
 // Equals is a helper function that could be flushed out to include Rank, but doesn't.
 func (Ω *Name) Equals(b *Name) bool {
 	return Ω.SciName == b.SciName

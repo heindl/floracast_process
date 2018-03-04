@@ -15,7 +15,26 @@ type photo struct {
 	Citation  string `json:",omitempty" firestore:",omitempty"`
 	Thumbnail string `json:",omitempty" firestore:",omitempty"`
 	Large     string `json:",omitempty" firestore:",omitempty"`
-	Rank      int    `json:"-" firestore:"-"`
+	rank      int
+}
+
+func parsePhoto(p sourcefetchers.Photo) (*photo, error) {
+	rank := 0
+	if p.Source() == datasources.TypeINaturalist {
+		rank++
+	}
+	if p.Thumbnail() != "" {
+		rank++
+	}
+	if p.Citation() != "" {
+		rank++
+	}
+	return &photo{
+		Citation:  p.Citation(),
+		Large:     p.Large(),
+		Thumbnail: p.Thumbnail(),
+		rank:      rank,
+	}, nil
 }
 
 func fetchPhoto(ctx context.Context, usage nameusage.NameUsage) (*photo, error) {
@@ -33,46 +52,25 @@ func fetchPhoto(ctx context.Context, usage nameusage.NameUsage) (*photo, error) 
 	tmb.Go(func() error {
 		for _, _src := range srcs {
 			src := _src
+			if src.OccurrenceCount() < 1 {
+				continue
+			}
 			tmb.Go(func() error {
-				if src.OccurrenceCount() < 1 {
-					return nil
-				}
 
-				srcType, err := src.SourceType()
-				if err != nil {
-					return err
-				}
-
-				targetID, err := src.TargetID()
-				if err != nil {
-					return err
-				}
-
-				fetchedPhotos, err := sourcefetchers.FetchPhotos(ctx, srcType, targetID)
+				fetchedPhotos, err := sourcefetchers.FetchPhotos(ctx, src.SourceType, src.TargetID)
 				if err != nil {
 					return err
 				}
 
 				for _, p := range fetchedPhotos {
-					rank := 0
-					if p.Source() == datasources.TypeINaturalist {
-						rank += 1
-					}
-					if p.Thumbnail() != "" {
-						rank += 1
-					}
-					if p.Citation() != "" {
-						rank += 1
+					pho, err := parsePhoto(p)
+					if err != nil {
+						return err
 					}
 					lock.Lock()
-					if rank > highestRank {
-						highestRank = rank
-						leadPhoto = photo{
-							Citation:  p.Citation(),
-							Large:     p.Large(),
-							Thumbnail: p.Thumbnail(),
-							Rank:      rank,
-						}
+					if pho.rank > highestRank {
+						highestRank = pho.rank
+						leadPhoto = *pho
 					}
 					lock.Unlock()
 				}
@@ -86,14 +84,40 @@ func fetchPhoto(ctx context.Context, usage nameusage.NameUsage) (*photo, error) 
 	}
 
 	// TODO: Sort and clip to five here.
-
 	return &leadPhoto, nil
 }
 
 type description struct {
 	Citation string `json:",omitempty" firestore:",omitempty"`
 	Text     string `json:",omitempty" firestore:",omitempty"`
-	Rank     string `json:"-" firestore:"-"`
+	rank     int
+}
+
+func parseDescription(p sourcefetchers.Description) (*description, error) {
+	rank := 0
+	if p.Source() == datasources.TypeINaturalist {
+		rank++
+	}
+	citation, err := p.Citation()
+	if err != nil {
+		return nil, err
+	}
+	if citation != "" {
+		rank++
+	}
+	text, err := p.Text()
+	if err != nil {
+		return nil, err
+	}
+	text = strings.TrimSpace(strip.StripTags(text))
+	if text == "" {
+		return nil, nil
+	}
+	return &description{
+		Text:     text,
+		Citation: citation,
+		rank:     rank,
+	}, nil
 }
 
 func fetchDescription(ctx context.Context, usage nameusage.NameUsage) (*description, error) {
@@ -109,55 +133,25 @@ func fetchDescription(ctx context.Context, usage nameusage.NameUsage) (*descript
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _src := range srcs {
-			src := _src
+		for _, 𝝨 := range srcs {
+			src := 𝝨
+			if src.OccurrenceCount() < 1 {
+				continue
+			}
 			tmb.Go(func() error {
-				if src.OccurrenceCount() < 1 {
-					return nil
-				}
-
-				srcType, err := src.SourceType()
-				if err != nil {
-					return err
-				}
-
-				targetID, err := src.TargetID()
-				if err != nil {
-					return err
-				}
-
-				fetchedDescriptions, err := sourcefetchers.FetchDescriptions(ctx, srcType, targetID)
+				fetchedDescriptions, err := sourcefetchers.FetchDescriptions(ctx, src.SourceType, src.TargetID)
 				if err != nil {
 					return err
 				}
 				for _, p := range fetchedDescriptions {
-					rank := 0
-					if p.Source() == datasources.TypeINaturalist {
-						rank += 1
-					}
-					citation, err := p.Citation()
+					desc, err := parseDescription(p)
 					if err != nil {
 						return err
-					}
-					citation = strip.StripTags(citation)
-					if citation != "" {
-						rank += 1
-					}
-					text, err := p.Text()
-					if err != nil {
-						return err
-					}
-					text = strings.TrimSpace(strip.StripTags(text))
-					if text == "" {
-						continue
 					}
 					lock.Lock()
-					if rank > highestRank || highestRank == 0 {
-						highestRank = rank
-						leadDescription = description{
-							Citation: citation,
-							Text:     text,
-						}
+					if desc.rank > highestRank || highestRank == 0 {
+						highestRank = desc.rank
+						leadDescription = *desc
 					}
 					lock.Unlock()
 				}

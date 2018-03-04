@@ -16,6 +16,7 @@ type materializedTaxon struct {
 	Description    *description `json:",omitempty" firestore:",omitempty"`
 }
 
+// UploadMaterializedTaxa takes a NameUsage, materializes it, clears old references, and saves to FireStore.
 func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.ID) error {
 	if err := clearMaterializedTaxa(ctx, florastore, deletedUsageIDs); err != nil {
 		return err

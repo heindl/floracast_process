@@ -89,12 +89,6 @@ func (Ω *Aggregation) AddOccurrence(q Occurrence) error {
 		return err
 	}
 
-	counter++
-	fmt.Println("ADD OCCURRENCE", qKey, counter)
-	defer func() {
-		fmt.Println("FINISHED ADDING OCCURRENCE", qKey, counter)
-	}()
-
 	Ω.Lock()
 	defer Ω.Unlock()
 

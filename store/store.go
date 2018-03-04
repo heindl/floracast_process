@@ -9,8 +9,9 @@ import (
 	"strings"
 )
 
+// FloraStore is the standard interface for updating the data store.
 type FloraStore interface {
-	FirestoreCollection(FirestoreCollection) (*firestore.CollectionRef, error)
+	FirestoreCollection(FireStoreCollection) (*firestore.CollectionRef, error)
 	FirestoreBatch() *firestore.WriteBatch
 	FirestoreTransaction(ctx context.Context, fn FirestoreTransactionFunc) error
 	AlgoliaIndex(indexFunc AlgoliaIndexFunc) (AlgoliaIndex, error)
@@ -18,6 +19,7 @@ type FloraStore interface {
 	Close() error
 }
 
+// TestFloraStore adds additional methods for testing.
 type TestFloraStore interface {
 	FloraStore
 	CountTestCollection(context.Context, *firestore.CollectionRef) (int, error)
@@ -25,10 +27,11 @@ type TestFloraStore interface {
 }
 
 const (
-	GCSTestBucket = "floracast-datamining-test"
-	GCSLiveBucket = "floracast-datamining"
+	gcsTestBucket = "floracast-datamining-test"
+	gcsLiveBucket = "floracast-datamining"
 )
 
+// NewTestFloraStore returns an interface that guarantees writes to test collections.
 func NewTestFloraStore(ctx context.Context) (TestFloraStore, error) {
 	//s := store{
 	//	Clock: clockwork.NewRealClock(),
@@ -48,13 +51,13 @@ func NewTestFloraStore(ctx context.Context) (TestFloraStore, error) {
 		return nil, errors.Wrap(err, "Could not create Google Cloud Storage client.")
 	}
 
-	gcsBucketHandle := client.Bucket(GCSTestBucket)
+	gcsBucketHandle := client.Bucket(gcsTestBucket)
 	attrs, err := gcsBucketHandle.Attrs(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Could not retrieve GCS Bucket [%s] Attrs", GCSTestBucket)
+		return nil, errors.Wrapf(err, "Could not retrieve GCS Bucket [%s] Attrs", gcsTestBucket)
 	}
 	if attrs.Created.IsZero() {
-		return nil, errors.Newf("Bucket doesn't exist [%s]", GCSTestBucket)
+		return nil, errors.Newf("Bucket doesn't exist [%s]", gcsTestBucket)
 	}
 
 	return &store{
@@ -65,6 +68,7 @@ func NewTestFloraStore(ctx context.Context) (TestFloraStore, error) {
 	}, nil
 }
 
+// NewFloraStore initializes a database connections.
 func NewFloraStore(ctx context.Context) (FloraStore, error) {
 	//s := store{
 	//	Clock: clockwork.NewRealClock(),
@@ -84,13 +88,13 @@ func NewFloraStore(ctx context.Context) (FloraStore, error) {
 		return nil, errors.Wrap(err, "Could not create Google Cloud Storage client.")
 	}
 
-	gcsBucketHandle := client.Bucket(GCSLiveBucket)
+	gcsBucketHandle := client.Bucket(gcsLiveBucket)
 	attrs, err := gcsBucketHandle.Attrs(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Could not retrieve GCS Bucket [%s] Attrs", GCSLiveBucket)
+		return nil, errors.Wrapf(err, "Could not retrieve GCS Bucket [%s] Attrs", gcsLiveBucket)
 	}
 	if attrs.Created.IsZero() {
-		return nil, errors.Newf("Bucket doesn't exist [%s]", GCSLiveBucket)
+		return nil, errors.Newf("Bucket doesn't exist [%s]", gcsLiveBucket)
 	}
 
 	return &store{
@@ -107,7 +111,7 @@ type store struct {
 	gcsBucketHandle *storage.BucketHandle
 }
 
-func (Ω *store) FirestoreCollection(æ FirestoreCollection) (*firestore.CollectionRef, error) {
+func (Ω *store) FirestoreCollection(æ FireStoreCollection) (*firestore.CollectionRef, error) {
 	name := string(æ)
 	if Ω.isTest {
 		name = "Test" + name
@@ -119,6 +123,7 @@ func (Ω *store) FirestoreBatch() *firestore.WriteBatch {
 	return Ω.firestoreClient.Batch()
 }
 
+// FirestoreTransactionFunc is a callback for a transaction
 type FirestoreTransactionFunc func(context.Context, *firestore.Transaction) error
 
 func (Ω *store) FirestoreTransaction(ctx context.Context, fn FirestoreTransactionFunc) error {

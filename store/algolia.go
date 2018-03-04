@@ -10,8 +10,10 @@ import (
 const algoliaEnvAPIKey = "FLORACAST_ALGOLIA_API_KEY"
 const algoliaEnvApplicationID = "FLORACAST_ALGOLIA_APPLICATION_ID"
 
+// AlgoliaIndexFunc is a callback for retrieving an Algolia Index
 type AlgoliaIndexFunc func(client algoliasearch.Client, isTest bool) (algoliasearch.Index, error)
 
+// AlgoliaIndex is an interface for updating Algolia
 type AlgoliaIndex interface {
 	AddObjects([]algoliasearch.Object) (algoliasearch.BatchRes, error)
 	BrowseAll(params algoliasearch.Map) (it algoliasearch.IndexIterator, err error)

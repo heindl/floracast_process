@@ -15,7 +15,17 @@ type Photo interface {
 	Source() datasources.SourceType
 }
 
-func FetchPhotos(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID) ([]Photo, error) {
+func FetchPhotos(ctx context.Context, sourceTypeProvider datasources.SourceTypeProvider, targetIDProvider datasources.TargetIDProvider) ([]Photo, error) {
+
+	sourceType, err := sourceTypeProvider()
+	if err != nil {
+		return nil, err
+	}
+
+	targetID, err := targetIDProvider()
+	if err != nil {
+		return nil, err
+	}
 
 	res := []Photo{}
 	switch sourceType {

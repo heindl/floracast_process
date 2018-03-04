@@ -7,6 +7,9 @@ import (
 	"flag"
 )
 
+// Level 4: 216
+// Level 3: 64
+
 func main() {
 	batches := flag.Int("batches", 0, "Random point batches")
 	cellLevel := flag.Int("level", 0, "S2 cell level")
@@ -19,7 +22,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := occurrence.ClearRandomPoints(ctx, floraStore); err != nil {
+	if err = occurrence.ClearRandomPoints(ctx, floraStore); err != nil {
 		panic(err)
 	}
 
@@ -28,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	if err := aggr.Upload(context.Background(), floraStore); err != nil {
+	if err = aggr.Upload(context.Background(), floraStore); err != nil {
 		panic(err)
 	}
 
