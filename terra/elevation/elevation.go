@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-const elevationBatchSize = 30
+var elevationBatchSize = 20
 
 var global = processor{
 	queued:  []string{},
@@ -41,6 +41,9 @@ type processor struct {
 
 func (Ω *processor) get(lat, lng float64) (*int, error) {
 
+	Ω.Lock()
+	defer Ω.Unlock()
+
 	if Ω.isQueued(lat, lng) {
 		if err := Ω.fetch(); err != nil {
 			return nil, err
@@ -57,13 +60,14 @@ func (Ω *processor) get(lat, lng float64) (*int, error) {
 
 func (Ω *processor) queue(lat, lng float64) error {
 
+	Ω.Lock()
+	defer Ω.Unlock()
+
 	if Ω.isQueued(lat, lng) || Ω.isFetched(lat, lng) {
 		return nil
 	}
-	Ω.Lock()
 	Ω.queued = append(Ω.queued, key(lat, lng))
 	shouldFetch := len(Ω.queued) >= elevationBatchSize
-	Ω.Unlock()
 
 	if shouldFetch {
 		return Ω.fetch()
@@ -73,14 +77,10 @@ func (Ω *processor) queue(lat, lng float64) error {
 }
 
 func (Ω *processor) isQueued(lat, lng float64) bool {
-	Ω.Lock()
-	defer Ω.Unlock()
 	return utils.ContainsString(Ω.queued, key(lat, lng))
 }
 
 func (Ω *processor) isFetched(lat, lng float64) bool {
-	Ω.Lock()
-	defer Ω.Unlock()
 	_, ok := Ω.fetched[key(lat, lng)]
 	return ok
 }
@@ -92,13 +92,15 @@ func key(lat, lng float64) string {
 var fetchCount = 0
 
 func (Ω *processor) fetch() error {
-	Ω.Lock()
-	defer Ω.Unlock()
 
 	fetchCount++
 
 	if len(Ω.queued) == 0 {
 		return nil
+	}
+
+	if len(Ω.queued) > elevationBatchSize {
+		return errors.Newf("Batch size [%d] greater than expected [%d]", len(Ω.queued), elevationBatchSize)
 	}
 
 	var res struct {

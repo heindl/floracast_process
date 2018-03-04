@@ -17,18 +17,18 @@ import (
 func main() {
 	//writeToCache := flag.Bool("cache", false, "write to buntdb cache and initiate server?")
 	//dates := flag.String("dates", "", "Dates for which to fetch latest predictions in format YYYYMMDD,YYYYMMDD. If blank will fetch all dates.")
-	requestedUsageIDs := flag.String("usageIDs", "", "Comma seperated list of NameUsageIDs to fetch predictions for.")
+	requestedUsageIDs := flag.String("usageIDs", "", "Comma seperated list of IDs to fetch predictions for.")
 	bucket := flag.String("bucket", "", "gcs bucket to fetch predictions from")
 	mode := flag.String("mode", "serve", "mode to handle predictions: write to temp file for javascript geofire uploader or serve for testing in local web router.")
 	flag.Parse()
 
 	if *requestedUsageIDs == "" {
-		panic("NameUsageIDs required")
+		panic("IDs required")
 	}
 
 	cxt := context.Background()
 
-	parsedUsageIDs, err := nameusage.NameUsageIDsFromStrings(strings.Split(*requestedUsageIDs, ","))
+	parsedUsageIDs, err := nameusage.IDsFromStrings(strings.Split(*requestedUsageIDs, ","))
 	if err != nil {
 		panic(err)
 	}
@@ -150,11 +150,11 @@ func (Ω *handler) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var usageID nameusage.NameUsageID
+	var usageID nameusage.ID
 	if _, ok := vars["nameUsageID"]; ok {
-		usageID = nameusage.NameUsageID(vars["nameUsageID"])
+		usageID = nameusage.ID(vars["nameUsageID"])
 		if !usageID.Valid() {
-			http.Error(w, "Invalid NameUsageID", http.StatusBadRequest)
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
 			return
 		}
 	}

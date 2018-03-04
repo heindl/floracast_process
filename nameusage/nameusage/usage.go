@@ -7,39 +7,40 @@ import (
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"sort"
 )
 
+// NameUsage represents a combination of DataSources that leads to a Taxon representation.
 type NameUsage interface {
-	ID() (NameUsageID, error)
+	ID() (ID, error)
 	Sources(sourceTypes ...datasources.SourceType) (Sources, error)
 	Occurrences(sourceTypes ...datasources.SourceType) (int, error)
 	HasSource(datasources.SourceType, datasources.TargetID) (bool, error)
 	AddSources(sources ...Source) error
-	Synonyms() (canonicalname.CanonicalNames, error)
+	Synonyms() (canonicalname.Names, error)
 	AllScientificNames() ([]string, error)
-	CanonicalName() *canonicalname.CanonicalName
+	CanonicalName() *canonicalname.Name
 	CommonName() (string, error)
 	ShouldCombine(b NameUsage) (bool, error)
 	Combine(b NameUsage) (NameUsage, error)
 	HasScientificName(s string) (bool, error)
-	ScientificNameReferenceLedger() (NameReferenceLedger, error)
-	CommonNameReferenceLedger() (NameReferenceLedger, error)
-	Upload(context.Context, store.FloraStore) (deletedUsageIDs NameUsageIDs, err error)
+	ScientificNameReferenceLedger() (nameReferenceLedger, error)
+	CommonNameReferenceLedger() (nameReferenceLedger, error)
+	Upload(context.Context, store.FloraStore) (deletedUsageIDs IDs, err error)
 }
 
 const storeKeyScientificName = "ScientificNames"
 
 type usage struct {
-	Id       NameUsageID                                                 `json:"-" firestore:"-"`
-	Cn       *canonicalname.CanonicalName                                `json:"CanonicalName" firestore:"CanonicalName"`
+	id       ID
+	Cn       *canonicalname.Name                                         `json:"Name" firestore:"Name"`
 	Occrrncs int                                                         `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
 	SciNames map[string]bool                                             `json:"ScientificNames,omitempty" firestore:"ScientificNames,omitempty"`
 	Srcs     map[datasources.SourceType]map[datasources.TargetID]*source `json:"Sources,omitempty" firestore:"Sources,omitempty"`
 }
 
+// NewNameUsage provides a new NameUsage.
 func NewNameUsage(src Source) (NameUsage, error) {
 
 	id, err := newNameUsageID()
@@ -48,7 +49,7 @@ func NewNameUsage(src Source) (NameUsage, error) {
 	}
 
 	u := usage{
-		Id: id,
+		id: id,
 		Cn: src.CanonicalName(),
 	}
 
@@ -59,26 +60,29 @@ func NewNameUsage(src Source) (NameUsage, error) {
 	return &u, nil
 }
 
-func NameUsageFromJSON(id NameUsageID, b []byte) (NameUsage, error) {
+// FromJSON parses a NameUsage from json.
+func FromJSON(id ID, b []byte) (NameUsage, error) {
 	if !id.Valid() {
-		return nil, errors.Newf("Invalid NameUsageID [%s]", id)
+		return nil, errors.Newf("Invalid ID [%s]", id)
 	}
 	u := usage{}
 	if err := json.Unmarshal(b, &u); err != nil {
 		return nil, err
 	}
-	u.Id = id
+	u.id = id
 
 	return &u, nil
 }
 
-func (Ω *usage) ID() (NameUsageID, error) {
-	if !Ω.Id.Valid() {
-		return NameUsageID(""), errors.Newf("Invalid NameUsageID [%s]", Ω.Id)
+// ID provides the NameUsageID from a NameUsage.
+func (Ω *usage) ID() (ID, error) {
+	if !Ω.id.Valid() {
+		return ID(""), errors.Newf("Invalid ID [%s]", Ω.id)
 	}
-	return Ω.Id, nil
+	return Ω.id, nil
 }
 
+// Sources returns all sources from the NameUsage
 func (Ω *usage) Sources(sourceTypes ...datasources.SourceType) (Sources, error) {
 	res := Sources{}
 	for srcType, targets := range Ω.Srcs {
@@ -104,6 +108,7 @@ func (Ω *usage) Sources(sourceTypes ...datasources.SourceType) (Sources, error)
 	return res, nil
 }
 
+// Occurrences returns a sum of all occurrences within NameUsage.
 func (Ω *usage) Occurrences(sourceTypes ...datasources.SourceType) (int, error) {
 
 	srcs, err := Ω.Sources(sourceTypes...)
@@ -183,12 +188,12 @@ func (Ω *usage) AddSources(sources ...Source) error {
 	return nil
 }
 
-func (Ω *usage) CanonicalName() *canonicalname.CanonicalName {
+func (Ω *usage) CanonicalName() *canonicalname.Name {
 	return Ω.Cn
 }
 
-func (Ω *usage) Synonyms() (canonicalname.CanonicalNames, error) {
-	res := canonicalname.CanonicalNames{}
+func (Ω *usage) Synonyms() (canonicalname.Names, error) {
+	res := canonicalname.Names{}
 	srcs, err := Ω.Sources()
 	if err != nil {
 		return nil, err
@@ -212,12 +217,12 @@ func (Ω *usage) AllScientificNames() ([]string, error) {
 	return utils.AddStringToSet(synonyms.ScientificNames(), Ω.CanonicalName().ScientificName()), nil
 }
 
-func (Ω *usage) ScientificNameReferenceLedger() (NameReferenceLedger, error) {
+func (Ω *usage) ScientificNameReferenceLedger() (nameReferenceLedger, error) {
 	srcs, err := Ω.Sources()
 	if err != nil {
 		return nil, err
 	}
-	ledger := NameReferenceLedger{}
+	ledger := nameReferenceLedger{}
 	for _, src := range srcs {
 		ledger = ledger.IncrementName(src.CanonicalName().ScientificName(), src.OccurrenceCount())
 		for _, synonym := range src.Synonyms() {
@@ -228,8 +233,8 @@ func (Ω *usage) ScientificNameReferenceLedger() (NameReferenceLedger, error) {
 	return ledger, nil
 }
 
-func (Ω *usage) CommonNameReferenceLedger() (NameReferenceLedger, error) {
-	ledger := NameReferenceLedger{}
+func (Ω *usage) CommonNameReferenceLedger() (nameReferenceLedger, error) {
+	ledger := nameReferenceLedger{}
 	srcs, err := Ω.Sources()
 	if err != nil {
 		return nil, err
@@ -258,9 +263,9 @@ func (Ω *usage) CommonName() (string, error) {
 	return ledger[0].Name, nil
 }
 
-func (a *usage) ShouldCombine(b NameUsage) (bool, error) {
+func (Ω *usage) ShouldCombine(b NameUsage) (bool, error) {
 
-	aNames, err := a.AllScientificNames()
+	aNames, err := Ω.AllScientificNames()
 	if err != nil {
 		return false, err
 	}
@@ -274,7 +279,7 @@ func (a *usage) ShouldCombine(b NameUsage) (bool, error) {
 		return true, nil
 	}
 
-	srcs, err := a.Sources()
+	srcs, err := Ω.Sources()
 	if err != nil {
 		return false, err
 	}
@@ -307,44 +312,43 @@ func (a *usage) ShouldCombine(b NameUsage) (bool, error) {
 //	return json.Marshal(a)
 //}
 
-func (a *usage) Combine(b NameUsage) (NameUsage, error) {
+// Slow recalculate this but necessary for clean code.
+func shouldUseFirstCanonicalNameUsage(a, b NameUsage) (bool, error) {
 
-	if !a.Id.Valid() {
-		return nil, errors.Newf("Invalid ID when combining NameUsages [%s]", a.Id)
+	if a.CanonicalName().Equals(b.CanonicalName()) {
+		return true, nil
 	}
-
-	c := usage{
-		Id: a.Id,
-	}
-
-	// Slow recalculate this but necessary for clean code.
-	namesEquivalent := a.Cn.Equals(b.CanonicalName())
 
 	aSynonyms, err := a.Synonyms()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	bSynonyms, err := b.Synonyms()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	bNameIsSynonym := aSynonyms.Contains(b.CanonicalName())
 	aNameIsSynonym := bSynonyms.Contains(a.CanonicalName())
 
-	aSrcs, err := a.Sources()
-	if err != nil {
-		return nil, err
+	if bNameIsSynonym != aNameIsSynonym {
+		return aNameIsSynonym, nil
+	} else if bNameIsSynonym {
+		return false, errors.Newf("Warning: found two name usages [%s, %s] that appear to be synonyms for each other.", a.CanonicalName(), b.CanonicalName())
 	}
 
-	bSrcs, err := b.Sources()
+	aSources, err := a.Sources()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	aSourceCount := len(aSrcs)
-	bSourceCount := len(bSrcs)
+	bSources, err := b.Sources()
+	if err != nil {
+		return false, err
+	}
+
+	return len(aSources) > len(bSources) || len(aSynonyms) > len(bSynonyms), nil
 
 	//fmt.Println("----Combining----")
 	//fmt.Println( a.canonicalName.name, b.canonicalName.name)
@@ -352,33 +356,45 @@ func (a *usage) Combine(b NameUsage) (NameUsage, error) {
 	//fmt.Println("SourceCount", aSourceCount, bSourceCount)
 	//targetIDsIntersect := a.nameUsageSourceMap.Intersects(b.nameUsageSourceMap)
 	//synonymsIntersect := utils.IntersectsStrings(a.Synonyms, b.Synonyms)
+}
 
-	if bNameIsSynonym && aNameIsSynonym {
-		fmt.Println(fmt.Sprintf("Warning: found two name usages [%s, %s] that appear to be synonyms for each other.", a.CanonicalName(), b.CanonicalName()))
-		return nil, nil
+func (Ω *usage) Combine(b NameUsage) (NameUsage, error) {
+
+	if !Ω.id.Valid() {
+		return nil, errors.Newf("Invalid ID when combining NameUsages [%s]", Ω.id)
 	}
 
-	switch {
-	case namesEquivalent:
-		c.Cn = b.CanonicalName()
-	case bNameIsSynonym && !aNameIsSynonym:
-		c.Cn = a.CanonicalName()
-	case aNameIsSynonym && !bNameIsSynonym:
-		c.Cn = b.CanonicalName()
-	case aSourceCount > bSourceCount:
-		c.Cn = a.CanonicalName()
-	case aSourceCount < bSourceCount:
-		c.Cn = b.CanonicalName()
-	case len(aSynonyms) > len(bSynonyms):
-		c.Cn = a.CanonicalName()
-	default:
-		c.Cn = b.CanonicalName()
+	c := usage{
+		id:   Ω.id,
+		Srcs: Ω.Srcs,
 	}
 
-	if err := c.AddSources(aSrcs...); err != nil {
+	useFirstName, err := shouldUseFirstCanonicalNameUsage(Ω, b)
+	if err != nil {
 		return nil, err
 	}
-	if err := c.AddSources(bSrcs...); err != nil {
+
+	if useFirstName {
+		c.Cn = Ω.CanonicalName()
+	} else {
+		c.Cn = b.CanonicalName()
+	}
+
+	aSources, err := Ω.Sources()
+	if err != nil {
+		return nil, err
+	}
+
+	bSources, err := b.Sources()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := c.AddSources(aSources...); err != nil {
+		return nil, err
+	}
+
+	if err := c.AddSources(bSources...); err != nil {
 		return nil, err
 	}
 

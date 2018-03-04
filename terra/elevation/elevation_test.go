@@ -2,12 +2,15 @@ package elevation
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
+	"gopkg.in/tomb.v2"
 	"testing"
 )
 
 func TestElevationFetcher(t *testing.T) {
 
 	Convey("should fetch elevations", t, func() {
+
+		elevationBatchSize = 5
 
 		coordinates := [][3]float64{
 			{42.722702, -87.784225, 192},
@@ -62,13 +65,22 @@ func TestElevationFetcher(t *testing.T) {
 			{34.092232, -117.435051, 380},
 		}
 
-		for _, coordinate := range coordinates {
-			So(Queue(coordinate[0], coordinate[1]), ShouldBeNil)
-		}
+		tmb := tomb.Tomb{}
+		tmb.Go(func() error {
+			for _, 𝝨 := range coordinates {
+				coordinate := 𝝨
+				tmb.Go(func() error {
+					return Queue(coordinate[0], coordinate[1])
+				})
+			}
+			return nil
+		})
+		So(tmb.Wait(), ShouldBeNil)
 
-		So(fetchCount, ShouldEqual, 2)
+		So(fetchCount, ShouldEqual, 9)
 
-		for _, coordinate := range coordinates {
+		for _, 𝝨 := range coordinates {
+			coordinate := 𝝨
 			e, err := Get(coordinate[0], coordinate[1])
 			So(err, ShouldBeNil)
 			So(e, ShouldNotBeNil)

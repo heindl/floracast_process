@@ -16,7 +16,7 @@ import (
 )
 
 type PredictionParser interface {
-	FetchPredictions(cxt context.Context, nameUsageIDs nameusage.NameUsageIDs, date []string) (predictions.Predictions, error)
+	FetchPredictions(cxt context.Context, nameUsageIDs nameusage.IDs, date []string) (predictions.Predictions, error)
 }
 
 func NewPredictionParser(src PredictionSource) (PredictionParser, error) {
@@ -29,7 +29,7 @@ type predictionParser struct {
 	predictionSource PredictionSource
 }
 
-func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*PredictionResult, error) {
+func parsePredictionReader(id nameusage.ID, reader io.Reader) ([]*PredictionResult, error) {
 
 	scanner := bufio.NewScanner(reader)
 
@@ -63,24 +63,24 @@ func parsePredictionReader(id nameusage.NameUsageID, reader io.Reader) ([]*Predi
 	return responseList, nil
 }
 
-func parseNameUsageIDFromFilePath(p string) (nameusage.NameUsageID, error) {
+func parseNameUsageIDFromFilePath(p string) (nameusage.ID, error) {
 	a := strings.Split(p, "/")
 	for i, v := range a {
 		if v == "predictions" {
-			id := nameusage.NameUsageID(a[i+1])
+			id := nameusage.ID(a[i+1])
 			if !id.Valid() {
-				return nameusage.NameUsageID(""), errors.Newf("Invalid NameUsageID [%s]", a[i+1])
+				return nameusage.ID(""), errors.Newf("Invalid ID [%s]", a[i+1])
 			}
 			return id, nil
 		}
 	}
-	return nameusage.NameUsageID(""), errors.Newf("Invalid NameUsageID [%s]", "")
+	return nameusage.ID(""), errors.Newf("Invalid ID [%s]", "")
 }
 
 type aggregator struct {
 	PredictionObjects       predictions.Predictions
-	PredictionList          map[nameusage.NameUsageID][]float64
-	TotalProtectedAreaCount map[nameusage.NameUsageID]float64
+	PredictionList          map[nameusage.ID][]float64
+	TotalProtectedAreaCount map[nameusage.ID]float64
 	sync.Mutex
 }
 
@@ -125,18 +125,18 @@ func (Ω *predictionParser) parseFile(cxt context.Context, aggr *aggregator, fpa
 	return nil
 }
 
-func (Ω *predictionParser) FetchPredictions(cxt context.Context, nameUsageIDs nameusage.NameUsageIDs, dates []string) (predictions.Predictions, error) {
+func (Ω *predictionParser) FetchPredictions(cxt context.Context, nameUsageIDs nameusage.IDs, dates []string) (predictions.Predictions, error) {
 
 	aggr := aggregator{
 		PredictionObjects:       predictions.Predictions{},
-		PredictionList:          make(map[nameusage.NameUsageID][]float64),
-		TotalProtectedAreaCount: make(map[nameusage.NameUsageID]float64),
+		PredictionList:          make(map[nameusage.ID][]float64),
+		TotalProtectedAreaCount: make(map[nameusage.ID]float64),
 	}
 
 	gcsFilePaths := []string{}
 	for _, usageID := range nameUsageIDs {
 		if !usageID.Valid() {
-			return nil, errors.New("Invalid NameUsageID")
+			return nil, errors.New("Invalid ID")
 		}
 		aggr.PredictionList[usageID] = []float64{}
 		aggr.TotalProtectedAreaCount[usageID] = 0
@@ -165,9 +165,9 @@ func (Ω *predictionParser) FetchPredictions(cxt context.Context, nameUsageIDs n
 }
 
 //
-//func (Ω *aggregator) calcTaxonScarcity() (map[nameusage.NameUsageID]float64, error) {
+//func (Ω *aggregator) calcTaxonScarcity() (map[nameusage.ID]float64, error) {
 //	taxaRatios := stats.Float64Data{}
-//	taxaRatiosMap := map[nameusage.NameUsageID]float64{}
+//	taxaRatiosMap := map[nameusage.ID]float64{}
 //	for taxon, predictionValues := range Ω.PredictionList {
 //		totalTaxonPredictionCount := float64(len(predictionValues))
 //		totalTaxonProtectedAreaCount := Ω.TotalProtectedAreaCount[taxon]

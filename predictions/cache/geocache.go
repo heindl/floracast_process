@@ -53,7 +53,7 @@ func bbox(lat, lng, radius float64) string {
 	return fmt.Sprintf("[%.6f %.6f],[%.6f %.6f]", sw.Lng(), sw.Lat(), ne.Lng(), ne.Lat())
 }
 
-func (Ω *localGeoCacheWriter) ReadPredictions(lat, lng, radius float64, qDate string, nameUsageID *nameusage.NameUsageID) ([]string, error) {
+func (Ω *localGeoCacheWriter) ReadPredictions(lat, lng, radius float64, qDate string, nameUsageID *nameusage.ID) ([]string, error) {
 
 	res := []string{}
 
@@ -181,7 +181,7 @@ func allIndexKeys(p predictions.Prediction) ([]string, error) {
 	return []string{k1, k2}, nil
 }
 
-func newIndexKey(usageID *nameusage.NameUsageID, date string) (string, error) {
+func newIndexKey(usageID *nameusage.ID, date string) (string, error) {
 	if len(date) != 8 {
 		return "", errors.Newf("Invalid Prediction Date [%s]", date)
 	}

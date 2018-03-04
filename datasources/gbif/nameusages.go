@@ -71,7 +71,7 @@ func FetchNamesUsages(cxt context.Context, namesToMatch []string, keysToMatch da
 		for _, _name := range utils.StringsToLower(utils.RemoveStringDuplicates(namesToMatch)...) {
 			name := _name
 			tmb.Go(func() error {
-				// Run CanonicalName to check for error
+				// Run Name to check for error
 				canonicalName, err := canonicalname.NewCanonicalName(name, "")
 				if err != nil {
 					return err
@@ -130,7 +130,7 @@ func (Ω *orchestrator) matchName(name string) error {
 	return Ω.matchKey(matchResult.UsageKey)
 	//}
 
-	//return Ω.fashionCanonicalNameUsage(matchResult.CanonicalName, matchResult.VernacularName, string(matchResult.Rank), matchResult.UsageKey)
+	//return Ω.fashionCanonicalNameUsage(matchResult.Name, matchResult.VernacularName, string(matchResult.Rank), matchResult.UsageKey)
 }
 
 var ErrUnsupported = fmt.Errorf("unsupported usage")

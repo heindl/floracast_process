@@ -10,7 +10,7 @@ import (
 var usageJSON = []byte(`
 {
   "ID": "",
-  "CanonicalName": {
+  "Name": {
     "Rank": "species",
     "ScientificName": "cantharellus jebbi"
   },
@@ -18,7 +18,7 @@ var usageJSON = []byte(`
   "Sources": {
     "14": {
       "133044": {
-        "CanonicalName": {
+        "Name": {
           "Rank": "species",
           "ScientificName": "cantharellus jebbi"
         },
@@ -26,7 +26,7 @@ var usageJSON = []byte(`
     },
     "26": {
       "133044": {
-        "CanonicalName": {
+        "Name": {
           "Rank": "species",
           "ScientificName": "cantharellus jebbi"
         },
@@ -35,7 +35,7 @@ var usageJSON = []byte(`
     "27": {
       "5184832": {
         "TaxonomicReference": true,
-        "CanonicalName": {
+        "Name": {
           "Rank": "species",
           "ScientificName": "cantharellus jebbi"
         },
@@ -44,7 +44,7 @@ var usageJSON = []byte(`
     "INAT": {
       "96709": {
         "TaxonomicReference": true,
-        "CanonicalName": {
+        "Name": {
           "Rank": "species",
           "ScientificName": "cantharellus jebbi"
         },
@@ -66,7 +66,7 @@ func TestNameUsage(t *testing.T) {
 		id, err := newNameUsageID()
 		So(err, ShouldBeNil)
 
-		u, err := NameUsageFromJSON(id, usageJSON)
+		u, err := FromJSON(id, usageJSON)
 		So(err, ShouldBeNil)
 		fmt.Println(utils.JsonOrSpew(u))
 

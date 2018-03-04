@@ -1,55 +1,95 @@
 package wikipedia
 
 import (
+	"bitbucket.org/heindl/process/utils"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/grokify/html-strip-tags-go"
-	"github.com/sadbox/mediawiki"
 	"net/url"
 	"strings"
 	"time"
 )
 
-func Citation(wikipedia_url string) (string, error) {
+type query struct {
+	Query struct {
+		Pages []page `json:"pages"`
+	} `json:"query"`
+}
 
-	requestURI, err := url.ParseRequestURI(wikipedia_url)
+type page struct {
+	Pageid    int        `json:"pageid"`
+	Ns        int        `json:"ns"`
+	Title     string     `json:"title"`
+	Revisions []revision `json:"revisions"`
+}
+
+type revision struct {
+	Revid     int       `json:"revid"`
+	Parentid  int       `json:"parentid"`
+	Minor     bool      `json:"minor"`
+	User      string    `json:"user"`
+	Timestamp time.Time `json:"timestamp"`
+	Comment   string    `json:"comment"`
+}
+
+func Citation(wikipediaURL string) (string, error) {
+
+	wikipediaURL = strings.TrimSpace(wikipediaURL)
+
+	parsedWikipediaURL, err := url.Parse(wikipediaURL)
 	if err != nil {
-		return "", errors.Wrapf(err, "Invalid URL [%s]", wikipedia_url)
+		return "", errors.Wrapf(err, "Could not parse URL [%s]", wikipediaURL)
 	}
 
-	wiki, err := mediawiki.New("https://en.wikipedia.org/w/api.php", "FloracastWikiBot")
-	if err != nil {
-		return "", errors.Wrapf(err, "Could not fetch MediaWiki [%s]", wikipedia_url)
+	pageTitle := strings.TrimPrefix(parsedWikipediaURL.Path, "/wiki/")
+	if pageTitle == "" {
+		return "", errors.Newf("Invalid Wikipedia Title [%s]", wikipediaURL)
 	}
 
-	pageName := strings.TrimPrefix(requestURI.Path, "wiki/")
-	wikiPage, err := wiki.Read(pageName)
-	if err != nil {
-		return "", errors.Wrapf(err, "Could not read wikipedia page [%s] from link [%s]", pageName, wikipedia_url)
+	path := []string{
+		"action=query",
+		fmt.Sprintf("titles=%s", pageTitle),
+		"prop=revisions",
+		"format=json",
+		"formatversion=2",
 	}
 
-	modifiedAt := time.Time{}
+	u := "https://en.wikipedia.org/w/api.php?" + strings.Join(path, "&")
 
-	for _, revision := range wikiPage.Revisions {
-		if revision.Revid == wikiPage.Lastrevid {
-			modifiedAt = revision.Timestamp
-			break
-		}
+	q := query{}
+	if err := utils.RequestJSON(u, &q); err != nil {
+		return "", err
 	}
+
+	if len(q.Query.Pages) == 0 {
+		return "", errors.Newf("Wikipedia page not found [%s]", wikipediaURL)
+	}
+
+	title := strip.StripTags(strings.TrimSpace(q.Query.Pages[0].Title))
+
+	if title == "" {
+		return "", errors.Newf("Wikipedia page [%s] missing title", wikipediaURL)
+	}
+
+	if len(q.Query.Pages[0].Revisions) == 0 {
+		return "", errors.Newf("Wikipedia page [%s] missing revisions", wikipediaURL)
+	}
+
+	modifiedAt := q.Query.Pages[0].Revisions[0].Timestamp
 
 	if modifiedAt.IsZero() {
-		return "", errors.Newf("Could not find modifiedAt [%s]", wikipedia_url)
+		return "", errors.Newf("Could not find Wikipedia modifiedAt time [%s]", wikipediaURL)
 	}
 
-	c := strings.Join([]string{
+	citationComponents := []string{
 		"Wikipedia contributors",
-		fmt.Sprintf(`"%s"`, wikiPage.Title),
+		fmt.Sprintf(`"%s"`, title),
 		"Wikipedia, The Free Encyclopedia",
 		modifiedAt.Format("2 Jan. 2006"),
 		"Web",
 		time.Now().Format("2 Jan. 2006"),
-		fmt.Sprintf("<%s>", wikipedia_url),
-	}, ". ")
+		fmt.Sprintf("<%s>", wikipediaURL),
+	}
 
-	return strings.TrimSpace(strip.StripTags(c)), nil
+	return strings.Join(citationComponents, ". "), nil
 }

@@ -12,16 +12,16 @@ import (
 )
 
 type Prediction interface {
-	UsageID() (nameusage.NameUsageID, error)
+	UsageID() (nameusage.ID, error)
 	Date() (string, error)
 	ProtectedArea() (geoembed.CoordinateKey, error)
 	ScaledPrediction() (float64, error)
 	LatLng() (float64, float64, error)
 }
 
-func NewPrediction(usageID nameusage.NameUsageID, date string, lat, lng, predictionValue float64) (Prediction, error) {
+func NewPrediction(usageID nameusage.ID, date string, lat, lng, predictionValue float64) (Prediction, error) {
 	if !usageID.Valid() {
-		return nil, errors.Newf("Could not create Prediction with invalid NameUsageID [%s]", usageID)
+		return nil, errors.Newf("Could not create Prediction with invalid ID [%s]", usageID)
 	}
 
 	coordinateKey, err := geoembed.NewCoordinateKey(lat, lng)
@@ -51,12 +51,12 @@ func NewPrediction(usageID nameusage.NameUsageID, date string, lat, lng, predict
 
 type prediction struct {
 	// Date formatted "YYYYMMDD"
-	GeoPoint              *latlng.LatLng        `firestore:",omitempty" json:",omitempty"`
-	NameUsageID           nameusage.NameUsageID `firestore:",omitempty" json:",omitempty"`
-	FormattedDate         string                `firestore:",omitempty" json:",omitempty"`
-	Month                 time.Month            `firestore:",omitempty" json:",omitempty"`
-	PredictionValue       float64               `firestore:",omitempty" json:",omitempty"`
-	ScaledPredictionValue float64               `firestore:",omitempty" json:",omitempty"`
+	GeoPoint              *latlng.LatLng `firestore:",omitempty" json:",omitempty"`
+	NameUsageID           nameusage.ID   `firestore:",omitempty" json:",omitempty"`
+	FormattedDate         string         `firestore:",omitempty" json:",omitempty"`
+	Month                 time.Month     `firestore:",omitempty" json:",omitempty"`
+	PredictionValue       float64        `firestore:",omitempty" json:",omitempty"`
+	ScaledPredictionValue float64        `firestore:",omitempty" json:",omitempty"`
 	//ScarcityValue         float64            `firestore:"" json:""`
 	//TaxonID               INaturalistTaxonID `datastore:",omitempty" json:",omitempty"`
 	ProtectedAreaName string                 `firestore:",omitempty" json:",omitempty"`
@@ -64,7 +64,7 @@ type prediction struct {
 	ProtectedAreaID   geoembed.CoordinateKey `firestore:"" json:""`
 }
 
-func (Ω *prediction) UsageID() (nameusage.NameUsageID, error) {
+func (Ω *prediction) UsageID() (nameusage.ID, error) {
 	return Ω.NameUsageID, nil
 }
 func (Ω *prediction) Date() (string, error) {

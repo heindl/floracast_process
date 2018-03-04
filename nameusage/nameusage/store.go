@@ -8,28 +8,32 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
+	"github.com/golang/glog"
 )
 
-func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (deletedUsageIDs NameUsageIDs, err error) {
+// Upload validates and saves new NameUsage to FireStore
+func (Ω *usage) Upload(ctx context.Context, floraStore store.FloraStore) (deletedUsageIDs IDs, err error) {
+
+	glog.Infof("Uploading NameUsage [%s]", Ω.CanonicalName())
 
 	id, err := Ω.ID()
 	if err != nil {
 		return nil, err
 	}
 
-	col, err := florastore.FirestoreCollection(store.CollectionNameUsages)
+	col, err := floraStore.FirestoreCollection(store.CollectionNameUsages)
 	if err != nil {
 		return nil, err
 	}
 
 	docRef := col.Doc(id.String())
 
-	deletedUsageIDs, err = Ω.matchInStore(ctx, florastore)
+	deletedUsageIDs, err = Ω.matchInStore(ctx, floraStore)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := clearStoreUsages(ctx, florastore, deletedUsageIDs); err != nil {
+	if err = clearStoreUsages(ctx, floraStore, deletedUsageIDs); err != nil {
 		return nil, err
 	}
 
@@ -52,10 +56,12 @@ func (Ω *usage) Upload(ctx context.Context, florastore store.FloraStore) (delet
 		return nil, err
 	}
 
+	glog.Infof("Completed Uploading NameUsage [%s]", Ω.CanonicalName())
+
 	return deletedUsageIDs, nil
 }
 
-func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsageIDs NameUsageIDs) error {
+func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsageIDs IDs) error {
 
 	if len(allUsageIDs) == 0 {
 		return nil
@@ -80,7 +86,7 @@ func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsage
 	return nil
 }
 
-func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) (NameUsageIDs, error) {
+func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) (IDs, error) {
 
 	names, err := Ω.AllScientificNames()
 	if err != nil {
@@ -110,18 +116,20 @@ func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) 
 		return nil, err
 	}
 
-	res, err := NameUsageIDsFromStrings(list)
+	res, err := IDsFromStrings(list)
 	if err != nil {
 		return nil, err
 	}
 	return res, err
 }
 
+// Iterator fits the Go standard interface for fetching NameUsages.
 type Iterator struct {
 	error    error
 	iterator *firestore.DocumentIterator
 }
 
+// Next returns the next NameUsage.
 func (i *Iterator) Next() (NameUsage, error) {
 	if i.error != nil {
 		return nil, i.error
@@ -134,13 +142,14 @@ func (i *Iterator) Next() (NameUsage, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not Marshal NameUsage")
 	}
-	usage, err := NameUsageFromJSON(NameUsageID(snap.Ref.ID), b)
+	usage, err := FromJSON(ID(snap.Ref.ID), b)
 	if err != nil {
 		return nil, err
 	}
 	return usage, nil
 }
 
+// FetchAll returns an iterator for all NameUsages in FireStore.
 func FetchAll(ctx context.Context, floraStore store.FloraStore) *Iterator {
 	ref, err := floraStore.FirestoreCollection(store.CollectionNameUsages)
 	return &Iterator{
@@ -157,7 +166,7 @@ func FetchAll(ctx context.Context, floraStore store.FloraStore) *Iterator {
 //}
 
 //const (
-//	storeKeyCanonicalName   = storeKey("CanonicalName")
+//	storeKeyCanonicalName   = storeKey("Name")
 //	storeKeyScientificNames = storeKey("ScientificNames")
 //	storeKeyOccurrences     = storeKey("Occurrences")
 //	storeKeySources     = storeKey("Sources")
@@ -173,7 +182,7 @@ func FetchAll(ctx context.Context, floraStore store.FloraStore) *Iterator {
 //	}
 //
 //	m := map[storeKey]interface{}{
-//		storeKeyCanonicalName:   Ω.CanonicalName().ScientificName(),
+//		storeKeyCanonicalName:   Ω.Name().ScientificName(),
 //		storeKeyScientificNames: synonymMap,
 //		storeKeyOccurrences:     Ω.TotalOccurrenceCount(),
 //		storeKeySources:               Ω.sources,
@@ -191,7 +200,7 @@ func FetchAll(ctx context.Context, floraStore store.FloraStore) *Iterator {
 //	}
 //
 //	m := map[storeKey]interface{}{
-//		storeKeyCanonicalName:   Ω.CanonicalName().ScientificName(),
+//		storeKeyCanonicalName:   Ω.Name().ScientificName(),
 //		storeKeyScientificNames: synonymMap,
 //		storeKeyOccurrences:     Ω.TotalOccurrenceCount(),
 //		storeKeySources:               Ω.sources,

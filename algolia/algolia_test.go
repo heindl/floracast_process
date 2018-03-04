@@ -19,10 +19,10 @@ func TestNameUsageProcessor(t *testing.T) {
 
 	Convey("should generate occurrence usages", t, func() {
 
-		id1 := nameusage.NameUsageID("eM3R8X2YQyLJWiLMVIGzZaU1I")
-		id2 := nameusage.NameUsageID("aM3R8X2YQyLJWiLMVIGzZaU1I")
+		id1 := nameusage.ID("eM3R8X2YQyLJWiLMVIGzZaU1I")
+		id2 := nameusage.ID("aM3R8X2YQyLJWiLMVIGzZaU1I")
 
-		usage, err := nameusage.NameUsageFromJSON(id1, utils.GetFetchedMorchellaUsageTestData())
+		usage, err := nameusage.FromJSON(id1, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
 
 		objs, err := generateNameUsageObjects(context.Background(), usage)
@@ -43,7 +43,7 @@ func TestNameUsageProcessor(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(c, ShouldEqual, 103)
 
-		usage, err = nameusage.NameUsageFromJSON(id2, utils.GetFetchedMorchellaUsageTestData())
+		usage, err = nameusage.FromJSON(id2, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
 
 		So(UploadNameUsageObjects(context.Background(), florastore, usage, id1), ShouldBeNil)
@@ -67,7 +67,7 @@ func TestNameUsageProcessor(t *testing.T) {
 	})
 }
 
-func countNameUsages(florastore store.FloraStore, nameUsageIDs ...nameusage.NameUsageID) (int, error) {
+func countNameUsages(florastore store.FloraStore, nameUsageIDs ...nameusage.ID) (int, error) {
 	index, err := florastore.AlgoliaIndex(nameUsageIndex)
 	if err != nil {
 		return 0, err

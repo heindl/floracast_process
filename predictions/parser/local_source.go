@@ -24,10 +24,10 @@ type localSource struct {
 	path string
 }
 
-func (Ω *localSource) FetchLatestPredictionFileNames(cxt context.Context, id nameusage.NameUsageID, date string) ([]string, error) {
+func (Ω *localSource) FetchLatestPredictionFileNames(cxt context.Context, id nameusage.ID, date string) ([]string, error) {
 
 	if !id.Valid() {
-		return nil, errors.New("Invalid NameUsageID")
+		return nil, errors.New("Invalid ID")
 	}
 
 	if len(date) != 8 && date != "*" {

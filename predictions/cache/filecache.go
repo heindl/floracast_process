@@ -39,7 +39,7 @@ func NewLocalFileCache() (PredictionCache, func() error, error) {
 	return &c, c.Close, nil
 }
 
-func (Ω *localFileCache) ReadPredictions(lat, lng, radius float64, qDate string, usageID *nameusage.NameUsageID) ([]string, error) {
+func (Ω *localFileCache) ReadPredictions(lat, lng, radius float64, qDate string, usageID *nameusage.ID) ([]string, error) {
 	return nil, nil
 }
 

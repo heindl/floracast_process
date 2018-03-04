@@ -50,60 +50,79 @@ func (Ω *Aggregation) Merge(æ *Aggregation) error {
 			return err
 		}
 	}
+	Ω.Lock()
+	defer Ω.Unlock()
 	Ω.collisions += æ.collisions
 	return nil
+}
+
+func (Ω *Aggregation) indexOf(qKey string) (int, error) {
+	for _i := range Ω.list {
+		i := _i
+		iKey, err := Ω.list[i].LocationKey()
+		if err != nil {
+			return 0, err
+		}
+
+		if qKey == iKey {
+			return i, nil
+		}
+	}
+	return -1, nil
 }
 
 // ErrCollision warns of a collision.
 var ErrCollision = errors.New("Occurrence Collision")
 
+var counter = 0
+
 // AddOccurrence adds a new record to the aggregation and returns error if it's
 // an unselected record in collision.
-func (Ω *Aggregation) AddOccurrence(b Occurrence) error {
+func (Ω *Aggregation) AddOccurrence(q Occurrence) error {
 
-	if b == nil {
+	if q == nil {
 		return nil
 	}
 
-	bKey, err := b.LocationKey()
+	qKey, err := q.LocationKey()
 	if err != nil {
 		return err
 	}
 
-	bSourceType := b.SourceType()
+	counter++
+	fmt.Println("ADD OCCURRENCE", qKey, counter)
+	defer func() {
+		fmt.Println("FINISHED ADDING OCCURRENCE", qKey, counter)
+	}()
 
 	Ω.Lock()
 	defer Ω.Unlock()
 
 	if Ω.list == nil {
-		Ω.list = []Occurrence{}
+		Ω.list = []Occurrence{q}
+		return nil
 	}
 
-	for i := range Ω.list {
-		aKey, err := Ω.list[i].LocationKey()
-		if err != nil {
-			return err
-		}
+	i, err := Ω.indexOf(qKey)
+	if err != nil {
+		return err
+	}
+	if i == -1 {
+		Ω.list = append(Ω.list, q)
+		return nil
+	}
 
-		if aKey != bKey {
-			continue
-		}
-		aSourceType := Ω.list[i].SourceType()
-
-		if aSourceType != bSourceType && bSourceType == datasources.TypeGBIF {
-			Ω.list[i] = b
-		}
-
+	if Ω.list[i].SourceType() == datasources.TypeGBIF && q.SourceType() != datasources.TypeGBIF {
 		return dropboxErrors.Wrapf(
 			ErrCollision,
 			"Key [%s] - [%s] [%s]",
-			aKey,
+			qKey,
 			fmt.Sprint(Ω.list[i].SourceType(), ",", Ω.list[i].TargetID(), ",", Ω.list[i].SourceOccurrenceID()),
-			fmt.Sprint(b.SourceType(), ",", b.TargetID(), ",", b.SourceOccurrenceID()),
+			fmt.Sprint(q.SourceType(), ",", q.TargetID(), ",", q.SourceOccurrenceID()),
 		)
 	}
 
-	Ω.list = append(Ω.list, b)
+	Ω.list[i] = q
 
 	return nil
 

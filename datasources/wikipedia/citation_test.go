@@ -3,6 +3,7 @@ package wikipedia
 import (
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+	"time"
 )
 
 func TestTaxonFetcher(t *testing.T) {
@@ -12,6 +13,6 @@ func TestTaxonFetcher(t *testing.T) {
 	Convey("should generate wikipedia citation", t, func() {
 		c, err := Citation("https://en.wikipedia.org/wiki/Morchella_esculenta")
 		So(err, ShouldBeNil)
-		So(c, ShouldEqual, `Wikipedia contributors. "Morchella esculenta". Wikipedia, The Free Encyclopedia. 17 Feb. 2018. Web. 27 Feb. 2018.`)
+		So(c, ShouldEqual, `Wikipedia contributors. "Morchella esculenta". Wikipedia, The Free Encyclopedia. 17 Feb. 2018. Web. `+time.Now().Format("2 Jan. 2006")+`. <https://en.wikipedia.org/wiki/Morchella_esculenta>`)
 	})
 }

@@ -6,11 +6,12 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
+// MarshalJSON formats a list of usages as JSON.
 func (Ω *Aggregate) MarshalJSON() ([]byte, error) {
 	if Ω == nil {
 		return nil, nil
 	}
-	res := map[nameusage.NameUsageID]nameusage.NameUsage{}
+	res := map[nameusage.ID]nameusage.NameUsage{}
 	for _, usage := range Ω.list {
 		id, err := usage.ID()
 		if err != nil {
@@ -21,11 +22,12 @@ func (Ω *Aggregate) MarshalJSON() ([]byte, error) {
 	return json.Marshal(res)
 }
 
+// UnmarshalJSON casts JSON as an aggregate.
 func (Ω *Aggregate) UnmarshalJSON(provided []byte) error {
 
 	Ω.list = []nameusage.NameUsage{}
 
-	m := map[nameusage.NameUsageID]interface{}{}
+	m := map[nameusage.ID]interface{}{}
 	if err := json.Unmarshal(provided, &m); err != nil {
 		return err
 	}
@@ -37,7 +39,7 @@ func (Ω *Aggregate) UnmarshalJSON(provided []byte) error {
 			return errors.Wrap(err, "Could not Marshal Usage interface")
 		}
 
-		usage, err := nameusage.NameUsageFromJSON(id, b)
+		usage, err := nameusage.FromJSON(id, b)
 		if err != nil {
 			return err
 		}

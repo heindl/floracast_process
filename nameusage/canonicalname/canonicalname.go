@@ -6,61 +6,68 @@ import (
 	"strings"
 )
 
-// The canonical Name is the scientific Name of the species, subspecies, variety, etc. Anything under Genus.
-type CanonicalName struct {
-	Name string `json:"ScientificName" firestore:"ScientificName"`
-	Rank string `json:"Rank,omitempty" firestore:"Rank,omitempty"`
+// Name is the scientific name of the species, subspecies, variety, etc. Anything under genus.
+type Name struct {
+	SciName string `json:"ScientificName" firestore:"ScientificName"`
+	Rank    string `json:"Rank,omitempty" firestore:"Rank,omitempty"`
 }
 
-func (a *CanonicalName) ScientificName() string {
-	if a == nil {
+// ScientificName returns just that.
+func (Ω *Name) ScientificName() string {
+	if Ω == nil {
 		return ""
 	}
-	return a.Name
+	return Ω.SciName
 }
 
-func NewCanonicalName(name string, rank string) (*CanonicalName, error) {
+// NewCanonicalName creates and validates a new name.
+func NewCanonicalName(name string, rank string) (*Name, error) {
 
 	s := strings.TrimSpace(strings.ToLower(name))
 
 	if s == "" {
-		return nil, errors.New("Invalid CanonicalName: Received empty string")
+		return nil, errors.New("Invalid Name: Received empty string")
 	}
 
 	wc := len(strings.Fields(s))
 	if wc == 1 {
-		return nil, errors.Newf("Invalid CanonicalName: Has only one word [%s], which suggests it is not a species or below", s)
+		return nil, errors.Newf("Invalid Name: Has only one word [%s], which suggests it is not a species or below", s)
 	}
 	if wc > 5 {
-		return nil, errors.Newf("Invalid CanonicalName: More than four words [%s]", s)
+		return nil, errors.Newf("Invalid Name: More than four words [%s]", s)
 	}
 
 	// TODO: Consider removing some words like ".var" to improve consistency and matching.
-	return &CanonicalName{
-		Name: s,
-		Rank: rank,
+	return &Name{
+		SciName: s,
+		Rank:    rank,
 	}, nil
 }
 
-func (a *CanonicalName) Equals(b *CanonicalName) bool {
-	return a.Name == b.Name
+// Equals is a helper function that could be flushed out to include Rank, but doesn't.
+func (Ω *Name) Equals(b *Name) bool {
+	return Ω.SciName == b.SciName
 }
 
-type CanonicalNames []*CanonicalName
+// Names is a utility tool for handling multiple names.
+type Names []*Name
 
-func (Ω CanonicalNames) ScientificNames() []string {
+// ScientificNames returns all names.
+func (Ω Names) ScientificNames() []string {
 	res := []string{}
 	for _, c := range Ω {
-		res = utils.AddStringToSet(res, c.Name)
+		res = utils.AddStringToSet(res, c.SciName)
 	}
 	return res
 }
 
-func (a CanonicalNames) Contains(b ...*CanonicalName) bool {
-	return utils.IntersectsStrings(a.ScientificNames(), CanonicalNames(b).ScientificNames())
+// Contains returns true if the Name is present in the list.
+func (Ω Names) Contains(b ...*Name) bool {
+	return utils.IntersectsStrings(Ω.ScientificNames(), Names(b).ScientificNames())
 }
 
-func (Ω CanonicalNames) AddToSet(names ...*CanonicalName) CanonicalNames {
+// AddToSet adds names to the list.
+func (Ω Names) AddToSet(names ...*Name) Names {
 	for _, name := range names {
 		if name == nil {
 			continue

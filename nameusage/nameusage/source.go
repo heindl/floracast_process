@@ -11,37 +11,39 @@ import (
 	"time"
 )
 
+// Source represents a NameUsage source that provides taxonomical or occurrence information.
 type Source interface {
 	RegisterOccurrenceFetch(count int) error
 	AddCommonNames(names ...string) error
 	SourceType() (datasources.SourceType, error)
 	TargetID() (datasources.TargetID, error)
-	CanonicalName() *canonicalname.CanonicalName
-	Synonyms() canonicalname.CanonicalNames
+	CanonicalName() *canonicalname.Name
+	Synonyms() canonicalname.Names
 	LastFetchedAt() *time.Time
 	CommonNames() []string
 	OccurrenceCount() int
-	AddSynonym(synonym *canonicalname.CanonicalName) error
+	AddSynonym(synonym *canonicalname.Name) error
 	Bytes() ([]byte, error)
 }
 
 type source struct {
 	mutex              *sync.Mutex
-	TaxonomicReference bool                         `json:",omitempty" firestore:",omitempty"`
-	SrcType            datasources.SourceType       `json:"-" firestore:"-"`
-	TrgtID             datasources.TargetID         `json:"-" firestore:"-"`
-	CnnclNm            *canonicalname.CanonicalName `json:"CanonicalName,omitempty" firestore:"CanonicalName,omitempty"`
-	Snnms              canonicalname.CanonicalNames `json:"Synonyms,omitempty" firestore:"Synonyms,omitempty"`
-	CmmnNms            []string                     `json:"CommonNames,omitempty" firestore:"CommonNames,omitempty"`
-	Occurrences        int                          `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
-	LastFtchdAt        *time.Time                   `json:"LastFetchedAt,omitempty" firestore:"LastFetchedAt,omitempty"`
+	TaxonomicReference bool                   `json:",omitempty" firestore:",omitempty"`
+	SrcType            datasources.SourceType `json:"-" firestore:"-"`
+	TrgtID             datasources.TargetID   `json:"-" firestore:"-"`
+	CnnclNm            *canonicalname.Name    `json:"Name,omitempty" firestore:"Name,omitempty"`
+	Snnms              canonicalname.Names    `json:"Synonyms,omitempty" firestore:"Synonyms,omitempty"`
+	CmmnNms            []string               `json:"CommonNames,omitempty" firestore:"CommonNames,omitempty"`
+	Occurrences        int                    `json:"Occurrences,omitempty" firestore:"Occurrences,omitempty"`
+	LastFtchdAt        *time.Time             `json:"LastFetchedAt,omitempty" firestore:"LastFetchedAt,omitempty"`
 }
 
+// Sources is a list of sources.
 type Sources []Source
 
-//func (Ω Sources) HasName(æ *canonicalname.CanonicalName) bool {
+//func (Ω Sources) HasName(æ *canonicalname.Name) bool {
 //	for _, s := range Ω {
-//		if s.CanonicalName().Equals(æ) || s.Synonyms().Contains(æ) {
+//		if s.Name().Equals(æ) || s.Synonyms().Contains(æ) {
 //			return true
 //		}
 //	}
@@ -57,7 +59,7 @@ type Sources []Source
 //	m := map[string]interface{}{
 //		//"SourceType": Ω.SourceType,
 //		//"TargetID": Ω.TargetID,
-//		"CanonicalName": Ω.canonicalName,
+//		"Name": Ω.canonicalName,
 //		"TotalOccurrenceCount": Ω.occurrenceCount,
 //		"LastFetchedAt": Ω.lastFetchedAt,
 //		"ModifiedAt": Ω.modifiedAt,
@@ -79,7 +81,8 @@ type Sources []Source
 //	return json.Marshal(m)
 //}
 
-func NewSource(sourceType datasources.SourceType, targetID datasources.TargetID, canonicalName *canonicalname.CanonicalName) (Source, error) {
+// NewSource creates a new NameUsageSource.
+func NewSource(sourceType datasources.SourceType, targetID datasources.TargetID, canonicalName *canonicalname.Name) (Source, error) {
 
 	if !sourceType.Valid() {
 		return nil, errors.Newf("Invalid SourceType [%s]", sourceType)
@@ -109,6 +112,7 @@ func NewSource(sourceType datasources.SourceType, targetID datasources.TargetID,
 	}, nil
 }
 
+// SourceType validates and returns the SourceType
 func (Ω *source) SourceType() (datasources.SourceType, error) {
 	if Ω == nil || !Ω.SrcType.Valid() {
 		return datasources.SourceType(""), errors.Newf("Invalid SourceType [%s]", Ω.SrcType)
@@ -116,6 +120,7 @@ func (Ω *source) SourceType() (datasources.SourceType, error) {
 	return Ω.SrcType, nil
 }
 
+// TargetID validates and returns the TargetID
 func (Ω *source) TargetID() (datasources.TargetID, error) {
 	srcType, err := Ω.SourceType()
 	if err != nil {
@@ -127,11 +132,11 @@ func (Ω *source) TargetID() (datasources.TargetID, error) {
 	return Ω.TrgtID, nil
 }
 
-func (Ω *source) CanonicalName() *canonicalname.CanonicalName {
+func (Ω *source) CanonicalName() *canonicalname.Name {
 	return Ω.CnnclNm
 }
 
-func (Ω *source) Synonyms() canonicalname.CanonicalNames {
+func (Ω *source) Synonyms() canonicalname.Names {
 	return Ω.Snnms
 }
 
@@ -147,7 +152,7 @@ func (Ω *source) OccurrenceCount() int {
 	return Ω.Occurrences
 }
 
-func (Ω *source) AddSynonym(synonym *canonicalname.CanonicalName) error {
+func (Ω *source) AddSynonym(synonym *canonicalname.Name) error {
 	Ω.Snnms = Ω.Snnms.AddToSet(synonym)
 	return nil
 }

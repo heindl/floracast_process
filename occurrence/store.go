@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"errors"
 	dropboxError "github.com/dropbox/godropbox/errors"
+	"github.com/golang/glog"
 	"google.golang.org/api/iterator"
 )
 
@@ -20,6 +21,9 @@ import (
 
 // Upload saves Occurrences to either the Occurrence or Random Firestore Collections.
 func (Ω *Aggregation) Upload(cxt context.Context, floraStore store.FloraStore) error {
+
+	glog.Infof("Uploading %d Occurrences", Ω.Count())
+
 	for _, _o := range Ω.list {
 		o := _o
 		transactionFunc, err := o.UpsertTransactionFunc(floraStore)
@@ -30,6 +34,9 @@ func (Ω *Aggregation) Upload(cxt context.Context, floraStore store.FloraStore) 
 			return err
 		}
 	}
+
+	glog.Infof("Completed Uploading %d Occurrences", Ω.Count())
+
 	return nil
 }
 

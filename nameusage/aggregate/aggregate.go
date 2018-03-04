@@ -7,38 +7,43 @@ import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/taxa"
-	"bitbucket.org/heindl/process/utils"
 	"context"
-	"gopkg.in/tomb.v2"
 	"sync"
 )
 
+// Aggregate is a structure for grouping and combining NameUsages.
 type Aggregate struct {
 	list []nameusage.NameUsage
 	sync.Mutex
 }
 
+// EachFunction is a callback for iterating over an aggregation.
 type EachFunction func(ctx context.Context, usage nameusage.NameUsage) error
 
-func (Ω *Aggregate) Each(ctx context.Context, handler EachFunction) error {
-	tmb := tomb.Tomb{}
-	tmb.Go(func() error {
-		for _i := range Ω.list {
-			i := _i
-			tmb.Go(func() error {
-				return handler(ctx, Ω.list[i])
-			})
-		}
-		return nil
-	})
-	return tmb.Wait()
+// Each is a helper for iterating over an aggregation.
+func (Ω *Aggregate) Each(ctx context.Context, cb EachFunction) error {
+	//tmb := tomb.Tomb{}
+	//tmb.Go(func() error {
+	for 𝝨 := range Ω.list {
+		_i := 𝝨
+		//tmb.Go(func() error {
+		i := _i
+		return cb(ctx, Ω.list[i])
+		//})
+	}
+	return nil
+	//})
+	//return tmb.Wait()
 }
 
+// FilterFunction is a callback for iterating over aggregation.
 type FilterFunction func(usage nameusage.NameUsage) (bool, error)
 
+// Filter is a helper for filtering an aggregation.
 func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 	res := Aggregate{}
-	for _, u := range Ω.list {
+	for _, 𝝨 := range Ω.list {
+		u := 𝝨
 		should, err := shouldFilter(u)
 		if err != nil {
 			return nil, err
@@ -53,6 +58,8 @@ func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 	return &res, nil
 }
 
+// Upload saves a NameUsage to FireStore, deletes old records, creates/uploads
+// Algolia objects, and materializes/uploads a Taxon object.
 func (Ω *Aggregate) Upload(cxt context.Context, florastore store.FloraStore) error {
 
 	return Ω.Each(cxt, func(ctx context.Context, usage nameusage.NameUsage) error {
@@ -68,24 +75,26 @@ func (Ω *Aggregate) Upload(cxt context.Context, florastore store.FloraStore) er
 
 }
 
+// Count returns the number of NameUsage objects in the aggregate.
 func (Ω *Aggregate) Count() int {
 	return len(Ω.list)
 }
 
-func (Ω *Aggregate) Occurrences() (int, error) {
-	res := 0
-	for _, l := range Ω.list {
-		i, err := l.Occurrences()
-		if err != nil {
-			return 0, err
-		}
-		res += i
-	}
-	return res, nil
-}
+//func (Ω *Aggregate) occurrences() (int, error) {
+//	res := 0
+//	for _, l := range Ω.list {
+//		i, err := l.Occurrences()
+//		if err != nil {
+//			return 0, err
+//		}
+//		res += i
+//	}
+//	return res, nil
+//}
 
+// ScientificNames returns a list of all names in all sources in all NameUsages.
 func (Ω *Aggregate) ScientificNames() ([]string, error) {
-	res := canonicalname.CanonicalNames{}
+	res := canonicalname.Names{}
 	for _, l := range Ω.list {
 		res = res.AddToSet(l.CanonicalName())
 		synonyms, err := l.Synonyms()
@@ -97,6 +106,7 @@ func (Ω *Aggregate) ScientificNames() ([]string, error) {
 	return res.ScientificNames(), nil
 }
 
+// TargetIDs returns a list of all TargetIDs in given sources from all NameUsages.
 func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (datasources.TargetIDs, error) {
 	res := datasources.TargetIDs{}
 	for _, usage := range Ω.list {
@@ -115,6 +125,7 @@ func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (datasourc
 	return res, nil
 }
 
+// AddUsage adds a new NameUsage to an aggregate, and combines Usages if necessary.
 func (Ω *Aggregate) AddUsage(usages ...nameusage.NameUsage) error {
 	Ω.Lock()
 	defer Ω.Unlock()
@@ -149,15 +160,15 @@ ResetLoop:
 	return nil
 }
 
-func (Ω *Aggregate) HasCanonicalName(name canonicalname.CanonicalName) (bool, error) {
-	for i := range Ω.list {
-		names, err := Ω.list[i].AllScientificNames()
-		if err != nil {
-			return false, err
-		}
-		if utils.ContainsString(names, name.ScientificName()) {
-			return true, err
-		}
-	}
-	return false, nil
-}
+//func (Ω *Aggregate) hasCanonicalName(name canonicalname.Name) (bool, error) {
+//	for i := range Ω.list {
+//		names, err := Ω.list[i].AllScientificNames()
+//		if err != nil {
+//			return false, err
+//		}
+//		if utils.ContainsString(names, name.ScientificName()) {
+//			return true, err
+//		}
+//	}
+//	return false, nil
+//}

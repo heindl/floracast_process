@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/heindl/process/store"
 	"context"
 	"flag"
+	"github.com/golang/glog"
 	"strconv"
 	"strings"
 )
@@ -36,12 +37,12 @@ func main() {
 
 	cxt := context.Background()
 
-	nameUsageAggr, err := InitialAggregation(cxt, intIDs...)
+	nameUsageAggr, err := aggregateInitialNameUsages(cxt, intIDs...)
 	if err != nil {
 		panic(err)
 	}
 
-	occurrenceAggr, err := OccurrenceFetch(cxt, nameUsageAggr)
+	occurrenceAggr, err := fetchOccurrences(cxt, nameUsageAggr)
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +82,7 @@ func main() {
 // TODO: Include a step to verify the ids for occurrences haven't changed.
 // Could actually be done in the occurrence fetch step: https://www.inaturalist.org/taxon_changes
 
-func InitialAggregation(cxt context.Context, inaturalistTaxonIDs ...int) (*aggregate.Aggregate, error) {
+func aggregateInitialNameUsages(cxt context.Context, inaturalistTaxonIDs ...int) (*aggregate.Aggregate, error) {
 
 	// Start with GBIF because the hiearchy is simple. The occurrence sources for the gbif will be searched externally.
 	// Note also that Inaturalist appears to try to avoid synonyms: https://www.inaturalist.org/taxon_changes
@@ -92,6 +93,8 @@ func InitialAggregation(cxt context.Context, inaturalistTaxonIDs ...int) (*aggre
 	if err != nil {
 		return nil, err
 	}
+
+	glog.Info("Aggregating a list of NameUsages from INaturalist TaxonIDs: ", targetIDs)
 
 	snowball := aggregate.Aggregate{}
 
@@ -116,21 +119,27 @@ func InitialAggregation(cxt context.Context, inaturalistTaxonIDs ...int) (*aggre
 			return nil, err
 		}
 
+		glog.Infof("%d NameUsages from %s", len(usages), srcType)
+
 		if err := snowball.AddUsage(usages...); err != nil {
 			return nil, err
 		}
+
+		glog.Infof("Current Aggregated Usages [%d]", snowball.Count())
 
 	}
 
 	return &snowball, nil
 }
 
-func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*occurrence.Aggregation, error) {
+func fetchOccurrences(cxt context.Context, aggregation *aggregate.Aggregate) (*occurrence.Aggregation, error) {
 
 	res := occurrence.Aggregation{}
 
+	glog.Infof("Fetching Occurrences for %d NameUsages", aggregation.Count())
+
 	// Fetch Inaturalist and GBIF occurrences.
-	if err := aggregation.Each(cxt, occurrenceFetcher(&res, datasources.TypeINaturalist, datasources.TypeGBIF)); err != nil {
+	if err := aggregation.Each(cxt, occurrenceFetchFunc(&res, datasources.TypeINaturalist, datasources.TypeGBIF)); err != nil {
 		return nil, err
 	}
 
@@ -150,16 +159,20 @@ func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*oc
 		return nil, err
 	}
 
+	glog.Info("Scientific Names from Occurrence Filtered Aggregation", sciNames)
+
 	usages, err := sourcefetchers.FetchNameUsages(cxt, datasources.TypeMushroomObserver, sciNames, nil)
 	if err != nil {
 		return nil, err
 	}
 
+	glog.Infof("%d Usages from MushroomObserver", len(usages))
+
 	if err := filteredAggregation.AddUsage(usages...); err != nil {
 		return nil, err
 	}
 
-	if err := aggregation.Each(cxt, occurrenceFetcher(&res, datasources.TypeMushroomObserver)); err != nil {
+	if err := aggregation.Each(cxt, occurrenceFetchFunc(&res, datasources.TypeMushroomObserver)); err != nil {
 		return nil, err
 	}
 
@@ -167,13 +180,15 @@ func OccurrenceFetch(cxt context.Context, aggregation *aggregate.Aggregate) (*oc
 
 }
 
-func occurrenceFetcher(oAggr *occurrence.Aggregation, sourceTypes ...datasources.SourceType) aggregate.EachFunction {
+func occurrenceFetchFunc(oAggr *occurrence.Aggregation, sourceTypes ...datasources.SourceType) aggregate.EachFunction {
 	return func(ctx context.Context, usage nameusage.NameUsage) error {
 
 		aggr, err := occurrence.FetchOccurrences(ctx, usage, false, sourceTypes...)
 		if err != nil {
 			return err
 		}
+
+		glog.Infof("Fetched %d Occurrences for NameUsage [%s]", aggr.Count(), usage.CanonicalName())
 
 		if aggr.Count() >= minimumOccurrenceCount {
 			return oAggr.Merge(aggr)

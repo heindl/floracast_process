@@ -9,6 +9,7 @@ import (
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"github.com/dropbox/godropbox/errors"
+	"github.com/golang/glog"
 	"gopkg.in/tomb.v2"
 	"time"
 )
@@ -29,6 +30,13 @@ func FetchOccurrences(ctx context.Context, usage nameusage.NameUsage, limitToCou
 		return nil, err
 	}
 
+	id, err := usage.ID()
+	if err != nil {
+		return nil, err
+	}
+
+	glog.Infof("Fetching Occurrences for NameUsage [%s, %s] with %d Sources", usage.CanonicalName(), id, len(srcs))
+
 	res := &Aggregation{}
 
 	tmb := tomb.Tomb{}
@@ -48,6 +56,8 @@ func FetchOccurrences(ctx context.Context, usage nameusage.NameUsage, limitToCou
 	if err := tmb.Wait(); err != nil {
 		return nil, err
 	}
+
+	glog.Infof("%d Occurrences Aggregated for NameUsage [%s, %s] with %d Sources", res.Count(), usage.CanonicalName(), id, len(srcs))
 
 	return res, nil
 
@@ -79,6 +89,8 @@ func fetchAndMerge(ctx context.Context, src nameusage.Source, parentAggregation 
 
 func fetchOccurrencesForTarget(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) (*Aggregation, error) {
 
+	glog.Infof("Fetching Occurrences [%s, %s] since %v", sourceType, targetID, since)
+
 	// Only fetch once a day.
 	if since != nil && since.After(time.Now().Add(time.Hour*24*-1)) {
 		return nil, nil
@@ -88,6 +100,8 @@ func fetchOccurrencesForTarget(ctx context.Context, sourceType datasources.Sourc
 	if err != nil {
 		return nil, err
 	}
+
+	glog.Infof("Received %d Occurrences Providers for Source [%s, %s] Since %v", len(providers), sourceType, targetID, since)
 
 	aggregation := Aggregation{}
 
@@ -104,6 +118,8 @@ func fetchOccurrencesForTarget(ctx context.Context, sourceType datasources.Sourc
 	if err := tmb.Wait(); err != nil {
 		return nil, err
 	}
+
+	glog.Infof("Processed %d Occurrences for NameUsage Source [%s, %s]", aggregation.Count(), sourceType, targetID)
 
 	return &aggregation, nil
 }
@@ -130,8 +146,7 @@ func parseOccurrenceProvider(sourceType datasources.SourceType, targetID datasou
 		return errors.Wrap(err, "Invalid Occurrence GeoSpatial")
 	}
 
-	err = aggr.AddOccurrence(o)
-	if err != nil && !utils.ContainsError(err, ErrCollision) {
+	if err := aggr.AddOccurrence(o); err != nil && !utils.ContainsError(err, ErrCollision) {
 		return err
 	}
 	return nil

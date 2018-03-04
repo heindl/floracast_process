@@ -25,10 +25,10 @@ type gcsSource struct {
 	gcsBucketHandle *storage.BucketHandle
 }
 
-func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id nameusage.NameUsageID, date string) ([]string, error) {
+func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id nameusage.ID, date string) ([]string, error) {
 
 	if !id.Valid() {
-		return nil, errors.Newf("Invalid NameUsageID [%s]", id)
+		return nil, errors.Newf("Invalid ID [%s]", id)
 	}
 
 	if len(date) != 8 && date != "*" {
@@ -92,7 +92,7 @@ func (Ω *gcsSource) FetchPredictions(cxt context.Context, gcsFilePath string) (
 
 	nameUsageID, err := parseNameUsageIDFromFilePath(gcsFilePath)
 	if !nameUsageID.Valid() {
-		return nil, errors.Newf("Invalid NameUsageID [%s] from FilePath", nameUsageID)
+		return nil, errors.Newf("Invalid ID [%s] from FilePath", nameUsageID)
 	}
 
 	return parsePredictionReader(nameUsageID, r)

@@ -13,7 +13,7 @@ import (
 )
 
 // UploadNameUsageObjects creates searchable Algolia objects.
-func UploadNameUsageObjects(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsages ...nameusage.NameUsageID) error {
+func UploadNameUsageObjects(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsages ...nameusage.ID) error {
 
 	if err := deleteNameUsageObjects(florastore, deletedUsages...); err != nil {
 		return err
@@ -42,7 +42,7 @@ func uploadNameUsageObjects(florastore store.FloraStore, objs objects) error {
 	return nil
 }
 
-func deleteNameUsageObjects(florastore store.FloraStore, nameUsageIDs ...nameusage.NameUsageID) error {
+func deleteNameUsageObjects(florastore store.FloraStore, nameUsageIDs ...nameusage.ID) error {
 
 	if len(nameUsageIDs) == 0 {
 		return nil
@@ -59,7 +59,7 @@ func deleteNameUsageObjects(florastore store.FloraStore, nameUsageIDs ...nameusa
 	return nil
 }
 
-func nameUsageIDFilter(nameUsageIDs ...nameusage.NameUsageID) algoliasearch.Map {
+func nameUsageIDFilter(nameUsageIDs ...nameusage.ID) algoliasearch.Map {
 	if len(nameUsageIDs) == 0 {
 		return nil
 	}
@@ -104,7 +104,7 @@ func nameUsageIndex(client algoliasearch.Client, isTest bool) (algoliasearch.Ind
 }
 
 const (
-	keyNameUsageID     = objectKey("NameUsageID")
+	keyNameUsageID     = objectKey("ID")
 	keyScientificName  = objectKey("ScientificName")
 	keyCommonName      = objectKey("CommonName")
 	keyThumbnail       = objectKey("Thumbnail")

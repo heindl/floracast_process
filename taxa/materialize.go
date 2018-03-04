@@ -16,7 +16,7 @@ type materializedTaxon struct {
 	Description    *description `json:",omitempty" firestore:",omitempty"`
 }
 
-func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.NameUsageID) error {
+func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.ID) error {
 	if err := clearMaterializedTaxa(ctx, florastore, deletedUsageIDs); err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, us
 	return nil
 }
 
-func clearMaterializedTaxa(ctx context.Context, florastore store.FloraStore, allUsageIDs nameusage.NameUsageIDs) error {
+func clearMaterializedTaxa(ctx context.Context, florastore store.FloraStore, allUsageIDs nameusage.IDs) error {
 
 	for _, usageIDs := range allUsageIDs.Batch(500) {
 		if len(usageIDs) == 0 {
