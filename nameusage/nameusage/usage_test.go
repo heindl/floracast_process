@@ -1,74 +1,72 @@
 package nameusage
 
 import (
-	"bitbucket.org/heindl/process/utils"
-	"fmt"
+	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/canonicalname"
+	"bitbucket.org/heindl/process/store"
 	. "github.com/smartystreets/goconvey/convey"
+	"golang.org/x/net/context"
+	"google.golang.org/api/iterator"
 	"testing"
 )
-
-var usageJSON = []byte(`
-{
-  "ID": "",
-  "Name": {
-    "Rank": "species",
-    "ScientificName": "cantharellus jebbi"
-  },
-  "ScientificNames": null,
-  "Sources": {
-    "14": {
-      "133044": {
-        "Name": {
-          "Rank": "species",
-          "ScientificName": "cantharellus jebbi"
-        },
-      }
-    },
-    "26": {
-      "133044": {
-        "Name": {
-          "Rank": "species",
-          "ScientificName": "cantharellus jebbi"
-        },
-      }
-    },
-    "27": {
-      "5184832": {
-        "TaxonomicReference": true,
-        "Name": {
-          "Rank": "species",
-          "ScientificName": "cantharellus jebbi"
-        },
-      }
-    },
-    "INAT": {
-      "96709": {
-        "TaxonomicReference": true,
-        "Name": {
-          "Rank": "species",
-          "ScientificName": "cantharellus jebbi"
-        },
-        "ModifiedAt": "2018-02-10T14:21:10.599344-05:00",
-        "CreatedAt": "2018-02-10T14:21:10.599342-05:00"
-      }
-    }
-  },
-  "CreatedAt": "2018-02-10T14:21:10.599349-05:00",
-  "ModifiedAt": "2018-02-10T14:21:13.080988-05:00"
-}
-`)
 
 func TestNameUsage(t *testing.T) {
 
 	t.Parallel()
 
-	Convey("should parse nameusage", t, func() {
-		id, err := newNameUsageID()
+	Convey("Should Create, Parse and Upload NameUsage", t, func() {
+
+		ctx := context.Background()
+		floraStore, err := store.NewTestFloraStore(ctx)
+		So(err, ShouldBeNil)
+		nameUsageCollection, err := floraStore.FirestoreCollection(store.CollectionNameUsages)
 		So(err, ShouldBeNil)
 
-		u, err := FromJSON(id, usageJSON)
-		So(err, ShouldBeNil)
-		fmt.Println(utils.JsonOrSpew(u))
+		Convey("Should Create, Parse and Upload NameUsage", func() {
+
+			targetID, err := datasources.NewDataSourceTargetIDFromInt(datasources.TypeGBIF, 12345)
+			So(err, ShouldBeNil)
+
+			name, err := canonicalname.NewCanonicalName("morchella esculenta", "species")
+			So(err, ShouldBeNil)
+
+			src, err := NewSource(datasources.TypeGBIF, targetID, name)
+			So(err, ShouldBeNil)
+
+			initialUsage, err := NewNameUsage(src)
+			So(err, ShouldBeNil)
+
+			initialID, err := initialUsage.ID()
+			So(err, ShouldBeNil)
+
+			deletedIDs, err := initialUsage.Upload(ctx, floraStore)
+			So(err, ShouldBeNil)
+			So(len(deletedIDs), ShouldEqual, 0)
+
+			docCount, err := floraStore.CountTestCollection(ctx, nameUsageCollection)
+			So(err, ShouldBeNil)
+			So(docCount, ShouldEqual, 1)
+
+			iter := FetchAll(ctx, floraStore)
+
+			fetchedUsage, err := iter.Next()
+			So(err, ShouldBeNil)
+
+			_, err = iter.Next()
+			So(err, ShouldEqual, iterator.Done)
+
+			So(initialUsage.CanonicalName().Equals(fetchedUsage.CanonicalName()), ShouldBeTrue)
+
+			fetchedID, err := fetchedUsage.ID()
+			So(err, ShouldBeNil)
+
+			So(initialID, ShouldEqual, fetchedID)
+
+		})
+
+		Reset(func() {
+			floraStore.ClearTestCollection(ctx, nameUsageCollection)
+		})
 
 	})
 }
