@@ -234,7 +234,7 @@ package main
 //			name := o.Name
 //			tmb.Go(func() error {
 //				//fmt.Println("name", name)
-//				r, err := Ω.Bucket.Object(name).NewReader(cxt)
+//				r, err := Ω.Bucket.Object(name).NewFileReader(cxt)
 //				if err != nil {
 //					panic(err)
 //				}

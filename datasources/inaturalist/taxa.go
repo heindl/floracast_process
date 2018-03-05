@@ -16,7 +16,7 @@ type page struct {
 	PerPage      int `json:"per_page"`
 }
 
-type Taxon struct {
+type taxon struct {
 	CompleteSpeciesCount int    `json:"complete_species_count"`
 	Extinct              bool   `json:"extinct"`
 	ObservationsCount    int    `json:"observations_count"`
@@ -25,33 +25,33 @@ type Taxon struct {
 	Ancestry             string `json:"ancestry"`
 	IsActive             bool   `json:"is_active"`
 	// TODO: Must have way to sync synonyms when they change.
-	CurrentSynonymousTaxonIds []TaxonID `json:"current_synonymous_taxon_ids"`
-	IconicTaxonID             TaxonID   `json:"iconic_taxon_id"`
+	CurrentSynonymousTaxonIds []taxonID `json:"current_synonymous_taxon_ids"`
+	IconicTaxonID             taxonID   `json:"iconic_taxon_id"`
 	TaxonPhotos               []struct {
-		Photo Photo `json:"photo"`
-		Taxon Taxon `json:"taxon"`
+		Photo photo `json:"photo"`
+		Taxon taxon `json:"taxon"`
 	} `json:"taxon_photos"`
-	RankLevel            RankLevel            `json:"rank_level"`
+	RankLevel            rankLevel            `json:"rank_level"`
 	TaxonChangesCount    int                  `json:"taxon_changes_count"`
 	AtlasID              int                  `json:"atlas_id"`
-	ParentID             TaxonID              `json:"parent_id"`
+	ParentID             taxonID              `json:"parent_id"`
 	Name                 string               `json:"name"`
 	Rank                 string               `json:"rank"`
-	ID                   TaxonID              `json:"id"`
-	DefaultPhoto         Photo                `json:"default_photo"`
-	AncestorIds          []TaxonID            `json:"ancestor_ids"`
+	ID                   taxonID              `json:"id"`
+	DefaultPhoto         photo                `json:"default_photo"`
+	AncestorIds          []taxonID            `json:"ancestor_ids"`
 	IconicTaxonName      string               `json:"iconic_taxon_name"`
 	PreferredCommonName  string               `json:"preferred_common_name"`
-	Ancestors            []*Taxon             `json:"ancestors"`
-	Children             []*Taxon             `json:"children"`
+	Ancestors            []*taxon             `json:"ancestors"`
+	Children             []*taxon             `json:"children"`
 	WikipediaSummary     string               `json:"wikipedia_summary"`
 	MinSpeciesAncestry   string               `json:"min_species_ancestry"`
 	CreatedAt            time.Time            `json:"created_at"`
-	ConservationStatuses []ConservationStatus `json:"conservation_statuses"`
-	TaxonSchemes         []*TaxonScheme
+	ConservationStatuses []conservationStatus `json:"conservation_statuses"`
+	TaxonSchemes         []*taxonScheme
 }
 
-type ConservationStatus struct {
+type conservationStatus struct {
 	PlaceID    int    `json:"place_id"`
 	SourceID   int    `json:"source_id"`
 	Authority  string `json:"authority"`
@@ -65,22 +65,22 @@ type ConservationStatus struct {
 	} `json:"place"`
 }
 
-type TaxaFetcher struct {
-	list []*Taxon
+type taxaFetcher struct {
+	list []*taxon
 	sync.Mutex
 	includeChildren bool
 	includeSchemes  bool
 }
 
-func NewTaxaFetcher(ctx context.Context, includeChildren, includeSchemes bool) *TaxaFetcher {
-	return &TaxaFetcher{
+func newTaxaFetcher(ctx context.Context, includeChildren, includeSchemes bool) *taxaFetcher {
+	return &taxaFetcher{
 		includeChildren: includeChildren,
 		includeSchemes:  includeSchemes,
-		list:            []*Taxon{},
+		list:            []*taxon{},
 	}
 }
 
-func (Ω *TaxaFetcher) IndexOf(æ TaxonID) int {
+func (Ω *taxaFetcher) IndexOf(æ taxonID) int {
 	Ω.Lock()
 	defer Ω.Unlock()
 	for i := range Ω.list {
@@ -91,7 +91,7 @@ func (Ω *TaxaFetcher) IndexOf(æ TaxonID) int {
 	return -1
 }
 
-func (Ω *TaxaFetcher) Set(æ *Taxon) {
+func (Ω *taxaFetcher) Set(æ *taxon) {
 	if æ == nil {
 		return
 	}
@@ -105,7 +105,7 @@ func (Ω *TaxaFetcher) Set(æ *Taxon) {
 	}
 }
 
-func (Ω *TaxaFetcher) FetchTaxa(parent_taxa ...TaxonID) ([]*Taxon, error) {
+func (Ω *taxaFetcher) FetchTaxa(parent_taxa ...taxonID) ([]*taxon, error) {
 
 	tmb := tomb.Tomb{}
 
@@ -128,7 +128,7 @@ func (Ω *TaxaFetcher) FetchTaxa(parent_taxa ...TaxonID) ([]*Taxon, error) {
 
 var globalTaxonLimiter = utils.NewLimiter(20)
 
-func (Ω *TaxaFetcher) fetchTaxon(taxonID TaxonID) error {
+func (Ω *taxaFetcher) fetchTaxon(taxonID taxonID) error {
 
 	if Ω.IndexOf(taxonID) != -1 {
 		return nil
@@ -136,7 +136,7 @@ func (Ω *TaxaFetcher) fetchTaxon(taxonID TaxonID) error {
 
 	var response struct {
 		page
-		Results []*Taxon `json:"results"`
+		Results []*taxon `json:"results"`
 	}
 
 	done := globalTaxonLimiter.Go()
@@ -191,10 +191,10 @@ func (Ω *TaxaFetcher) fetchTaxon(taxonID TaxonID) error {
 
 }
 
-func (Ω *TaxaFetcher) parseTaxon(txn *Taxon, isFromFullPageRequest bool) error {
+func (Ω *taxaFetcher) parseTaxon(txn *taxon, isFromFullPageRequest bool) error {
 
 	// Exit early if not a species.
-	if txn.RankLevel > RankLevelSpecies {
+	if txn.RankLevel > rankLevelSpecies {
 		// Fetch children if this was the child of another request. Otherwise we're safe stopping with species.
 		if !isFromFullPageRequest {
 			return Ω.fetchTaxon(txn.ID)
@@ -213,7 +213,7 @@ func (Ω *TaxaFetcher) parseTaxon(txn *Taxon, isFromFullPageRequest bool) error 
 
 	// Fetch Schemes
 	if txn.TaxonSchemesCount > 0 && Ω.includeSchemes {
-		schemes, err := txn.ID.FetchTaxonSchemes()
+		schemes, err := txn.ID.fetchTaxonSchemes()
 		if err != nil {
 			return err
 		}

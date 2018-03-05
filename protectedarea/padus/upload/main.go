@@ -8,7 +8,11 @@ import (
 
 func main() {
 
-	geojsonPath := flag.String("geojson", "/tmp/gap_analysis", "Path to geojson files to search recursively.")
+	// /tmp/gap_analysis/OR/areas
+
+	geojsonPath := flag.String("path", "", "Path to geojson files to search recursively.")
+
+	flag.Parse()
 
 	if *geojsonPath == "" {
 		panic("A geojson directory must be specified.")

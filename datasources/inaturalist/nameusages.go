@@ -9,16 +9,16 @@ import (
 	"strings"
 )
 
-// namesToMatch []string, keysToMatch datasources.TargetIDs
-func FetchNameUsages(cxt context.Context, namesToMatch []string, ids datasources.TargetIDs) ([]nameusage.NameUsage, error) {
+// FetchNameUsages fetches usages from known INaturalist IDs.
+func FetchNameUsages(cxt context.Context, _ []string, ids datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 
 	ints, err := ids.Integers()
 	if err != nil {
 		return nil, err
 	}
-	taxonIDs := TaxonIDsFromIntegers(ints...)
+	taxonIDs := taxonIDsFromIntegers(ints...)
 
-	taxa, err := NewTaxaFetcher(cxt, true, true).FetchTaxa(taxonIDs...)
+	taxa, err := newTaxaFetcher(cxt, true, true).FetchTaxa(taxonIDs...)
 	if err != nil {
 		return nil, err
 	}
@@ -26,51 +26,57 @@ func FetchNameUsages(cxt context.Context, namesToMatch []string, ids datasources
 	res := []nameusage.NameUsage{}
 
 	for _, inaturalistTaxon := range taxa {
-		if len(inaturalistTaxon.CurrentSynonymousTaxonIds) > 0 {
-			return nil, errors.Newf("Unexpected synonyms [%+v] from INaturalist taxon [%d]", inaturalistTaxon.CurrentSynonymousTaxonIds, inaturalistTaxon.ID)
-		}
-
-		if len(inaturalistTaxon.CurrentSynonymousTaxonIds) > 0 {
-			// So far this has never been the case, but if it is, we need to process those.
-			return nil, errors.Newf("Taxon [%d] has synonymous Taxon IDs [%v]", inaturalistTaxon.ID, inaturalistTaxon.CurrentSynonymousTaxonIds)
-		}
-
-		name, err := canonicalname.NewCanonicalName(inaturalistTaxon.Name, strings.ToLower(inaturalistTaxon.Rank))
+		usage, err := parseNameUsage(inaturalistTaxon)
 		if err != nil {
 			return nil, err
 		}
-
-		src, err := nameusage.NewSource(datasources.TypeINaturalist, inaturalistTaxon.ID.TargetID(), name)
-		if err != nil {
-			return nil, err
-		}
-
-		if inaturalistTaxon.PreferredCommonName != "" {
-			if err := src.AddCommonNames(inaturalistTaxon.PreferredCommonName); err != nil {
-				return nil, err
-			}
-		}
-
-		usage, err := nameusage.NewNameUsage(src)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, scheme := range inaturalistTaxon.TaxonSchemes {
-
-			src, err := nameusage.NewSource(scheme.SourceType, scheme.TargetID, name)
-			if err != nil {
-				return nil, err
-			}
-
-			if err := usage.AddSources(src); err != nil {
-				return nil, err
-			}
-		}
-
 		res = append(res, usage)
-
 	}
 
 	return res, nil
+}
+
+func parseNameUsage(txn *taxon) (nameusage.NameUsage, error) {
+	if len(txn.CurrentSynonymousTaxonIds) > 0 {
+		return nil, errors.Newf("Unexpected synonyms [%+v] from INaturalist taxon [%d]", txn.CurrentSynonymousTaxonIds, txn.ID)
+	}
+
+	if len(txn.CurrentSynonymousTaxonIds) > 0 {
+		// So far this has never been the case, but if it is, we need to process those.
+		return nil, errors.Newf("taxon [%d] has synonymous taxon IDs [%v]", txn.ID, txn.CurrentSynonymousTaxonIds)
+	}
+
+	name, err := canonicalname.NewCanonicalName(txn.Name, strings.ToLower(txn.Rank))
+	if err != nil {
+		return nil, err
+	}
+
+	src, err := nameusage.NewSource(datasources.TypeINaturalist, txn.ID.TargetID(), name)
+	if err != nil {
+		return nil, err
+	}
+
+	if txn.PreferredCommonName != "" {
+		if err := src.AddCommonNames(txn.PreferredCommonName); err != nil {
+			return nil, err
+		}
+	}
+
+	usage, err := nameusage.NewNameUsage(src)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, scheme := range txn.TaxonSchemes {
+
+		src, err := nameusage.NewSource(scheme.SourceType, scheme.TargetID, name)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := usage.AddSources(src); err != nil {
+			return nil, err
+		}
+	}
+	return usage, nil
 }

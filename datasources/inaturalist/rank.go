@@ -2,71 +2,71 @@ package inaturalist
 
 import "strings"
 
-type TaxonRank string
+type rank string
 
 const (
 	// Originating from INaturalist:
-	RankKingdom     = TaxonRank("Kingdom")
-	RankPhylum      = TaxonRank("Phylum")
-	RankSubPhylum   = TaxonRank("SubPhylum")
-	RankClass       = TaxonRank("Class")
-	RankSubClass    = TaxonRank("SubClass")
-	RankOrder       = TaxonRank("Order")
-	RankSuperFamily = TaxonRank("SuperFamily")
-	RankFamily      = TaxonRank("Family")
-	RankSubFamily   = TaxonRank("SubFamily")
-	RankTribe       = TaxonRank("Tribe")
-	RankSubTribe    = TaxonRank("SubTribe")
-	RankGenus       = TaxonRank("Genus")
-	RankSpecies     = TaxonRank("Species")
-	RankSubSpecies  = TaxonRank("SubSpecies")
-	RankForm        = TaxonRank("Form")
-	RankVariety     = TaxonRank("Variety")
+	rankKingdom     = rank("Kingdom")
+	rankPhylum      = rank("Phylum")
+	rankSubPhylum   = rank("SubPhylum")
+	rankClass       = rank("Class")
+	rankSubClass    = rank("SubClass")
+	rankOrder       = rank("Order")
+	rankSuperFamily = rank("SuperFamily")
+	rankFamily      = rank("Family")
+	rankSubFamily   = rank("SubFamily")
+	rankTribe       = rank("Tribe")
+	rankSubTribe    = rank("SubTribe")
+	rankGenus       = rank("Genus")
+	rankSpecies     = rank("Species")
+	rankSubSpecies  = rank("SubSpecies")
+	rankForm        = rank("Form")
+	rankVariety     = rank("Variety")
 )
 
-var TaxonRankMap = map[string]TaxonRank{
-	"kingdom":     RankKingdom,
-	"phylum":      RankPhylum,
-	"subphylum":   RankSubPhylum,
-	"class":       RankClass,
-	"subclass":    RankSubClass,
-	"order":       RankOrder,
-	"superfamily": RankSuperFamily,
-	"family":      RankFamily,
-	"subfamily":   RankSubFamily,
-	"tribe":       RankTribe,
-	"subtribe":    RankSubTribe,
-	"genus":       RankGenus,
-	"species":     RankSpecies,
-	"subspecies":  RankSubSpecies,
-	"form":        RankForm,
-	"variety":     RankVariety,
+var taxonRankMap = map[string]rank{
+	"kingdom":     rankKingdom,
+	"phylum":      rankPhylum,
+	"subphylum":   rankSubPhylum,
+	"class":       rankClass,
+	"subclass":    rankSubClass,
+	"order":       rankOrder,
+	"superfamily": rankSuperFamily,
+	"family":      rankFamily,
+	"subfamily":   rankSubFamily,
+	"tribe":       rankTribe,
+	"subtribe":    rankSubTribe,
+	"genus":       rankGenus,
+	"species":     rankSpecies,
+	"subspecies":  rankSubSpecies,
+	"form":        rankForm,
+	"variety":     rankVariety,
 }
 
-func (Ω TaxonRank) Valid() bool {
-	if _, ok := TaxonRankMap[strings.ToLower(string(Ω))]; !ok {
+func (Ω rank) Valid() bool {
+	if _, ok := taxonRankMap[strings.ToLower(string(Ω))]; !ok {
 		return false
 	}
 	return true
 }
 
-type RankLevel int
+type rankLevel int
 
 const (
 	// Originating from INaturalist:
-	RankLevelKingdom     = RankLevel(70)
-	RankLevelPhylum      = RankLevel(60)
-	RankLevelSubPhylum   = RankLevel(57)
-	RankLevelClass       = RankLevel(50)
-	RankLevelSubClass    = RankLevel(47)
-	RankLevelOrder       = RankLevel(40)
-	RankLevelSuperFamily = RankLevel(33)
-	RankLevelFamily      = RankLevel(30)
-	RankLevelSubFamily   = RankLevel(27)
-	RankLevelTribe       = RankLevel(25)
-	RankLevelSubTribe    = RankLevel(24)
-	RankLevelGenus       = RankLevel(20)
-	RankLevelSpecies     = RankLevel(10)
-	RankLevelSubSpecies  = RankLevel(5)
-	RankLevelVariety     = RankLevel(5)
+	//rankLevelKingdom     = rankLevel(70)
+	//rankLevelPhylum      = rankLevel(60)
+	//rankLevelSubPhylum   = rankLevel(57)
+	//rankLevelClass       = rankLevel(50)
+	//rankLevelSubClass    = rankLevel(47)
+	//rankLevelOrder       = rankLevel(40)
+	//rankLevelSuperFamily = rankLevel(33)
+	//rankLevelFamily      = rankLevel(30)
+	//rankLevelSubFamily   = rankLevel(27)
+	//rankLevelTribe       = rankLevel(25)
+	//rankLevelSubTribe    = rankLevel(24)
+	//rankLevelGenus       = rankLevel(20)
+	rankLevelSpecies = rankLevel(10)
+	//rankLevelSubSpecies  = rankLevel(5)
+	//rankLevelVariety     = rankLevel(5)
 )

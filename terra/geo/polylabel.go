@@ -13,25 +13,21 @@ func PolyLabel(polygon [][][]float64, precision float64) (*Point, error) {
 	}
 
 	// find the bounding box of the outer ring
-	var minX, minY, maxX, maxY float64
-	for i := 0; i < len(polygon[0]); i++ {
-		p := polygon[0][i]
-		if i == 0 || p[0] < minX {
-			minX = p[0]
-		}
-		if i == 0 || p[1] < minY {
-			minY = p[1]
-		}
-		if i == 0 || p[0] > maxX {
-			maxX = p[0]
-		}
-		if i == 0 || p[1] > maxY {
-			maxY = p[1]
-		}
+	bound, err := BoundFromPolygon(polygon)
+	if err != nil {
+		return nil, err
 	}
 
-	width := maxX - minX
-	height := maxY - minY
+	width, err := bound.WidthMeters()
+	if err != nil {
+		return nil, err
+	}
+
+	height, err := bound.HeightMeters()
+	if err != nil {
+		return nil, err
+	}
+
 	cellSize := math.Min(width, height)
 	h := cellSize / 2
 
@@ -40,12 +36,12 @@ func PolyLabel(polygon [][][]float64, precision float64) (*Point, error) {
 	cellQueue := cells{}
 
 	if cellSize == 0 {
-		return NewPoint(minY, minX)
+		return NewPoint(bound.South, bound.West)
 	}
 
 	// cover polygon with initial cells
-	for x := minX; x < maxX; x += cellSize {
-		for y := minY; y < maxY; y += cellSize {
+	for x := bound.West; x < bound.East; x += cellSize {
+		for y := bound.South; y < bound.North; y += cellSize {
 			cellQueue = append(cellQueue, newCell(x+h, y+h, h, polygon))
 		}
 	}
@@ -54,7 +50,7 @@ func PolyLabel(polygon [][][]float64, precision float64) (*Point, error) {
 	var bestCell = getCentroidCell(polygon)
 
 	// special case for rectangular polygons
-	var bboxCell = newCell(minX+width/2, minY+height/2, 0, polygon)
+	var bboxCell = newCell(bound.West+width/2, bound.South+height/2, 0, polygon)
 	if bboxCell.d > bestCell.d {
 		bestCell = bboxCell
 	}
@@ -62,33 +58,41 @@ func PolyLabel(polygon [][][]float64, precision float64) (*Point, error) {
 	var numProbes = len(cellQueue)
 
 	for len(cellQueue) > 0 {
-
-		sort.Sort(cellQueue)
-		// pick the most promising cell from the queue
-		cell := cellQueue[0] // Pop
-		cellQueue = cellQueue[1:]
-
-		// update the best cell if we found a better one
-		if cell.d > bestCell.d {
-			bestCell = cell
-		}
-
-		// do not drill down further if there's no chance of a better solution
-		if cell.max-bestCell.d <= precision {
-			continue
-		}
-
-		// split the cell into four cells
-		h = cell.h / 2
-
-		cellQueue = append(cellQueue, newCell(cell.x-h, cell.y-h, h, polygon))
-		cellQueue = append(cellQueue, newCell(cell.x+h, cell.y-h, h, polygon))
-		cellQueue = append(cellQueue, newCell(cell.x-h, cell.y+h, h, polygon))
-		cellQueue = append(cellQueue, newCell(cell.x+h, cell.y+h, h, polygon))
-		numProbes += 4
+		bestCell, cellQueue, numProbes = selectBestCell(polygon, numProbes, bestCell, cellQueue, precision)
 	}
 
 	return NewPoint(bestCell.y, bestCell.x)
+}
+
+func selectBestCell(polygon [][][]float64, numProbes int, best cell, queue cells, precision float64) (cell, cells, int) {
+
+	sort.Sort(queue)
+	// pick the most promising cell from the queue
+	c := queue[0] // Pop
+	queue = queue[1:]
+
+	// update the best cell if we found a better one
+	if c.d > best.d {
+		best = c
+	}
+
+	// do not drill down further if there's no chance of a better solution
+	if c.max-best.d <= precision {
+		return best, queue, numProbes
+	}
+
+	// split the cell into four cells
+	h := c.h / 2
+
+	queue = append(queue, newCell(c.x-h, c.y-h, h, polygon))
+	queue = append(queue, newCell(c.x+h, c.y-h, h, polygon))
+	queue = append(queue, newCell(c.x-h, c.y+h, h, polygon))
+	queue = append(queue, newCell(c.x+h, c.y+h, h, polygon))
+
+	numProbes += 4
+
+	return best, queue, numProbes
+
 }
 
 type cell struct {

@@ -6,12 +6,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
+	"google.golang.org/api/iterator"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type Occurrence struct {
+type occurrence struct {
 	OutOfRange        bool          `json:"out_of_range"`
 	QualityGrade      string        `json:"quality_grade"`
 	TimeObservedAt    time.Time     `json:"time_observed_at"` // 2012-03-18T17:31:53-04:00
@@ -62,7 +63,7 @@ type Occurrence struct {
 	Sounds                      []interface{} `json:"sounds"`
 	PlaceIds                    []int         `json:"place_ids"`
 	Captive                     bool          `json:"captive"`
-	Taxon                       Taxon         `json:"taxon"`
+	Taxon                       taxon         `json:"taxon"`
 	Outlinks                    []interface{} `json:"outlinks"`
 	FavesCount                  int           `json:"faves_count"`
 	Ofvs                        []interface{} `json:"ofvs"`
@@ -83,13 +84,13 @@ type Occurrence struct {
 	OwnersIdentificationFromVision bool                 `json:"owners_identification_from_vision"`
 	IdentificationsCount           int                  `json:"identifications_count"`
 	Obscured                       bool                 `json:"obscured"`
-	ProjectObservations            []ProjectObservation `json:"project_observations"`
+	ProjectObservations            []projectObservation `json:"project_observations"`
 	NumIdentificationDisagreements int                  `json:"num_identification_disagreements"`
 	ObservationPhotos              []interface{}        `json:"observation_photos"`
 	Geoprivacy                     interface{}          `json:"geoprivacy"`
 	Location                       string               `json:"location"`
 	Votes                          []interface{}        `json:"votes"`
-	User                           User                 `json:"user"`
+	User                           user                 `json:"user"`
 	Mappable                       bool                 `json:"mappable"`
 	IdentificationsSomeAgree       bool                 `json:"identifications_some_agree"`
 	ProjectIdsWithoutCuratorID     []int                `json:"project_ids_without_curator_id"`
@@ -104,44 +105,51 @@ type Occurrence struct {
 	} `json:"application"`
 }
 
-func (Ω *Occurrence) Lat() (float64, error) {
+// Lat returns the latitude.
+func (Ω *occurrence) Lat() (float64, error) {
 	lat, err := strconv.ParseFloat(Ω.Geojson.Coordinates[1], 64)
 	if err != nil {
 		return 0, errors.Wrap(err, "Could not parse latitude from INaturalist occurrence")
 	}
 	return lat, nil
 }
-func (Ω *Occurrence) Lng() (float64, error) {
+
+// Lng returns the longitude.
+func (Ω *occurrence) Lng() (float64, error) {
 	lng, err := strconv.ParseFloat(Ω.Geojson.Coordinates[0], 64)
 	if err != nil {
 		return 0, errors.Wrap(err, "Could not parse longitude from INaturalist occurrence")
 	}
 	return lng, nil
 }
-func (Ω *Occurrence) DateString() string {
+
+// DateString converts the date to YYYYMMDD.
+func (Ω *occurrence) DateString() string {
 	return strings.Replace(Ω.ObservedOnDetails.Date, "-", "", -1)
 }
-func (Ω *Occurrence) CoordinatesEstimated() bool {
+func (Ω *occurrence) CoordinatesEstimated() bool {
 	// Rounded to 5 decimal place. Not what I expected.
 	// isEstimated := s.Issues.HasIssue(ogbif.OCCURRENCE_ISSUE_COORDINATE_ROUNDED)
 	return false
 }
-func (Ω *Occurrence) SourceOccurrenceID() string {
+
+// SourceOccurrenceID upholds the occurrence interface.
+func (Ω *occurrence) SourceOccurrenceID() string {
 	return strconv.Itoa(Ω.ID)
 }
 
-type ProjectObservation struct {
+type projectObservation struct {
 	Preferences struct {
 		AllowsCuratorCoordinateAccess bool `json:"allows_curator_coordinate_access"`
 	} `json:"preferences"`
 	UserID    interface{} `json:"user_id"`
 	ID        int         `json:"id"`
 	UUID      string      `json:"uuid"`
-	Project   Project     `json:"project"`
+	Project   project     `json:"project"`
 	ProjectID int         `json:"project_id"`
 }
 
-type Project struct {
+type project struct {
 	ID                       int           `json:"id"`
 	ProjectObservationFields []interface{} `json:"project_observation_fields"`
 	Icon                     string        `json:"icon"`
@@ -153,7 +161,7 @@ type Project struct {
 	Longitude                string        `json:"longitude"`
 }
 
-type User struct {
+type user struct {
 	ID          int    `json:"id"`
 	Login       string `json:"login"`
 	Preferences struct {
@@ -204,83 +212,79 @@ type Identification struct {
 		Day   int    `json:"day"`
 	} `json:"created_at_details"`
 	Category                   string      `json:"category"`
-	User                       User        `json:"user"`
+	User                       user        `json:"user"`
 	PreviousObservationTaxonID interface{} `json:"previous_observation_taxon_id"`
-	Taxon                      Taxon       `json:"taxon"`
+	Taxon                      taxon       `json:"taxon"`
+}
+
+func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*occurrence, error) {
+
+	if !taxonIDFromTargetID(targetID).Valid() {
+		return nil, errors.New("Invalid taxonID")
+	}
+
+	res := []*occurrence{}
+	page := 1
+	for {
+		list, err := fetchOccurrences(page, taxonIDFromTargetID(targetID), since)
+		if err != nil && err != iterator.Done {
+			return nil, err
+		}
+		res = append(res, list...)
+		if err != nil && err == iterator.Done {
+			break
+		}
+		page += 1
+	}
+
+	return res, nil
 }
 
 var throttle = time.NewTicker(time.Second / 20)
 
-func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Occurrence, error) {
-
-	taxonID := TaxonIDFromTargetID(targetID)
-
-	if !taxonID.Valid() {
-		return nil, errors.New("Invalid TaxonID")
+func fetchOccurrences(page int, taxonID taxonID, since *time.Time) ([]*occurrence, error) {
+	var response struct {
+		TotalResults int           `json:"total_results"`
+		Page         int           `json:"page"`
+		PerPage      int           `json:"per_page"`
+		Results      []*occurrence `json:"results"`
 	}
 
-	output := []*Occurrence{}
+	u := "https://api.inaturalist.org/v1/observations?place_id=97394&quality_grade=research&captive=false&per_page=200&geoprivacy=open"
+	u += fmt.Sprintf("&taxon_id=%d", taxonID)
+	u += fmt.Sprintf("&page=%d", page)
+	if since != nil && !since.IsZero() {
+		u += fmt.Sprintf("&updated_since=%s", since.Format("2006-01-02"))
+	}
 
-	page := 1
+	<-throttle.C
 
-	for {
+	if err := utils.RequestJSON(u, &response); err != nil {
+		return nil, err
+	}
 
-		var response struct {
-			TotalResults int           `json:"total_results"`
-			Page         int           `json:"page"`
-			PerPage      int           `json:"per_page"`
-			Results      []*Occurrence `json:"results"`
-		}
+	res := []*occurrence{}
 
-		u := "https://api.inaturalist.org/v1/observations?place_id=97394&quality_grade=research&captive=false&per_page=200&geoprivacy=open"
-		u += fmt.Sprintf("&taxon_id=%d", taxonID)
-		u += fmt.Sprintf("&page=%d", page)
-		if since != nil && !since.IsZero() {
-			u += fmt.Sprintf("&updated_since=%s", since.Format("2006-01-02"))
-		}
+	for _, inatOccurrence := range response.Results {
 
-		<-throttle.C
-
-		if err := utils.RequestJSON(u, &response); err != nil {
-			return nil, err
-		}
-
-		for _, inatOccurrence := range response.Results {
-
-			// Covered in query, but just to be safe ...
-			// https://www.inaturalist.org/pages/help#quality
-			if inatOccurrence.QualityGrade != "research" {
-				fmt.Println("not research grade", inatOccurrence.QualityGrade)
-				continue
-			}
-
-			// Covered in query, but just to be safe ...
-			if inatOccurrence.Captive {
-				fmt.Println("is captive")
-				continue
-			}
-
-			// Covered in query, but just to be safe ...
-			if inatOccurrence.Taxon.ID != taxonID {
-				// Ignore descendents
-				//fmt.Println("mismatched taxon id", inatOccurrence.Taxon.ID, taxonID)
-				continue
-			}
-
-			if inatOccurrence.Geojson == nil {
-				return nil, errors.Newf("Invalid Geojson [%d]. Should have been solved by changing privacy setting", inatOccurrence.ID)
-			}
-
-			output = append(output, inatOccurrence)
-		}
-
-		if (response.Page * response.PerPage) < response.TotalResults {
-			page += 1
+		// https://www.inaturalist.org/pages/help#quality
+		// All of these are covered in query, but just to be safe ...
+		if inatOccurrence.QualityGrade != "research" ||
+			inatOccurrence.Captive ||
+			inatOccurrence.Taxon.ID != taxonID { // Ignore descendents
 			continue
 		}
 
-		break
+		if inatOccurrence.Geojson == nil {
+			return nil, errors.Newf("Invalid Geojson [%d]. Should have been solved by changing privacy setting", inatOccurrence.ID)
+		}
+
+		res = append(res, inatOccurrence)
 	}
 
-	return output, nil
+	if (response.Page * response.PerPage) < response.TotalResults {
+		return res, nil
+	}
+
+	return res, iterator.Done
 }

@@ -24,6 +24,7 @@ func StringContainsNoLetters(s string) bool {
 	return true
 }
 
+// FormatTitle validates, escapes and capitalizes a title sentence, while lowercasing stop words.
 func FormatTitle(s string) (string, error) {
 
 	if !utf8.ValidString(s) {
@@ -39,7 +40,7 @@ func FormatTitle(s string) (string, error) {
 	for i := range fields {
 
 		var err error
-		fields[i], err = strconv.Unquote(`"` + fields[i] + `"`)
+		fields[i], err = strconv.Unquote(`"` + strings.Replace(fields[i], `"`, "'", -1) + `"`)
 		if err != nil {
 			return "", errors.Wrapf(err, "Problem unquoting title [%s]", s)
 		}

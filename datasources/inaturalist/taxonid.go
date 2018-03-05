@@ -5,34 +5,34 @@ import (
 	"strconv"
 )
 
-type TaxonID int64
+type taxonID int64
 
-func (Ω TaxonID) Valid() bool {
+func (Ω taxonID) Valid() bool {
 	return Ω != 0
 }
 
-func TaxonIDFromTargetID(id datasources.TargetID) TaxonID {
+func taxonIDFromTargetID(id datasources.TargetID) taxonID {
 	i, err := strconv.Atoi(string(id))
 	if err != nil {
-		return TaxonID(0)
+		return taxonID(0)
 	}
-	return TaxonID(i)
+	return taxonID(i)
 }
 
-func (Ω TaxonID) TargetID() datasources.TargetID {
+func (Ω taxonID) TargetID() datasources.TargetID {
 	return datasources.TargetID(strconv.Itoa(int(Ω)))
 }
 
-func TaxonIDsFromIntegers(ids ...int) (res []TaxonID) {
+func taxonIDsFromIntegers(ids ...int) (res []taxonID) {
 	for _, id := range ids {
-		res = append(res, TaxonID(id))
+		res = append(res, taxonID(id))
 	}
 	return
 }
 
-type TaxonIDs []TaxonID
+type taxonIDs []taxonID
 
-func (Ω TaxonIDs) IndexOf(id TaxonID) int {
+func (Ω taxonIDs) IndexOf(id taxonID) int {
 	for i := range Ω {
 		if Ω[i] == id {
 			return i
@@ -41,7 +41,7 @@ func (Ω TaxonIDs) IndexOf(id TaxonID) int {
 	return -1
 }
 
-func (Ω TaxonIDs) AddToSet(id TaxonID) TaxonIDs {
+func (Ω taxonIDs) AddToSet(id taxonID) taxonIDs {
 	if Ω.IndexOf(id) == -1 {
 		return append(Ω, id)
 	}

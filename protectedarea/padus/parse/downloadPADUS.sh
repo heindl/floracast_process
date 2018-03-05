@@ -15,5 +15,6 @@
 
 # Note that this link may not be the most recent. Found the link by using the standard download page and examining the chrome download history for a file link.
 
-curl -o /tmp/PADUS1_4Shapefile.zip 'https://www.sciencebase.gov/catalog/file/get/56bba648e4b08d617f657960?f=__disk__bb%2F1d%2F64%2Fbb1d64d7adb8aeb0b6f75d347077ddc1406d8a53'
+
+wget -P /tmp 'https://www.sciencebase.gov/catalog/file/get/56bba648e4b08d617f657960?f=__disk__bb%2F1d%2F64%2Fbb1d64d7adb8aeb0b6f75d347077ddc1406d8a53'
 unzip -a /tmp/PADUS1_4Shapefile.zip -d /tmp/PADUS1_4Shapefile

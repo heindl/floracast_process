@@ -55,11 +55,13 @@ WY
 
 STATES=(OR)
 
-printf '%s\n' "${STATES[@]}" | parallel -j4 "./getState.sh {.}"
+go build
 
-print "Parsing State Files"
+printf '%s\n' "${STATES[@]}" | parallel -j4 "./saveState.sh {.}"
 
-printf '%s\n' "${STATES[@]}" | go run ./parse.go --in "/tmp/gap_analysis/{.}/state.geojson" --out "/tmp/gap_analysis/{.}/areas"
+echo "Parsing State Files"
+
+printf '%s\n' "${STATES[@]}" | parallel -j4 "./parse --in /tmp/gap_analysis/{.}/state.geojson --out /tmp/gap_analysis/{.}/areas"
 
 
 

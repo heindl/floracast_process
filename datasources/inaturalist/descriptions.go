@@ -7,36 +7,41 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
-type DescriptionProvider Taxon
+// descriptionProvider is an interface for taxon description data
+type descriptionProvider taxon
 
-func (p *DescriptionProvider) Citation() (string, error) {
+// Citation formats Wikipedia citation if present, and a blank line if not.
+func (p *descriptionProvider) Citation() (string, error) {
 	if p.WikipediaURL == "" {
 		return "", nil
 	}
 	return wikipedia.Citation(p.WikipediaURL)
 }
 
-func (p *DescriptionProvider) Text() (string, error) {
+// Text provides the Wikipedia summary.
+func (p *descriptionProvider) Text() (string, error) {
 	return p.WikipediaSummary, nil
 }
 
-func (p *DescriptionProvider) Source() datasources.SourceType {
+// Source provides the SourceType.
+func (p *descriptionProvider) Source() datasources.SourceType {
 	return datasources.TypeGBIF
 }
 
-func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]*DescriptionProvider, error) {
+// FetchDescriptions provides a list of Wikipedia summaries.
+func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]*descriptionProvider, error) {
 
-	taxa, err := NewTaxaFetcher(ctx, false, false).FetchTaxa(TaxonIDFromTargetID(targetID))
+	taxa, err := newTaxaFetcher(ctx, false, false).FetchTaxa(taxonIDFromTargetID(targetID))
 	if err != nil {
 		return nil, err
 	}
 
 	if len(taxa) == 0 {
-		return nil, errors.Newf("INaturalist Taxon [%s] not found", targetID)
+		return nil, errors.Newf("INaturalist taxon [%s] not found", targetID)
 	}
 
 	if len(taxa) > 1 {
-		return nil, errors.Newf("Multiple INaturalist Taxon found for TargetID [%s]", targetID)
+		return nil, errors.Newf("Multiple INaturalist taxon found for TargetID [%s]", targetID)
 	}
 
 	if taxa[0].WikipediaSummary == "" {
@@ -44,10 +49,10 @@ func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]*D
 	}
 
 	if taxa[0].WikipediaURL == "" {
-		return nil, errors.Newf("Inaturalist Taxon [%s] has a WikipediaSummary but not a WikipediaURL", targetID)
+		return nil, errors.Newf("Inaturalist taxon [%s] has a WikipediaSummary but not a WikipediaURL", targetID)
 	}
 
-	t := DescriptionProvider(*taxa[0])
+	t := descriptionProvider(*taxa[0])
 
-	return []*DescriptionProvider{&t}, nil
+	return []*descriptionProvider{&t}, nil
 }

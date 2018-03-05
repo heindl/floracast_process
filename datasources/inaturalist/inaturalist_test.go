@@ -14,13 +14,13 @@ func TestInaturalistFetcher(t *testing.T) {
 	t.Parallel()
 
 	Convey("should fetch taxon_schemes", t, func() {
-		schemes, err := TaxonID(56830).FetchTaxonSchemes()
+		schemes, err := taxonID(56830).fetchTaxonSchemes()
 		So(err, ShouldBeNil)
 		So(len(schemes), ShouldEqual, 1)
 		So(schemes[0].TargetID, ShouldEqual, datasources.TargetID("2594601"))
 		So(schemes[0].SourceType, ShouldEqual, datasources.SourceType("27"))
 
-		schemes, err = TaxonID(96710).FetchTaxonSchemes()
+		schemes, err = taxonID(96710).fetchTaxonSchemes()
 		So(err, ShouldBeNil)
 		So(len(schemes), ShouldEqual, 3)
 		So(schemes[2].TargetID, ShouldEqual, datasources.TargetID("5184831"))

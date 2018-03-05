@@ -3,6 +3,7 @@ package grid
 import (
 	"bitbucket.org/heindl/process/terra/ecoregions"
 	"bitbucket.org/heindl/process/terra/ecoregions/cache"
+	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
@@ -12,57 +13,28 @@ import (
 )
 
 type Generator interface {
-	SubDivide(g *Bound, level int) (Bounds, error)
+	SubDivide(g *geo.Bound, level int) (geo.Bounds, error)
 }
 
 func NewGridGenerator() (Generator, error) {
 	return &generator{
-		grids: Bounds{},
+		grids: geo.Bounds{},
 	}, nil
 }
 
 type generator struct {
-	grids []*Bound
+	grids []*geo.Bound
 	sync.Mutex
 }
 
-var NorthAmerica = &Bound{
+var NorthAmerica = &geo.Bound{
 	North: 53.5555501,   // Edmonton, Alberta
 	West:  -137.8424302, // Glacier Bay
 	East:  -53.1078873,  // St. Johns, Newfoundland
 	South: 20.6737777,   // Guadalajara, Mexico
 }
 
-type Bound struct {
-	North, South, East, West float64
-}
-
-type Bounds []*Bound
-
-func (Ω Bounds) ToGeoJSON() ([]byte, error) {
-	if len(Ω) == 0 {
-		return nil, errors.New("At least one Bound is required for GeoJSON")
-	}
-
-	fc := geojson.NewFeatureCollection()
-	for _, b := range Ω {
-		f := geojson.NewPolygonFeature(append([][][]float64{}, [][]float64{
-			{b.West, b.North},
-			{b.East, b.North},
-			{b.East, b.South},
-			{b.West, b.South},
-			{b.West, b.North},
-		}))
-		fc = fc.AddFeature(f)
-	}
-	b, err := fc.MarshalJSON()
-	if err != nil {
-		return nil, errors.Wrap(err, "Could not marshal FeatureCollection")
-	}
-	return b, nil
-}
-
-func (Ω *generator) SubDivide(g *Bound, level int) (Bounds, error) {
+func (Ω *generator) SubDivide(g *geo.Bound, level int) (geo.Bounds, error) {
 
 	region := s2.Region(s2.RectFromLatLng(s2.LatLngFromDegrees(g.North, g.East)).AddPoint(s2.LatLngFromDegrees(g.South, g.West)))
 	regionCoverer := &s2.RegionCoverer{MaxLevel: level, MinLevel: level, MaxCells: 500}
@@ -120,7 +92,7 @@ func (Ω *generator) parseCell(cellID s2.CellID) error {
 		if ecoRegionTouches > 1 {
 			Ω.Lock()
 			defer Ω.Unlock()
-			Ω.grids = append(Ω.grids, &Bound{
+			Ω.grids = append(Ω.grids, &geo.Bound{
 				North: n,
 				South: s,
 				East:  e,

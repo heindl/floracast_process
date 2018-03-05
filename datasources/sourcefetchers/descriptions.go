@@ -8,7 +8,7 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
-// Description is a shared provider for a Taxon description
+// Description is a shared provider for a taxon description
 type Description interface {
 	Citation() (string, error)
 	Text() (string, error)

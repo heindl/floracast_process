@@ -6,7 +6,7 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
-type Photo struct {
+type photo struct {
 	OriginalURL        string        `json:"original_url"`
 	Flags              []interface{} `json:"flags"`
 	Type               string        `json:"type"`
@@ -23,35 +23,35 @@ type Photo struct {
 	LargeURL           string        `json:"large_url"`
 }
 
-func (p *Photo) Citation() string {
+func (p *photo) Citation() string {
 	return p.Attribution
 }
 
-func (p *Photo) Thumbnail() string {
+func (p *photo) Thumbnail() string {
 	return p.SmallURL
 }
 
-func (p *Photo) Large() string {
+func (p *photo) Large() string {
 	return p.LargeURL
 }
 
-func (p *Photo) Source() datasources.SourceType {
+func (p *photo) Source() datasources.SourceType {
 	return datasources.TypeINaturalist
 }
 
-func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*Photo, error) {
-	taxa, err := NewTaxaFetcher(ctx, false, false).FetchTaxa(TaxonIDFromTargetID(targetID))
+func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*photo, error) {
+	taxa, err := newTaxaFetcher(ctx, false, false).FetchTaxa(taxonIDFromTargetID(targetID))
 	if err != nil {
 		return nil, err
 	}
 	if len(taxa) == 0 {
-		return nil, errors.Newf("INaturalist Taxon [%s] not found", targetID)
+		return nil, errors.Newf("INaturalist taxon [%s] not found", targetID)
 	}
 	if len(taxa) > 1 {
-		return nil, errors.Newf("Multiple INaturalist Taxon found for TargetID [%s]", targetID)
+		return nil, errors.Newf("Multiple INaturalist taxon found for TargetID [%s]", targetID)
 	}
 
-	res := []*Photo{}
+	res := []*photo{}
 	for _, taxonPhoto := range taxa[0].TaxonPhotos {
 		res = append(res, &taxonPhoto.Photo)
 	}

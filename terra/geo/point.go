@@ -4,6 +4,7 @@ import (
 	"errors"
 	dropboxErrors "github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
+	"github.com/kellydunn/golang-geo"
 	pmgeo "github.com/paulmach/go.geo"
 	"math"
 )
@@ -108,8 +109,21 @@ func (Ω *Point) AsArray() []float64 {
 	return []float64{Ω.Longitude(), Ω.Latitude()}
 }
 
-func (Ω *Point) DistanceKilometers(np *Point) float64 {
+func (Ω *Point) MidPoint(np *Point) (*Point, error) {
+	p := geo.NewPoint(Ω.Latitude(), Ω.Longitude()).MidpointTo(geo.NewPoint(Ω.Latitude(), Ω.Longitude()))
+	return NewPoint(p.Lat(), p.Lng())
+}
+
+func (Ω *Point) DistanceMeters(np *Point) float64 {
 	p1 := pmgeo.NewPointFromLatLng(Ω.Latitude(), Ω.Longitude())
 	p2 := pmgeo.NewPointFromLatLng(np.Latitude(), np.Longitude())
-	return p1.GeoDistanceFrom(p2) / 1000.0
+	return p1.GeoDistanceFrom(p2)
+}
+
+func (Ω *Point) DistanceKilometers(np *Point) float64 {
+	dist := Ω.DistanceMeters(np)
+	if dist == 0 {
+		return 0
+	}
+	return dist / 1000.0
 }

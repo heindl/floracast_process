@@ -12,17 +12,17 @@ import (
 	"sync"
 )
 
-type TaxonScheme struct {
+type taxonScheme struct {
 	SourceType datasources.SourceType
 	TargetID   datasources.TargetID
 }
 
 var taxonSchemeRegex = regexp.MustCompile(`\(([^\)]+)\)`)
 
-func (Ω TaxonID) FetchTaxonSchemes() ([]*TaxonScheme, error) {
+func (Ω taxonID) fetchTaxonSchemes() ([]*taxonScheme, error) {
 
 	if !Ω.Valid() {
-		return nil, errors.Newf("Invalid TaxonID [%d]", Ω)
+		return nil, errors.Newf("Invalid taxonID [%d]", Ω)
 	}
 
 	url := fmt.Sprintf("http://www.inaturalist.org/taxa/%d/schemes", Ω)
@@ -38,7 +38,7 @@ func (Ω TaxonID) FetchTaxonSchemes() ([]*TaxonScheme, error) {
 	}
 
 	parser := schemePageParser{
-		schemes:      []*TaxonScheme{},
+		schemes:      []*taxonScheme{},
 		hrefSelector: "/taxon_schemes/",
 	}
 
@@ -58,7 +58,7 @@ func (Ω TaxonID) FetchTaxonSchemes() ([]*TaxonScheme, error) {
 
 type schemePageParser struct {
 	sync.Mutex
-	schemes      []*TaxonScheme
+	schemes      []*taxonScheme
 	hrefSelector string
 	error        error
 }
@@ -91,7 +91,7 @@ func (Ω *schemePageParser) parseHREF(i int, s *goquery.Selection) {
 
 	Ω.Lock()
 	defer Ω.Unlock()
-	Ω.schemes = append(Ω.schemes, &TaxonScheme{
+	Ω.schemes = append(Ω.schemes, &taxonScheme{
 		SourceType: srcType,
 		TargetID:   targetID,
 	})

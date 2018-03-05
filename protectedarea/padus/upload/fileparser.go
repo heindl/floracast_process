@@ -3,7 +3,9 @@ package main
 import (
 	"bitbucket.org/heindl/process/protectedarea"
 	"bitbucket.org/heindl/process/protectedarea/padus"
+	"bitbucket.org/heindl/process/terra/ecoregions"
 	"bitbucket.org/heindl/process/terra/geo"
+	"bitbucket.org/heindl/process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
 	"os"
@@ -48,6 +50,9 @@ func (Ω *walker) recursiveSearchParse(path string, f os.FileInfo, err error) er
 	if err != nil {
 		return err
 	}
+	if area == nil {
+		return nil
+	}
 
 	Ω.Lock()
 	defer Ω.Unlock()
@@ -76,6 +81,9 @@ func parseFeatureCollection(fc *geo.FeatureCollection) (protectedarea.ProtectedA
 	}
 
 	area, err := protectedarea.NewProtectedArea(polyLabel.Latitude(), polyLabel.Longitude(), areaMeters)
+	if utils.ContainsError(err, ecoregions.ErrNotFound) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
