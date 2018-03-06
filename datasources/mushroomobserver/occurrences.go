@@ -23,6 +23,11 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		return nil, errors.New("Invalid TargetID")
 	}
 
+	taxonID, err := targetID.ToInt()
+	if err != nil {
+		return nil, err
+	}
+
 	initRes := ObservationsResult{}
 	initURL := occurrenceURL(targetID, since, 1)
 	releaseOuterLmtr := fetchLmtr.Go()
@@ -32,7 +37,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 	}
 	releaseOuterLmtr()
 
-	observations := initRes.Results
+	res := initRes.Results
 
 	if initRes.NumberOfPages > 1 {
 		lock := sync.Mutex{}
@@ -48,9 +53,13 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 					if err := utils.RequestJSON(localURL, &localRes); err != nil {
 						return errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", localURL)
 					}
+					obs, err := filterObservations(taxonID, localRes.Results)
+					if err != nil {
+						return err
+					}
 					lock.Lock()
 					defer lock.Unlock()
-					observations = append(observations, localRes.Results...)
+					res = append(res, obs...)
 					return nil
 				})
 			}
@@ -61,16 +70,16 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		}
 	}
 
-	if len(observations) != initRes.NumberOfRecords {
-		return nil, errors.Newf("MushroomObserver fetched Observations [%d] are different than those expected [%d]", len(observations), initRes.NumberOfRecords)
-	}
+	//if len(res) != initRes.NumberOfRecords {
+	//	return nil, errors.Newf("MushroomObserver fetched Observations [%d] are different than those expected [%d]", len(res), initRes.NumberOfRecords)
+	//}
 
+	return res, nil
+}
+
+func filterObservations(taxonID int, given []*Observation) ([]*Observation, error) {
 	res := []*Observation{}
-	for _, observation := range observations {
-		taxonID, err := targetID.ToInt()
-		if err != nil {
-			return nil, err
-		}
+	for _, observation := range given {
 		// Should be covered in search, but just in case.
 		if observation.Consensus.ID != taxonID {
 			return nil, errors.Newf("WARNING: MushroomObserver consensus id [%d] does not equal TaxonID [%d] in query.", observation.Consensus.ID, taxonID)
@@ -82,7 +91,6 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		}
 		res = append(res, observation)
 	}
-
 	return res, nil
 }
 

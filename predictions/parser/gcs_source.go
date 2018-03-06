@@ -4,25 +4,24 @@ import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/utils"
-	"cloud.google.com/go/storage"
 	"context"
 	"github.com/dropbox/godropbox/errors"
-	"google.golang.org/api/iterator"
+	"gopkg.in/tomb.v2"
 	"path"
 	"sort"
 	"strings"
+	"sync"
 )
 
-func NewGCSPredictionSource(cxt context.Context, florastore store.FloraStore) (PredictionSource, error) {
-	gcsHandle, err := florastore.CloudStorageBucket()
-	if err != nil {
-		return nil, err
-	}
-	return &gcsSource{gcsBucketHandle: gcsHandle}, nil
+// NewGCSPredictionSource returns a source for fetching or loading predictions.
+func NewGCSPredictionSource(cxt context.Context, floraStore store.FloraStore) (PredictionSource, error) {
+
+	return &gcsSource{floraStore: floraStore}, nil
 }
 
 type gcsSource struct {
-	gcsBucketHandle *storage.BucketHandle
+	floraStore store.FloraStore
+	//gcsBucketHandle *storage.BucketHandle
 }
 
 func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id nameusage.ID, date string) ([]string, error) {
@@ -40,34 +39,26 @@ func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id name
 		prefix = path.Join(prefix, date)
 	}
 
-	q := &storage.Query{
-		Prefix: prefix,
+	gcsObjects, err := Ω.floraStore.CloudStorageObjects(cxt, prefix, ".csv")
+	if err != nil {
+		return nil, err
 	}
 
-	iter := Ω.gcsBucketHandle.Objects(cxt, q)
 	dateFiles := map[string][]string{}
 	objectNames := []string{}
-	for {
-		o, err := iter.Next()
-		if err != nil && err == iterator.Done {
-			break
-		}
+	for _, gcsObject := range gcsObjects {
+		attrs, err := gcsObject.Attrs(cxt)
 		if err != nil {
-			return nil, errors.Wrap(err, "error iterating over object names")
+			return nil, errors.Wrap(err, "Could not get GCS Object Attributes")
 		}
-
-		objectNames = append(objectNames, o.Name)
-
-		s := strings.Split(o.Name, "/")
-		// 0: predictions
-		// 1: taxon
-		// 2: date
-		// 3. filename
+		s := strings.Split(attrs.Name, "/")
+		// [0] predictions, [1] taxon, [2] date, [3] filename
 		if _, ok := dateFiles[s[2]]; !ok {
 			dateFiles[s[2]] = []string{}
 		}
 		dateFiles[s[2]] = append(dateFiles[s[2]], s[3])
 	}
+
 	response := []string{}
 	for d, l := range dateFiles {
 		sort.Strings(l)
@@ -82,18 +73,44 @@ func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id name
 	return response, nil
 }
 
-func (Ω *gcsSource) FetchPredictions(cxt context.Context, gcsFilePath string) (res []*PredictionResult, err error) {
+func (Ω *gcsSource) FetchPredictions(cxt context.Context, gcsFilePath string) ([]*PredictionResult, error) {
 
-	r, err := Ω.gcsBucketHandle.Object(gcsFilePath).NewReader(cxt)
+	gcsObjects, err := Ω.floraStore.CloudStorageObjects(cxt, gcsFilePath, "")
 	if err != nil {
-		return nil, errors.Wrapf(err, "could not get prediction object: %s", gcsFilePath)
-	}
-	defer utils.SafeClose(r, &err)
-
-	nameUsageID, err := parseNameUsageIDFromFilePath(gcsFilePath)
-	if !nameUsageID.Valid() {
-		return nil, errors.Newf("Invalid ID [%s] from FilePath", nameUsageID)
+		return nil, err
 	}
 
-	return parsePredictionReader(nameUsageID, r)
+	res := []*PredictionResult{}
+	lock := sync.Mutex{}
+
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _gcsObject := range gcsObjects {
+			gcsObject := _gcsObject
+			tmb.Go(func() (err error) {
+				r, err := gcsObject.NewReader(cxt)
+				if err != nil {
+					return err
+				}
+				defer utils.SafeClose(r, &err)
+				nameUsageID, err := parseNameUsageIDFromFilePath(gcsFilePath)
+				if !nameUsageID.Valid() {
+					return errors.Newf("Invalid ID [%s] from FilePath", nameUsageID)
+				}
+				newPredictions, err := parsePredictionReader(nameUsageID, r)
+				if err != nil {
+					return err
+				}
+				lock.Lock()
+				defer lock.Unlock()
+				res = append(res, newPredictions...)
+				return nil
+			})
+		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
+	}
+	return res, nil
 }

@@ -24,6 +24,15 @@ func StringContainsNoLetters(s string) bool {
 	return true
 }
 
+func HasSuffix(s string, suffixes ...string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(s, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
 // FormatTitle validates, escapes and capitalizes a title sentence, while lowercasing stop words.
 func FormatTitle(s string) (string, error) {
 

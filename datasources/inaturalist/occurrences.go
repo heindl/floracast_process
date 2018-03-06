@@ -129,7 +129,7 @@ func (Ω *occurrence) DateString() string {
 }
 func (Ω *occurrence) CoordinatesEstimated() bool {
 	// Rounded to 5 decimal place. Not what I expected.
-	// isEstimated := s.Issues.HasIssue(ogbif.OCCURRENCE_ISSUE_COORDINATE_ROUNDED)
+	// isEstimated := s.Issues.hasIssue(ogbif.OCCURRENCE_ISSUE_COORDINATE_ROUNDED)
 	return false
 }
 

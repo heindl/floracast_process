@@ -177,15 +177,15 @@ type TaxonCommonName struct {
 // For some species, great information about migration patterns.
 // https://services.natureserve.org/idd/rest/ns/v1.1/globalSpecies/comprehensive?NSAccessKeyId=b2374ab2-275c-48eb-b3c1-8f7afe9af5c4&uid=ELEMENT_GLOBAL.2.116078,ELEMENT_GLOBAL.2.121086,ELEMENT_GLOBAL.2.735443,ELEMENT_GLOBAL.2.735442,ELEMENT_GLOBAL.9.24619,ELEMENT_GLOBAL.9.24616,ELEMENT_GLOBAL.2.108328,ELEMENT_GLOBAL.2.114107,ELEMENT_GLOBAL.2.121010,ELEMENT_GLOBAL.2.107284,ELEMENT_GLOBAL.2.111490,ELEMENT_GLOBAL.2.108561,ELEMENT_GLOBAL.2.107412,ELEMENT_GLOBAL.2.115920,ELEMENT_GLOBAL.2.108251,ELEMENT_GLOBAL.2.116121,ELEMENT_GLOBAL.2.841062,ELEMENT_GLOBAL.2.841061,ELEMENT_GLOBAL.9.24619
 
-func parseGlobalSpecies(species *GlobalSpecies) (*Taxon, error) {
+func parseGlobalSpecies(spcs *GlobalSpecies) (*Taxon, error) {
 
-	if species.Classification == nil {
-		fmt.Println(fmt.Sprintf("Warning: Invalid/missing NatureServe species [%s]", species.Attruid))
+	if spcs.Classification == nil {
+		fmt.Println(fmt.Sprintf("Warning: Invalid/missing NatureServe species [%s]", spcs.Attruid))
 		return nil, nil
 	}
 
 	txn := Taxon{
-		ID: species.Attruid,
+		ID: spcs.Attruid,
 	}
 
 	//if species.Classification.Taxonomy != nil && species.Classification.Taxonomy.FormalTaxonomy != nil {
@@ -198,45 +198,53 @@ func parseGlobalSpecies(species *GlobalSpecies) (*Taxon, error) {
 	//	txn.Genus = ft.Genus.Text
 	//}
 
-	if species.Classification.Names != nil {
-
-		names := species.Classification.Names
-
-		if sn := parseXMLScientificName(names.ScientificName); sn != nil {
-			txn.ScientificName = sn
-		}
-
-		if names.Synonyms != nil && len(names.Synonyms.SynonymName) > 0 {
-			txn.Synonyms = []*TaxonScientificName{}
-			for _, synonym := range names.Synonyms.SynonymName {
-				if sn := parseXMLSynonymName(synonym); sn != nil {
-					txn.Synonyms = append(txn.Synonyms, sn)
-				}
-			}
-		}
-
-		txn.CommonNames = []*TaxonCommonName{}
-
-		if names.NatureServePrimaryGlobalCommonName != nil {
-			txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
-				IsPrimary: true,
-				Name:      names.NatureServePrimaryGlobalCommonName.Text,
-			})
-		}
-
-		if names.OtherGlobalCommonNames != nil && len(names.OtherGlobalCommonNames.CommonName) > 0 {
-			for _, cn := range names.OtherGlobalCommonNames.CommonName {
-				txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
-					IsPrimary:    false,
-					Name:         cn.Text,
-					LanguageCode: cn.Attrlanguage,
-				})
-			}
-		}
+	if err := setNames(spcs, &txn); err != nil {
+		return nil, err
 	}
 
 	return &txn, nil
 
+}
+
+func setNames(species *GlobalSpecies, txn *Taxon) error {
+	if species.Classification.Names != nil {
+		return nil
+	}
+
+	names := species.Classification.Names
+
+	if sn := parseXMLScientificName(names.ScientificName); sn != nil {
+		txn.ScientificName = sn
+	}
+
+	if names.Synonyms != nil && len(names.Synonyms.SynonymName) > 0 {
+		txn.Synonyms = []*TaxonScientificName{}
+		for _, synonym := range names.Synonyms.SynonymName {
+			if sn := parseXMLSynonymName(synonym); sn != nil {
+				txn.Synonyms = append(txn.Synonyms, sn)
+			}
+		}
+	}
+
+	txn.CommonNames = []*TaxonCommonName{}
+
+	if names.NatureServePrimaryGlobalCommonName != nil {
+		txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
+			IsPrimary: true,
+			Name:      names.NatureServePrimaryGlobalCommonName.Text,
+		})
+	}
+
+	if names.OtherGlobalCommonNames != nil && len(names.OtherGlobalCommonNames.CommonName) > 0 {
+		for _, cn := range names.OtherGlobalCommonNames.CommonName {
+			txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
+				IsPrimary:    false,
+				Name:         cn.Text,
+				LanguageCode: cn.Attrlanguage,
+			})
+		}
+	}
+	return nil
 }
 
 // Dumb that these are exactly the same but I have to move on.

@@ -1,11 +1,13 @@
 package store
 
 import (
+	"bitbucket.org/heindl/process/utils"
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/storage"
 	"context"
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"
+	"google.golang.org/api/iterator"
 	"strings"
 )
 
@@ -15,7 +17,8 @@ type FloraStore interface {
 	FirestoreBatch() *firestore.WriteBatch
 	FirestoreTransaction(ctx context.Context, fn FirestoreTransactionFunc) error
 	AlgoliaIndex(indexFunc AlgoliaIndexFunc) (AlgoliaIndex, error)
-	CloudStorageBucket() (*storage.BucketHandle, error)
+	//CloudStorageBucket() (*storage.BucketHandle, error)
+	CloudStorageObjects(ctx context.Context, pathname string, requiredSuffixes ...string) ([]*storage.ObjectHandle, error)
 	Close() error
 }
 
@@ -134,9 +137,45 @@ func (Ω *store) AlgoliaIndex(æ AlgoliaIndexFunc) (AlgoliaIndex, error) {
 	return æ(Ω.algoliaClient, Ω.isTest)
 }
 
-func (Ω *store) CloudStorageBucket() (*storage.BucketHandle, error) {
-	return Ω.gcsBucketHandle, nil
+// ".tfrecord.gz"
+func (Ω *store) CloudStorageObjects(ctx context.Context, pathname string, requiredSuffixes ...string) ([]*storage.ObjectHandle, error) {
+
+	pathname = strings.TrimSpace(pathname)
+	if strings.HasPrefix(pathname, "gs://") {
+		pathname = strings.TrimPrefix(pathname, "gs://")
+		l := strings.Split(pathname, "/")
+		pathname = strings.Join(l[1:], "/")
+	}
+
+	if len(requiredSuffixes) > 0 && utils.HasSuffix(pathname, requiredSuffixes...) {
+		return []*storage.ObjectHandle{Ω.gcsBucketHandle.Object(pathname)}, nil
+	}
+
+	iter := Ω.gcsBucketHandle.Objects(ctx, &storage.Query{
+		Prefix: pathname,
+	})
+
+	gcsObjects := []*storage.ObjectHandle{}
+
+	for {
+		o, err := iter.Next()
+		if err != nil && err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, errors.Wrap(err, "Could not iterate over object names")
+		}
+		if len(requiredSuffixes) == 0 || utils.HasSuffix(o.Name, requiredSuffixes...) {
+			gcsObjects = append(gcsObjects, Ω.gcsBucketHandle.Object(o.Name))
+		}
+	}
+
+	return gcsObjects, nil
 }
+
+//func (Ω *store) CloudStorageBucket() (*storage.BucketHandle, error) {
+//	return Ω.gcsBucketHandle, nil
+//}
 
 func (Ω *store) CountTestCollection(ctx context.Context, col *firestore.CollectionRef) (int, error) {
 	if !strings.Contains(strings.ToLower(col.ID), "test") {

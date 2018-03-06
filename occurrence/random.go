@@ -10,10 +10,16 @@ import (
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/terra/ecoregions"
 	"bitbucket.org/heindl/process/terra/ecoregions/cache"
+	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/terra/grid"
 	"bitbucket.org/heindl/process/utils"
+	"fmt"
 	"gopkg.in/tomb.v2"
 )
+
+// maxGenerationAttemps is the max number of times to try to generate a random occurrence.
+// A safeguard against cases in which a grid does not contain an EcoRegion.
+const maxGenerationAttempts = 20
 
 // Season is an object to handle Season based date calculations.
 type Season struct {
@@ -78,6 +84,7 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 	if err != nil {
 		panic(err)
 	}
+	batchSize := len(bounds) * 4
 
 	recordNumberCounter := 1
 
@@ -94,7 +101,7 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 						recordNumber := recordNumberCounter
 						recordNumberCounter++
 						gen.Unlock()
-						return gen.generateRandomOccurrence(batch, recordNumber, bound, season)
+						return gen.generateRandomOccurrence(batch, recordNumber, batchSize, bound, season)
 					})
 				}
 			}
@@ -108,13 +115,19 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 	return gen.occurrenceAggregator, nil
 }
 
-func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber int, bounds grid.Bound, season Season) error {
+func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber, batchSize int, bounds geo.Bound, season Season) error {
 
 	timeDelta := season.Max - season.Min
 	xDelta := int(math.Ceil(bounds.East) - math.Ceil(bounds.West))
 	yDelta := int(math.Ceil(bounds.North) - math.Ceil(bounds.South))
 
+	attempts := 0
+
 	for {
+		attempts++
+		if attempts > maxGenerationAttempts {
+			return nil
+		}
 		//rand.Seed(time.Now().Unix())
 
 		seconds := rand.Int63n(timeDelta) + season.Min
@@ -131,7 +144,11 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 			return err
 		}
 
-		o, err := NewOccurrence(datasources.TypeRandom, datasources.TargetID(strconv.Itoa(batch)), strconv.Itoa(recordNumber))
+		// Including all of this information so that the transform function can infer the size of the batch,
+		// to correctly balance against taxon occurrence count.
+		occurrenceID := fmt.Sprintf("%d-%d", recordNumber, batchSize)
+
+		o, err := NewOccurrence(datasources.TypeRandom, datasources.TargetID(strconv.Itoa(batch)), occurrenceID)
 		if err != nil {
 			return err
 		}

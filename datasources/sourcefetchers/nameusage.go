@@ -14,7 +14,7 @@ import (
 func FetchNameUsages(ctx context.Context, sourceType datasources.SourceType, scientificNames []string, targetIDs datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 	switch sourceType {
 	case datasources.TypeGBIF:
-		return gbif.FetchNamesUsages(ctx, scientificNames, targetIDs)
+		return gbif.FetchNameUsages(ctx, scientificNames, targetIDs)
 	case datasources.TypeINaturalist:
 		return inaturalist.FetchNameUsages(ctx, scientificNames, targetIDs)
 	case datasources.TypeNatureServe:

@@ -1,4 +1,4 @@
-package api
+package gbif
 
 import (
 	"errors"
@@ -12,12 +12,12 @@ import (
 	"gopkg.in/tomb.v2"
 )
 
-type MatchResult struct {
-	Alternatives []NameUsage `json:"alternatives"`
-	NameUsage
+type matchResult struct {
+	Alternatives []nameUsage `json:"alternatives"`
+	nameUsage
 }
 
-type MatchQuery struct {
+type matchQuery struct {
 	// Optional class classification accepting a canonical name.
 	Class string
 	// Optional family classification accepting a canonical name.
@@ -32,7 +32,7 @@ type MatchQuery struct {
 	Order string
 	// Optional phylum classification accepting a canonical name.
 	Phylum string
-	// Filters by taxonomic rank as given in our Rank enum
+	// Filters by taxonomic rank as given in our rank enum
 	Rank string
 	// If true it (fuzzy) matches only the given name, but never a taxon in the upper classification
 	Strict bool
@@ -40,7 +40,7 @@ type MatchQuery struct {
 	Verbose bool
 }
 
-func (q MatchQuery) url() string {
+func (q matchQuery) url() string {
 
 	u := fmt.Sprintf("http://api.gbif.org/v1/species/match?verbose=%v&strict=%v", q.Verbose, q.Strict)
 
@@ -82,142 +82,14 @@ func (q MatchQuery) url() string {
 // Fuzzy matches scientific names against the GBIF Backbone Taxonomy with the optional classification provided.
 // If a classification is provided and strict is not set to true,
 // the default matching will also try to match against these if no direct match is found for the name parameter alone.
-func Match(q MatchQuery) (response MatchResult, err error) {
+func match(q matchQuery) (response matchResult, err error) {
 	if err := utils.RequestJSON(q.url(), &response); err != nil {
-		return MatchResult{}, err
+		return matchResult{}, err
 	}
 	return
 }
 
-type TaxonomicStatus string
-
-type TaxonomicStatuses []TaxonomicStatus
-
-func (Ω TaxonomicStatuses) Contains(b TaxonomicStatus) bool {
-	for _, status := range Ω {
-		if status == b {
-			return true
-		}
-	}
-	return false
-}
-
-const (
-	TaxonomicStatusACCEPTED            = TaxonomicStatus("ACCEPTED")
-	TaxonomicStatusDOUBTFUL            = TaxonomicStatus("DOUBTFUL")
-	TaxonomicStatusHETEROTYPIC_SYNONYM = TaxonomicStatus("HETEROTYPIC_SYNONYM")
-	TaxonomicStatusHOMOTYPIC_SYNONYM   = TaxonomicStatus("HOMOTYPIC_SYNONYM")
-	TaxonomicStatusMISAPPLIED          = TaxonomicStatus("MISAPPLIED")
-	TaxonomicStatusPROPARTE_SYNONYM    = TaxonomicStatus("PROPARTE_SYNONYM")
-	TaxonomicStatusSYNONYM             = TaxonomicStatus("SYNONYM")
-)
-
-type Rank string
-
-const (
-	RankABERRATION = Rank("ABERRATION")
-	// Zoological legacy rank
-	RankBIOVAR = Rank("BIOVAR")
-	// Microbial rank based on biochemical or physiological properties.
-	RankCHEMOFORM = Rank("CHEMOFORM")
-	// Microbial infrasubspecific rank based on chemical constitution.
-	RankCHEMOVAR = Rank("CHEMOVAR")
-	// Microbial rank based on production or amount of production of a particular chemical.
-	RankCLASS  = Rank("CLASS")
-	RankCOHORT = Rank("COHORT")
-	// Sometimes used in zoology, e.g.
-	RankCONVARIETY = Rank("CONVARIETY")
-	// A group of cultivars.
-	RankCULTIVAR       = Rank("CULTIVAR")
-	RankCULTIVAR_GROUP = Rank("CULTIVAR_GROUP")
-	// Rank in use from the code for cultivated plants.
-	RankDOMAIN          = Rank("DOMAIN")
-	RankFAMILY          = Rank("FAMILY")
-	RankFORM            = Rank("FORM")
-	RankFORMA_SPECIALIS = Rank("FORMA_SPECIALIS")
-	// Microbial infrasubspecific rank.
-	RankGENUS      = Rank("GENUS")
-	RankGRANDORDER = Rank("GRANDORDER")
-	RankGREX       = Rank("GREX")
-	// The term grex has been coined to expand botanical nomenclature to describe hybrids of orchids.
-	RankINFRACLASS        = Rank("INFRACLASS")
-	RankINFRACOHORT       = Rank("INFRACOHORT")
-	RankINFRAFAMILY       = Rank("INFRAFAMILY")
-	RankINFRAGENERIC_NAME = Rank("INFRAGENERIC_NAME")
-	// used for any other unspecific rank below genera and above species.
-	RankINFRAGENUS         = Rank("INFRAGENUS")
-	RankINFRAKINGDOM       = Rank("INFRAKINGDOM")
-	RankINFRALEGION        = Rank("INFRALEGION")
-	RankINFRAORDER         = Rank("INFRAORDER")
-	RankINFRAPHYLUM        = Rank("INFRAPHYLUM")
-	RankINFRASPECIFIC_NAME = Rank("INFRASPECIFIC_NAME")
-	// used for any other unspecific rank below species.
-	RankINFRASUBSPECIFIC_NAME = Rank("INFRASUBSPECIFIC_NAME")
-	// used also for any other unspecific rank below subspecies.
-	RankINFRATRIBE = Rank("INFRATRIBE")
-	RankKINGDOM    = Rank("KINGDOM")
-	RankLEGION     = Rank("LEGION")
-	// Sometimes used in zoology, e.g.
-	RankMAGNORDER = Rank("MAGNORDER")
-	RankMORPH     = Rank("MORPH")
-	// Zoological legacy rank
-	RankMORPHOVAR = Rank("MORPHOVAR")
-	// Microbial rank based on morphological characterislics.
-	RankNATIO = Rank("NATIO")
-	// Zoological legacy rank
-	RankORDER = Rank("ORDER")
-	RankOTHER = Rank("OTHER")
-	// Any other rank we cannot map to this enumeration
-	RankPARVCLASS = Rank("PARVCLASS")
-	RankPARVORDER = Rank("PARVORDER")
-	RankPATHOVAR  = Rank("PATHOVAR")
-	// Microbial rank based on pathogenic reactions in one or more hosts.
-	RankPHAGOVAR = Rank("PHAGOVAR")
-	// Microbial infrasubspecific rank based on reactions to bacteriophage.
-	RankPHYLUM = Rank("PHYLUM")
-	RankPROLES = Rank("PROLES")
-	// Botanical legacy rank
-	RankRACE = Rank("RACE")
-	// Botanical legacy rank
-	RankSECTION = Rank("SECTION")
-	RankSERIES  = Rank("SERIES")
-	RankSEROVAR = Rank("SEROVAR")
-	// Microbial infrasubspecific rank based on antigenic characteristics.
-	RankSPECIES           = Rank("SPECIES")
-	RankSPECIES_AGGREGATE = Rank("SPECIES_AGGREGATE")
-	// A loosely defined group of species.
-	RankSTRAIN = Rank("STRAIN")
-	// A microbial strain.
-	RankSUBCLASS          = Rank("SUBCLASS")
-	RankSUBCOHORT         = Rank("SUBCOHORT")
-	RankSUBFAMILY         = Rank("SUBFAMILY")
-	RankSUBFORM           = Rank("SUBFORM")
-	RankSUBGENUS          = Rank("SUBGENUS")
-	RankSUBKINGDOM        = Rank("SUBKINGDOM")
-	RankSUBLEGION         = Rank("SUBLEGION")
-	RankSUBORDER          = Rank("SUBORDER")
-	RankSUBPHYLUM         = Rank("SUBPHYLUM")
-	RankSUBSECTION        = Rank("SUBSECTION")
-	RankSUBSERIES         = Rank("SUBSERIES")
-	RankSUBSPECIES        = Rank("SUBSPECIES")
-	RankSUBTRIBE          = Rank("SUBTRIBE")
-	RankSUBVARIETY        = Rank("SUBVARIETY")
-	RankSUPERCLASS        = Rank("SUPERCLASS")
-	RankSUPERCOHORT       = Rank("SUPERCOHORT")
-	RankSUPERFAMILY       = Rank("SUPERFAMILY")
-	RankSUPERKINGDOM      = Rank("SUPERKINGDOM")
-	RankSUPERLEGION       = Rank("SUPERLEGION")
-	RankSUPERORDER        = Rank("SUPERORDER")
-	RankSUPERPHYLUM       = Rank("SUPERPHYLUM")
-	RankSUPERTRIBE        = Rank("SUPERTRIBE")
-	RankSUPRAGENERIC_NAME = Rank("SUPRAGENERIC_NAME")
-	// Used for any other unspecific rank above genera.
-	RankTRIBE    = Rank("TRIBE")
-	RankUNRANKED = Rank("UNRANKED")
-	RankVARIETY  = Rank("VARIETY")
-)
-
-type SearchQuery struct {
+type searchQuery struct {
 	// Filters by the checklist dataset key (a uuid)
 	DatasetKey int `json:"datasetKey"`
 	// A list of facet names used to retrieve the 100 most frequent values for a field.
@@ -252,16 +124,16 @@ type SearchQuery struct {
 	// Simple full text search parameter. The value for this parameter can be a simple
 	// word or a phrase. Wildcards are not supported.
 	Q string
-	// 	Filters by taxonomic rank as given in our Rank enum
-	Rank []Rank `json:"rank"`
-	// Filters by the taxonomic status as given in our TaxonomicStatus enum
-	Status []TaxonomicStatus `json:"status"`
+	// 	Filters by taxonomic rank as given in our rank enum
+	Rank []rank `json:"rank"`
+	// Filters by the taxonomic status as given in our taxonomicStatus enum
+	//Status []taxonomicStatus `json:"status"`
 	// The maximum number of results to return. This can't be greater than 300, any
 	// value greater is set to 300.
 	Limit int
 }
 
-func (q SearchQuery) url(offset int) string {
+func (q searchQuery) url(offset int) string {
 
 	if q.Limit == 0 {
 		q.Limit = 300
@@ -299,21 +171,21 @@ func (q SearchQuery) url(offset int) string {
 		}
 	}
 
-	for _, s := range q.Status {
-		if string(s) != "" {
-			filtered = append(filtered, fmt.Sprintf("status=%s", s))
-		}
-	}
+	//for _, s := range q.Status {
+	//	if string(s) != "" {
+	//		filtered = append(filtered, fmt.Sprintf("status=%s", s))
+	//	}
+	//}
 
 	return u + "&" + strings.Join(filtered, "&")
 }
 
 type searchResponse struct {
 	page
-	Results []NameUsage `json:"results"`
+	Results []nameUsage `json:"results"`
 }
 
-func Search(q SearchQuery) (names []NameUsage, err error) {
+func search(q searchQuery) (names []nameUsage, err error) {
 
 	if q.Q == "" {
 		return nil, errors.New("a query value is required to search")

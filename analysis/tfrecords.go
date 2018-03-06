@@ -7,14 +7,13 @@ import (
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/heindl/tfutils"
-	"google.golang.org/api/iterator"
 	"io"
 	"strings"
 )
 
 func countTFRecordsInCloudStoragePath(ctx context.Context, floraStore store.FloraStore, gcsFilePath string) (int, error) {
 
-	gcsObjects, err := listGCSObjects(ctx, floraStore, gcsFilePath)
+	gcsObjects, err := floraStore.CloudStorageObjects(ctx, gcsFilePath, ".tfrecord.gz")
 	if err != nil {
 		return 0, err
 	}
@@ -71,45 +70,4 @@ func countRecordObject(ctx context.Context, gcsObject *storage.ObjectHandle) (in
 		sum++
 	}
 	return sum, nil
-
-}
-
-func listGCSObjects(cxt context.Context, floraStore store.FloraStore, f string) ([]*storage.ObjectHandle, error) {
-
-	gcsHandle, err := floraStore.CloudStorageBucket()
-	if err != nil {
-		return nil, err
-	}
-
-	f = strings.TrimSpace(f)
-	if strings.HasPrefix(f, "gs://") {
-		f = strings.TrimPrefix(f, "gs://")
-		l := strings.Split(f, "/")
-		f = strings.Join(l[1:], "/")
-	}
-
-	if strings.HasSuffix(f, ".tfrecord.gz") {
-		return []*storage.ObjectHandle{gcsHandle.Object(f)}, nil
-	}
-
-	iter := gcsHandle.Objects(cxt, &storage.Query{
-		Prefix: f,
-	})
-
-	gcsObjects := []*storage.ObjectHandle{}
-
-	for {
-		o, err := iter.Next()
-		if err != nil && err == iterator.Done {
-			break
-		}
-		if err != nil {
-			return nil, errors.Wrap(err, "Could not iterate over object names")
-		}
-		if strings.HasSuffix(o.Name, ".tfrecord.gz") {
-			gcsObjects = append(gcsObjects, gcsHandle.Object(o.Name))
-		}
-	}
-
-	return gcsObjects, nil
 }

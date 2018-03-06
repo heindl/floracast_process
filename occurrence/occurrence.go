@@ -64,37 +64,6 @@ func (Ω *record) Collection(florastore store.FloraStore) (*firestore.Collection
 func (Ω *record) MarshalJSON() ([]byte, error) {
 	o := *Ω
 	return json.Marshal(o)
-
-	//gb, err := json.Marshal(o.GeoFeatureSet)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//gm := map[string]interface{}{}
-	//if err := json.Unmarshal(gb, &gm); err != nil {
-	//	return nil, err
-	//}
-	//
-	//o.GeoFeatureSet = nil
-	//
-	//ob, err := json.Marshal(o)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//om := map[string]interface{}{}
-	//if err := json.Unmarshal(ob, &om); err != nil {
-	//	return nil, err
-	//}
-	//
-	//for k, v := range gm {
-	//	if _, ok := om[k]; ok {
-	//		return nil, errors.Newf("Occurrence field [%s] collides with GeoFeatures field", k)
-	//	}
-	//	om[k] = v
-	//}
-	//
-	//return json.Marshal(om)
 }
 
 func (Ω *record) Coordinates() (lat, lng float64, err error) {

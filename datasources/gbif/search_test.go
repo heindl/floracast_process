@@ -1,4 +1,4 @@
-package api
+package gbif
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,7 +10,7 @@ func TestSearch(t *testing.T) {
 	t.Parallel()
 
 	Convey("should provide expected match results", t, func() {
-		r, err := Match(MatchQuery{
+		r, err := match(matchQuery{
 			Verbose: true,
 			Kingdom: "Plantae",
 			Name:    "Oenante",
@@ -24,12 +24,12 @@ func TestSearch(t *testing.T) {
 
 	Convey("should provide expected search results", t, func() {
 
-		r, err := Search(SearchQuery{
+		r, err := search(searchQuery{
 			Q:    "Puma",
-			Rank: []Rank{RankGENUS},
+			Rank: []rank{rankGenus},
 		})
 		So(err, ShouldBeNil)
-		So(len(r), ShouldEqual, 47)
+		So(len(r), ShouldEqual, 4)
 		So(r[0].DatasetKey, ShouldEqual, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c")
 		So(r[0].ScientificName, ShouldEqual, "Puma Jardine, 1834")
 
