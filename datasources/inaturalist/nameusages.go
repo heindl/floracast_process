@@ -57,7 +57,7 @@ func parseNameUsage(txn *taxon) (nameusage.NameUsage, error) {
 	}
 
 	if txn.PreferredCommonName != "" {
-		if err := src.AddCommonNames(txn.PreferredCommonName); err != nil {
+		if err = src.AddCommonNames(txn.PreferredCommonName); err != nil {
 			return nil, err
 		}
 	}

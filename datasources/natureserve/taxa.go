@@ -4,7 +4,6 @@ import (
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"fmt"
-	"github.com/dropbox/godropbox/errors"
 	"github.com/kennygrant/sanitize"
 	"gopkg.in/tomb.v2"
 	url2 "net/url"
@@ -21,10 +20,10 @@ func init() {
 	}
 }
 
-func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error) {
+func fetchTaxaFromSearch(cxt context.Context, names ...string) ([]*taxon, error) {
 
 	locker := sync.Mutex{}
-	taxa := []*Taxon{}
+	taxa := []*taxon{}
 
 	limit := utils.NewLimiter(100)
 
@@ -35,13 +34,13 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 			tmb.Go(func() error {
 				done := limit.Go()
 				defer done()
-				local_taxa, err := searchName(cxt, name)
+				localTaxa, err := searchName(cxt, name)
 				if err != nil {
 					return err
 				}
 				locker.Lock()
 				defer locker.Unlock()
-				taxa = append(taxa, local_taxa...)
+				taxa = append(taxa, localTaxa...)
 				return nil
 			})
 		}
@@ -55,7 +54,7 @@ func FetchTaxaFromSearch(cxt context.Context, names ...string) ([]*Taxon, error)
 	return taxa, nil
 }
 
-func searchName(cxt context.Context, name string) ([]*Taxon, error) {
+func searchName(cxt context.Context, name string) ([]*taxon, error) {
 
 	url := fmt.Sprintf(
 		"https://services.natureserve.org/idd/rest/ns/v1/globalSpecies/list/nameSearch?NSAccessKeyId=%s&name=%s",
@@ -63,7 +62,7 @@ func searchName(cxt context.Context, name string) ([]*Taxon, error) {
 		url2.QueryEscape(name),
 	)
 
-	searchResults := SpeciesSearchReport{}
+	searchResults := speciesSearchReport{}
 	if err := utils.RequestXML(url, &searchResults); err != nil {
 		return nil, err
 	}
@@ -75,7 +74,7 @@ func searchName(cxt context.Context, name string) ([]*Taxon, error) {
 	uids := []string{}
 
 	for _, sr := range searchResults.SpeciesSearchResultList.SpeciesSearchResult {
-		uids = append(uids, sr.GlobalSpeciesUid.Text)
+		uids = append(uids, sr.GlobalSpeciesUID.Text)
 	}
 
 	uids = utils.RemoveStringDuplicates(uids)
@@ -84,23 +83,23 @@ func searchName(cxt context.Context, name string) ([]*Taxon, error) {
 		return nil, nil
 	}
 
-	return FetchTaxaWithUID(cxt, uids...)
+	return fetchTaxaWithUID(cxt, uids...)
 
 }
 
-func FetchTaxonWithUID(cxt context.Context, uid string, referencedCanonicalName string) (*Taxon, error) {
-	taxa, err := FetchTaxaWithUID(cxt, uid)
-	if err != nil {
-		return nil, err
-	}
-	txn := taxa[0]
-	if !utils.ContainsString(txn.ScientificNameStrings(), referencedCanonicalName) {
-		return nil, errors.Newf("Expected nature serve taxon [%s] to contain reference canonical name [%s]", uid, referencedCanonicalName)
-	}
-	return txn, nil
-}
+//func FetchTaxonWithUID(cxt context.Context, uid string, referencedCanonicalName string) (*taxon, error) {
+//	taxa, err := fetchTaxaWithUID(cxt, uid)
+//	if err != nil {
+//		return nil, err
+//	}
+//	txn := taxa[0]
+//	if !utils.ContainsString(txn.ScientificNameStrings(), referencedCanonicalName) {
+//		return nil, errors.Newf("Expected nature serve taxon [%s] to contain reference canonical name [%s]", uid, referencedCanonicalName)
+//	}
+//	return txn, nil
+//}
 
-func FetchTaxaWithUID(cxt context.Context, uids ...string) ([]*Taxon, error) {
+func fetchTaxaWithUID(_ context.Context, uids ...string) ([]*taxon, error) {
 
 	if len(uids) == 0 {
 		return nil, nil
@@ -112,12 +111,12 @@ func FetchTaxaWithUID(cxt context.Context, uids ...string) ([]*Taxon, error) {
 		strings.Join(uids, ","),
 	)
 
-	speciesList := GlobalSpeciesList{}
+	speciesList := globalSpeciesList{}
 	if err := utils.RequestXML(url, &speciesList); err != nil {
 		return nil, err
 	}
 
-	taxa := []*Taxon{}
+	taxa := []*taxon{}
 
 	for _, globalSpecies := range speciesList.GlobalSpecies {
 		txn, err := parseGlobalSpecies(globalSpecies)
@@ -133,20 +132,20 @@ func FetchTaxaWithUID(cxt context.Context, uids ...string) ([]*Taxon, error) {
 
 }
 
-type Taxon struct {
-	//Kingdom string `json:",omitempty"`
-	//Phylum string `json:",omitempty"`
-	//Class string `json:",omitempty"`
-	//Order string `json:",omitempty"`
-	//Family string `json:",omitempty"`
-	//Genus string `json:",omitempty"`
+type taxon struct {
+	//kingdom string `json:",omitempty"`
+	//phylum string `json:",omitempty"`
+	//class string `json:",omitempty"`
+	//order string `json:",omitempty"`
+	//family string `json:",omitempty"`
+	//genus string `json:",omitempty"`
 	ID             string                 `json:",omitempty"`
-	ScientificName *TaxonScientificName   `json:",omitempty"`
-	Synonyms       []*TaxonScientificName `json:",omitempty"`
-	CommonNames    []*TaxonCommonName     `json:",omitempty"`
+	ScientificName *taxonScientificName   `json:",omitempty"`
+	Synonyms       []*taxonScientificName `json:",omitempty"`
+	CommonNames    []*taxonCommonName     `json:",omitempty"`
 }
 
-func (Ω *Taxon) ScientificNameStrings() []string {
+func (Ω *taxon) ScientificNameStrings() []string {
 	res := []string{strings.ToLower(Ω.ScientificName.Name)}
 	for _, synonym := range Ω.Synonyms {
 		res = append(res, strings.ToLower(synonym.Name))
@@ -154,9 +153,9 @@ func (Ω *Taxon) ScientificNameStrings() []string {
 	return res
 }
 
-// TODO: Convert CommonName to struct with language field.
+// TODO: Convert commonName to struct with language field.
 
-type TaxonScientificName struct {
+type taxonScientificName struct {
 	Name                                 string `json:",omitempty"`
 	Author                               string `json:",omitempty"`
 	ConceptReferenceCode                 string `json:",omitempty"`
@@ -165,37 +164,37 @@ type TaxonScientificName struct {
 	ConceptReferenceClassificationStatus string `json:",omitempty"`
 }
 
-type TaxonCommonName struct {
+type taxonCommonName struct {
 	LanguageCode string `json:",omitempty"`
 	IsPrimary    bool   `json:",omitempty"`
 	Name         string `json:",omitempty"`
 }
 
-// TODO: Really dig more into various available information. InformalTaxonomy is useful for choosing broad categories
+// TODO: Really dig more into various available information. informalTaxonomy is useful for choosing broad categories
 // that can be filterable by the user.
 // TODO: Dig more into the conservation status. Very good for specifying how careful to be with each species.
 // For some species, great information about migration patterns.
 // https://services.natureserve.org/idd/rest/ns/v1.1/globalSpecies/comprehensive?NSAccessKeyId=b2374ab2-275c-48eb-b3c1-8f7afe9af5c4&uid=ELEMENT_GLOBAL.2.116078,ELEMENT_GLOBAL.2.121086,ELEMENT_GLOBAL.2.735443,ELEMENT_GLOBAL.2.735442,ELEMENT_GLOBAL.9.24619,ELEMENT_GLOBAL.9.24616,ELEMENT_GLOBAL.2.108328,ELEMENT_GLOBAL.2.114107,ELEMENT_GLOBAL.2.121010,ELEMENT_GLOBAL.2.107284,ELEMENT_GLOBAL.2.111490,ELEMENT_GLOBAL.2.108561,ELEMENT_GLOBAL.2.107412,ELEMENT_GLOBAL.2.115920,ELEMENT_GLOBAL.2.108251,ELEMENT_GLOBAL.2.116121,ELEMENT_GLOBAL.2.841062,ELEMENT_GLOBAL.2.841061,ELEMENT_GLOBAL.9.24619
 
-func parseGlobalSpecies(spcs *GlobalSpecies) (*Taxon, error) {
+func parseGlobalSpecies(spcs *globalSpecies) (*taxon, error) {
 
 	if spcs.Classification == nil {
 		fmt.Println(fmt.Sprintf("Warning: Invalid/missing NatureServe species [%s]", spcs.Attruid))
 		return nil, nil
 	}
 
-	txn := Taxon{
+	txn := taxon{
 		ID: spcs.Attruid,
 	}
 
-	//if species.Classification.Taxonomy != nil && species.Classification.Taxonomy.FormalTaxonomy != nil {
-	//	ft := species.Classification.Taxonomy.FormalTaxonomy
-	//	txn.Kingdom = ft.Kingdom.Text
-	//	txn.Phylum = ft.Phylum.Text
-	//	txn.Class = ft.Class.Text
-	//	txn.Order = ft.Order.Text
-	//	txn.Family = ft.Family.Text
-	//	txn.Genus = ft.Genus.Text
+	//if species.classification.taxonomy != nil && species.classification.taxonomy.formalTaxonomy != nil {
+	//	ft := species.classification.taxonomy.formalTaxonomy
+	//	txn.kingdom = ft.kingdom.Text
+	//	txn.phylum = ft.phylum.Text
+	//	txn.class = ft.class.Text
+	//	txn.order = ft.order.Text
+	//	txn.family = ft.family.Text
+	//	txn.genus = ft.genus.Text
 	//}
 
 	if err := setNames(spcs, &txn); err != nil {
@@ -206,30 +205,31 @@ func parseGlobalSpecies(spcs *GlobalSpecies) (*Taxon, error) {
 
 }
 
-func setNames(species *GlobalSpecies, txn *Taxon) error {
-	if species.Classification.Names != nil {
+func setNames(species *globalSpecies, txn *taxon) (err error) {
+	if species.Classification == nil || species.Classification.Names == nil {
 		return nil
 	}
 
 	names := species.Classification.Names
 
+	txn.ScientificName, err = names.ScientificName.asTaxonScientificName()
+	if err != nil {
+		return err
+	}
+
 	if sn := parseXMLScientificName(names.ScientificName); sn != nil {
 		txn.ScientificName = sn
 	}
 
-	if names.Synonyms != nil && len(names.Synonyms.SynonymName) > 0 {
-		txn.Synonyms = []*TaxonScientificName{}
-		for _, synonym := range names.Synonyms.SynonymName {
-			if sn := parseXMLSynonymName(synonym); sn != nil {
-				txn.Synonyms = append(txn.Synonyms, sn)
-			}
-		}
+	txn.Synonyms, err = names.taxonSynonyms()
+	if err != nil {
+		return err
 	}
 
-	txn.CommonNames = []*TaxonCommonName{}
+	txn.CommonNames = []*taxonCommonName{}
 
 	if names.NatureServePrimaryGlobalCommonName != nil {
-		txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
+		txn.CommonNames = append(txn.CommonNames, &taxonCommonName{
 			IsPrimary: true,
 			Name:      names.NatureServePrimaryGlobalCommonName.Text,
 		})
@@ -237,7 +237,7 @@ func setNames(species *GlobalSpecies, txn *Taxon) error {
 
 	if names.OtherGlobalCommonNames != nil && len(names.OtherGlobalCommonNames.CommonName) > 0 {
 		for _, cn := range names.OtherGlobalCommonNames.CommonName {
-			txn.CommonNames = append(txn.CommonNames, &TaxonCommonName{
+			txn.CommonNames = append(txn.CommonNames, &taxonCommonName{
 				IsPrimary:    false,
 				Name:         cn.Text,
 				LanguageCode: cn.Attrlanguage,
@@ -247,24 +247,14 @@ func setNames(species *GlobalSpecies, txn *Taxon) error {
 	return nil
 }
 
-// Dumb that these are exactly the same but I have to move on.
+func parseXMLScientificName(given *scientificName) *taxonScientificName {
 
-func parseXMLSynonymName(given *SynonymName) *TaxonScientificName {
-
-	name := ""
-	if given.UnformattedName != nil {
-		name = given.UnformattedName.Text
-	} else if given.FormattedName != nil {
-		if len(given.FormattedName.I) > 0 {
-			name = given.FormattedName.I[0].Text
-		} else {
-			name = sanitize.HTML(given.FormattedName.Text)
-		}
-	} else {
+	name := given.CanonicalName()
+	if name == "" {
 		return nil
 	}
 
-	txn := TaxonScientificName{
+	txn := taxonScientificName{
 		Name: name,
 	}
 
@@ -272,53 +262,30 @@ func parseXMLSynonymName(given *SynonymName) *TaxonScientificName {
 		txn.Author = given.NomenclaturalAuthor.Text
 	}
 
-	return &txn
-}
-
-func parseXMLScientificName(given *ScientificName) *TaxonScientificName {
-
-	name := ""
-	if given.UnformattedName != nil {
-		name = given.UnformattedName.Text
-	} else if given.FormattedName != nil {
-		if len(given.FormattedName.I) > 0 {
-			name = given.FormattedName.I[0].Text
-		} else {
-			name = sanitize.HTML(given.FormattedName.Text)
-		}
-	} else {
-		return nil
+	if given.ConceptReference == nil {
+		return &txn
 	}
 
-	txn := TaxonScientificName{
-		Name: name,
+	cr := given.ConceptReference
+	if cr.ClassificationStatus != nil {
+		txn.ConceptReferenceClassificationStatus = cr.ClassificationStatus.Text
 	}
-
-	if given.NomenclaturalAuthor != nil {
-		txn.Author = given.NomenclaturalAuthor.Text
-	}
-
-	if cr := given.ConceptReference; cr != nil {
-		if cr.ClassificationStatus != nil {
-			txn.ConceptReferenceClassificationStatus = cr.ClassificationStatus.Text
-		}
-		if crnu := cr.NameUsedInConceptReference; crnu != nil {
-			if crnu.UnformattedName != nil {
-				txn.ConceptReferenceNameUsed = crnu.UnformattedName.Text
-			} else if crnu.FormattedName != nil {
-				if len(crnu.FormattedName.I) > 0 {
-					txn.ConceptReferenceNameUsed = crnu.FormattedName.I[0].Text
-				} else {
-					txn.ConceptReferenceNameUsed = sanitize.HTML(crnu.FormattedName.Text)
-				}
-
+	if crnu := cr.NameUsedInConceptReference; crnu != nil {
+		if crnu.UnformattedName != nil {
+			txn.ConceptReferenceNameUsed = crnu.UnformattedName.Text
+		} else if crnu.FormattedName != nil {
+			if len(crnu.FormattedName.I) > 0 {
+				txn.ConceptReferenceNameUsed = crnu.FormattedName.I[0].Text
+			} else {
+				txn.ConceptReferenceNameUsed = sanitize.HTML(crnu.FormattedName.Text)
 			}
+
 		}
-		if cr.FormattedFullCitation != nil {
-			txn.ConceptReferenceFullCitation = cr.FormattedFullCitation.Text
-		}
-		txn.ConceptReferenceCode = cr.Attrcode
 	}
+	if cr.FormattedFullCitation != nil {
+		txn.ConceptReferenceFullCitation = cr.FormattedFullCitation.Text
+	}
+	txn.ConceptReferenceCode = cr.Attrcode
 
 	return &txn
 }

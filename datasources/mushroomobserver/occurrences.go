@@ -17,7 +17,8 @@ import (
 
 var fetchLmtr = utils.NewLimiter(5) // Should keep at five concurrently, because the API can not handle many requests.
 
-func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*Observation, error) {
+// FetchOccurrences implements the OccurrenceProvider interface.
+func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*observation, error) {
 
 	if !targetID.Valid(datasources.TypeMushroomObserver) {
 		return nil, errors.New("Invalid TargetID")
@@ -28,7 +29,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		return nil, err
 	}
 
-	initRes := ObservationsResult{}
+	initRes := observationsResult{}
 	initURL := occurrenceURL(targetID, since, 1)
 	releaseOuterLmtr := fetchLmtr.Go()
 	if err := utils.RequestJSON(initURL, &initRes); err != nil {
@@ -48,7 +49,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 				i := 𝝨
 				tmb.Go(func() error {
 					defer releaseInnerLmtr()
-					localRes := ObservationsResult{}
+					localRes := observationsResult{}
 					localURL := occurrenceURL(targetID, since, i)
 					if err := utils.RequestJSON(localURL, &localRes); err != nil {
 						return errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", localURL)
@@ -77,8 +78,8 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 	return res, nil
 }
 
-func filterObservations(taxonID int, given []*Observation) ([]*Observation, error) {
-	res := []*Observation{}
+func filterObservations(taxonID int, given []*observation) ([]*observation, error) {
+	res := []*observation{}
 	for _, observation := range given {
 		// Should be covered in search, but just in case.
 		if observation.Consensus.ID != taxonID {
@@ -117,135 +118,128 @@ func occurrenceURL(targetID datasources.TargetID, since *time.Time, page int) st
 	return "http://mushroomobserver.org/api/observations?" + strings.Join(parameters, "&")
 }
 
-type ObservationsResult struct {
+type observationsResult struct {
 	Version         float64        `json:"version"`
 	RunDate         time.Time      `json:"run_date"`
 	Query           string         `json:"query"`
 	NumberOfRecords int            `json:"number_of_records"`
 	NumberOfPages   int            `json:"number_of_pages"`
 	PageNumber      int            `json:"page_number"`
-	Results         []*Observation `json:"results"`
+	Results         []*observation `json:"results"`
 	RunTime         float64        `json:"run_time"`
 }
 
-type Observation struct {
-	ID                   int         `json:"id"`
-	Type                 string      `json:"type"`
-	Date                 string      `json:"date"`
-	Latitude             CustomFloat `json:"latitude"`
-	Longitude            CustomFloat `json:"longitude"`
-	Altitude             CustomFloat `json:"altitude"`
-	SpecimenAvailable    bool        `json:"specimen_available"`
+type observation struct {
+	UpdatedAt         time.Time `json:"updated_at"`
+	Type              string    `json:"type"`
+	SpecimenAvailable bool      `json:"specimen_available"`
+	//Sequences            []interface{} `json:"sequences"`
+	PrimaryImage  image `json:"primary_image"`
+	Owner         owner `json:"owner"`
+	NumberOfViews int   `json:"number_of_views"`
+	//NotesFields          struct{}      `json:"notes_fields,omitempty"`
+	Notes                string      `json:"notes,omitempty"`
+	Namings              namings     `json:"namings"`
+	Longitude            customFloat `json:"longitude"`
+	Location             location    `json:"location"`
+	Latitude             customFloat `json:"latitude"`
+	LastViewed           time.Time   `json:"last_viewed"`
 	IsCollectionLocation bool        `json:"is_collection_location"`
-	Confidence           float64     `json:"confidence"`
-	NotesFields          struct {
-	} `json:"notes_fields,omitempty"`
-	Notes         string    `json:"notes,omitempty"`
+	Images               []*image    `json:"images"`
+	ID                   int         `json:"id"`
+	//HerbariumRecords     []interface{} `json:"herbarium_records"`
+	Date       string     `json:"date"`
+	CreatedAt  time.Time  `json:"created_at"`
+	Consensus  consensus  `json:"consensus"`
+	Confidence float64    `json:"confidence"`
+	Comments   []*comment `json:"comments"`
+	//CollectionNumbers    []interface{} `json:"collection_numbers"`
+	Altitude customFloat `json:"altitude"`
+}
+
+type comment struct {
+	ID        int       `json:"id"`
+	Type      string    `json:"type"`
+	Summary   string    `json:"summary"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
+	//UpdatedAt  interface{} `json:"updated_at"`
+	OwnerID    int    `json:"owner_id"`
+	ObjectType string `json:"object_type"`
+	ObjectID   int    `json:"object_id"`
+}
+
+type owner struct {
+	Verified       time.Time `json:"verified"`
+	Type           string    `json:"type"`
+	Notes          string    `json:"notes"`
+	MailingAddress string    `json:"mailing_address"`
+	LoginName      string    `json:"login_name"`
+	LocationID     int       `json:"location_id"`
+	LegalName      string    `json:"legal_name"`
+	LastLogin      time.Time `json:"last_login"`
+	LastActivity   time.Time `json:"last_activity"`
+	Joined         time.Time `json:"joined"`
+	ImageID        int       `json:"image_id"`
+	ID             int       `json:"id"`
+	Contribution   int       `json:"contribution"`
+}
+
+type consensus struct {
+	ID            int       `json:"id"`
+	Type          string    `json:"type"`
+	Name          string    `json:"name"`
+	Author        string    `json:"author"`
+	Rank          string    `json:"rank"`
+	Deprecated    bool      `json:"deprecated"`
+	Misspelled    bool      `json:"misspelled"`
+	Citation      string    `json:"citation"`
+	Notes         string    `json:"notes"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 	NumberOfViews int       `json:"number_of_views"`
 	LastViewed    time.Time `json:"last_viewed"`
-	Owner         struct {
-		ID             int       `json:"id"`
-		Type           string    `json:"type"`
-		LoginName      string    `json:"login_name"`
-		LegalName      string    `json:"legal_name"`
-		Joined         time.Time `json:"joined"`
-		Verified       time.Time `json:"verified"`
-		LastLogin      time.Time `json:"last_login"`
-		LastActivity   time.Time `json:"last_activity"`
-		Contribution   int       `json:"contribution"`
-		Notes          string    `json:"notes"`
-		MailingAddress string    `json:"mailing_address"`
-		LocationID     int       `json:"location_id"`
-		ImageID        int       `json:"image_id"`
-	} `json:"owner"`
-	Consensus struct {
-		ID            int       `json:"id"`
-		Type          string    `json:"type"`
-		Name          string    `json:"name"`
-		Author        string    `json:"author"`
-		Rank          string    `json:"rank"`
-		Deprecated    bool      `json:"deprecated"`
-		Misspelled    bool      `json:"misspelled"`
-		Citation      string    `json:"citation"`
-		Notes         string    `json:"notes"`
-		CreatedAt     time.Time `json:"created_at"`
-		UpdatedAt     time.Time `json:"updated_at"`
-		NumberOfViews int       `json:"number_of_views"`
-		LastViewed    time.Time `json:"last_viewed"`
-		OkForExport   bool      `json:"ok_for_export"`
-		SynonymID     int       `json:"synonym_id"`
-	} `json:"consensus"`
-	Location          Location      `json:"location"`
-	CollectionNumbers []interface{} `json:"collection_numbers"`
-	HerbariumRecords  []interface{} `json:"herbarium_records"`
-	Sequences         []interface{} `json:"sequences"`
-	Namings           Namings       `json:"namings"`
-	PrimaryImage      struct {
-		ID              int         `json:"id"`
-		Type            string      `json:"type"`
-		Date            string      `json:"date"`
-		CopyrightHolder string      `json:"copyright_holder"`
-		Notes           string      `json:"notes"`
-		Quality         interface{} `json:"quality"`
-		CreatedAt       time.Time   `json:"created_at"`
-		UpdatedAt       time.Time   `json:"updated_at"`
-		NumberOfViews   int         `json:"number_of_views"`
-		LastViewed      time.Time   `json:"last_viewed"`
-		OkForExport     bool        `json:"ok_for_export"`
-		LicenseID       int         `json:"license_id"`
-		OwnerID         int         `json:"owner_id"`
-	} `json:"primary_image"`
-	Images []struct {
-		ID              int         `json:"id"`
-		Type            string      `json:"type"`
-		Date            string      `json:"date"`
-		CopyrightHolder string      `json:"copyright_holder"`
-		Notes           string      `json:"notes"`
-		Quality         interface{} `json:"quality"`
-		CreatedAt       time.Time   `json:"created_at"`
-		UpdatedAt       time.Time   `json:"updated_at"`
-		NumberOfViews   int         `json:"number_of_views"`
-		LastViewed      time.Time   `json:"last_viewed"`
-		OkForExport     bool        `json:"ok_for_export"`
-		LicenseID       int         `json:"license_id"`
-		OwnerID         int         `json:"owner_id"`
-	} `json:"images"`
-	Comments []struct {
-		ID         int         `json:"id"`
-		Type       string      `json:"type"`
-		Summary    string      `json:"summary"`
-		Content    string      `json:"content"`
-		CreatedAt  time.Time   `json:"created_at"`
-		UpdatedAt  interface{} `json:"updated_at"`
-		OwnerID    int         `json:"owner_id"`
-		ObjectType string      `json:"object_type"`
-		ObjectID   int         `json:"object_id"`
-	} `json:"comments"`
+	OkForExport   bool      `json:"ok_for_export"`
+	SynonymID     int       `json:"synonym_id"`
 }
 
-type Location struct {
-	ID              int         `json:"id"`
-	Type            string      `json:"type"`
-	Name            string      `json:"name"`
-	LatitudeNorth   float64     `json:"latitude_north"`
-	LatitudeSouth   float64     `json:"latitude_south"`
-	LongitudeEast   float64     `json:"longitude_east"`
-	LongitudeWest   float64     `json:"longitude_west"`
-	AltitudeMaximum interface{} `json:"altitude_maximum"`
-	AltitudeMinimum interface{} `json:"altitude_minimum"`
-	Notes           string      `json:"notes"`
-	CreatedAt       time.Time   `json:"created_at"`
-	UpdatedAt       time.Time   `json:"updated_at"`
-	NumberOfViews   int         `json:"number_of_views"`
-	LastViewed      time.Time   `json:"last_viewed"`
-	OkForExport     bool        `json:"ok_for_export"`
+type image struct {
+	CopyrightHolder string    `json:"copyright_holder"`
+	CreatedAt       time.Time `json:"created_at"`
+	Date            string    `json:"date"`
+	LastViewed      time.Time `json:"last_viewed"`
+	LicenseID       int       `json:"license_id"`
+	Notes           string    `json:"notes"`
+	NumberOfViews   int       `json:"number_of_views"`
+	OkForExport     bool      `json:"ok_for_export"`
+	OwnerID         int       `json:"owner_id"`
+	//Quality         interface{} `json:"quality"`
+	Type      string    `json:"type"`
+	UpdatedAt time.Time `json:"updated_at"`
+	ID        int       `json:"id"`
 }
 
-var ErrDistanceToLarge = errors.New("Distance too large")
+type location struct {
+	//AltitudeMaximum interface{} `json:"altitude_maximum"`
+	//AltitudeMinimum interface{} `json:"altitude_minimum"`
+	CreatedAt     time.Time `json:"created_at"`
+	ID            int       `json:"id"`
+	LastViewed    time.Time `json:"last_viewed"`
+	LatitudeNorth float64   `json:"latitude_north"`
+	LatitudeSouth float64   `json:"latitude_south"`
+	LongitudeEast float64   `json:"longitude_east"`
+	LongitudeWest float64   `json:"longitude_west"`
+	Name          string    `json:"name"`
+	Notes         string    `json:"notes"`
+	NumberOfViews int       `json:"number_of_views"`
+	OkForExport   bool      `json:"ok_for_export"`
+	Type          string    `json:"type"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
 
-func (Ω *Location) Coordinates() (lat, lng float64, err error) {
+var errDistanceToLarge = errors.New("Distance too large")
+
+func (Ω *location) Coordinates() (lat, lng float64, err error) {
 	p1, err := geo.NewPoint(Ω.LatitudeNorth, Ω.LongitudeEast)
 	if err != nil {
 		return 0, 0, err
@@ -256,7 +250,7 @@ func (Ω *Location) Coordinates() (lat, lng float64, err error) {
 	}
 	distance := p1.DistanceKilometers(p2)
 	if distance > 20 {
-		return 0, 0, ErrDistanceToLarge
+		return 0, 0, errDistanceToLarge
 	}
 	centroid, err := geo.Points{p1, p2}.Centroid()
 	if err != nil {
@@ -265,31 +259,15 @@ func (Ω *Location) Coordinates() (lat, lng float64, err error) {
 	return centroid.Latitude(), centroid.Longitude(), nil
 }
 
-type Naming struct {
-	ID         int       `json:"id"`
-	Type       string    `json:"type"`
-	Confidence float64   `json:"confidence"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	Name       struct {
-		ID            int       `json:"id"`
-		Type          string    `json:"type"`
-		Name          string    `json:"name"`
-		Author        string    `json:"author"`
-		Rank          string    `json:"rank"`
-		Deprecated    bool      `json:"deprecated"`
-		Misspelled    bool      `json:"misspelled"`
-		Citation      string    `json:"citation"`
-		Notes         string    `json:"notes"`
-		CreatedAt     time.Time `json:"created_at"`
-		UpdatedAt     time.Time `json:"updated_at"`
-		NumberOfViews int       `json:"number_of_views"`
-		LastViewed    time.Time `json:"last_viewed"`
-		OkForExport   bool      `json:"ok_for_export"`
-		SynonymID     int       `json:"synonym_id"`
-	} `json:"name"`
-	OwnerID       int `json:"owner_id"`
-	ObservationID int `json:"observation_id"`
+type naming struct {
+	ID            int       `json:"id"`
+	Type          string    `json:"type"`
+	Confidence    float64   `json:"confidence"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	Name          name      `json:"name"`
+	OwnerID       int       `json:"owner_id"`
+	ObservationID int       `json:"observation_id"`
 	Votes         []struct {
 		ID            int       `json:"id"`
 		Type          string    `json:"type"`
@@ -302,7 +280,25 @@ type Naming struct {
 	Reasons []interface{} `json:"reasons"`
 }
 
-func (Ω *Observation) Lat() (float64, error) {
+type name struct {
+	ID            int       `json:"id"`
+	Type          string    `json:"type"`
+	Name          string    `json:"name"`
+	Author        string    `json:"author"`
+	Rank          string    `json:"rank"`
+	Deprecated    bool      `json:"deprecated"`
+	Misspelled    bool      `json:"misspelled"`
+	Citation      string    `json:"citation"`
+	Notes         string    `json:"notes"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+	NumberOfViews int       `json:"number_of_views"`
+	LastViewed    time.Time `json:"last_viewed"`
+	OkForExport   bool      `json:"ok_for_export"`
+	SynonymID     int       `json:"synonym_id"`
+}
+
+func (Ω *observation) Lat() (float64, error) {
 	lat := float64(Ω.Latitude)
 	if lat == 0 {
 		var err error
@@ -313,7 +309,7 @@ func (Ω *Observation) Lat() (float64, error) {
 	}
 	return lat, nil
 }
-func (Ω *Observation) Lng() (float64, error) {
+func (Ω *observation) Lng() (float64, error) {
 	lng := float64(Ω.Longitude)
 	if lng == 0 {
 		var err error
@@ -324,23 +320,23 @@ func (Ω *Observation) Lng() (float64, error) {
 	}
 	return lng, nil
 }
-func (Ω *Observation) DateString() string {
+func (Ω *observation) DateString() string {
 	return strings.Replace(Ω.Date, "-", "", -1)
 }
-func (Ω *Observation) CoordinatesEstimated() bool {
+func (Ω *observation) CoordinatesEstimated() bool {
 	isEstimated := false
 	if Ω.Latitude == 0 || Ω.Longitude == 0 {
 		isEstimated = true
 	}
 	return isEstimated
 }
-func (Ω *Observation) SourceOccurrenceID() string {
+func (Ω *observation) SourceOccurrenceID() string {
 	return strconv.Itoa(Ω.ID)
 }
 
-type Namings []*Naming
+type namings []*naming
 
-func (Ω Namings) VotesForTaxonID(taxonID int) int {
+func (Ω namings) VotesForTaxonID(taxonID int) int {
 	for _, naming := range Ω {
 		if naming.Name.ID == taxonID {
 			return len(naming.Votes)
@@ -349,13 +345,13 @@ func (Ω Namings) VotesForTaxonID(taxonID int) int {
 	return 0
 }
 
-type CustomFloat float64
+type customFloat float64
 
-func (t *CustomFloat) MarshalJSON() ([]byte, error) {
+func (t *customFloat) MarshalJSON() ([]byte, error) {
 	return json.Marshal(*t)
 }
 
-func (t *CustomFloat) UnmarshalJSON(b []byte) error {
+func (t *customFloat) UnmarshalJSON(b []byte) error {
 
 	s := strings.Trim(string(b), `"`)
 
@@ -367,7 +363,7 @@ func (t *CustomFloat) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
-	*t = CustomFloat(f)
+	*t = customFloat(f)
 
 	return nil
 }

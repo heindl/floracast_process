@@ -75,7 +75,7 @@ type occurrence struct {
 	MapScale         int             `json:"map_scale"`
 	URI              string          `json:"uri"`
 	ProjectIds       []int           `json:"project_ids"`
-	Identifications  Identifications `json:"identifications"`
+	Identifications  identifications `json:"identifications"`
 	CommunityTaxonID interface{}     `json:"community_taxon_id"`
 	Geojson          *struct {
 		Coordinates []string `json:"coordinates"`
@@ -179,9 +179,9 @@ type user struct {
 	IconURL              string        `json:"icon_url"`
 }
 
-type Identifications []*Identification
+type identifications []*identification
 
-func (Ω Identifications) LatestIdentification() time.Time {
+func (Ω identifications) LatestIdentification() time.Time {
 	latest := time.Time{}
 	for _, identification := range Ω {
 		if identification.CreatedAt.After(latest) {
@@ -191,7 +191,7 @@ func (Ω Identifications) LatestIdentification() time.Time {
 	return latest
 }
 
-type Identification struct {
+type identification struct {
 	Disagreement     interface{}   `json:"disagreement"`
 	Flags            []interface{} `json:"flags"`
 	CreatedAt        time.Time     `json:"created_at"`
@@ -217,7 +217,8 @@ type Identification struct {
 	Taxon                      taxon       `json:"taxon"`
 }
 
-func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*occurrence, error) {
+// FetchOccurrences returns returns a slice of OccurrenceProviders.
+func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *time.Time) ([]*occurrence, error) {
 
 	if !taxonIDFromTargetID(targetID).Valid() {
 		return nil, errors.New("Invalid taxonID")
@@ -234,7 +235,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		if err != nil && err == iterator.Done {
 			break
 		}
-		page += 1
+		page++
 	}
 
 	return res, nil
@@ -242,7 +243,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 
 var throttle = time.NewTicker(time.Second / 20)
 
-func fetchOccurrences(page int, taxonID taxonID, since *time.Time) ([]*occurrence, error) {
+func fetchOccurrences(page int, txnID taxonID, since *time.Time) ([]*occurrence, error) {
 	var response struct {
 		TotalResults int           `json:"total_results"`
 		Page         int           `json:"page"`
@@ -251,7 +252,7 @@ func fetchOccurrences(page int, taxonID taxonID, since *time.Time) ([]*occurrenc
 	}
 
 	u := "https://api.inaturalist.org/v1/observations?place_id=97394&quality_grade=research&captive=false&per_page=200&geoprivacy=open"
-	u += fmt.Sprintf("&taxon_id=%d", taxonID)
+	u += fmt.Sprintf("&taxon_id=%d", txnID)
 	u += fmt.Sprintf("&page=%d", page)
 	if since != nil && !since.IsZero() {
 		u += fmt.Sprintf("&updated_since=%s", since.Format("2006-01-02"))
@@ -271,7 +272,7 @@ func fetchOccurrences(page int, taxonID taxonID, since *time.Time) ([]*occurrenc
 		// All of these are covered in query, but just to be safe ...
 		if inatOccurrence.QualityGrade != "research" ||
 			inatOccurrence.Captive ||
-			inatOccurrence.Taxon.ID != taxonID { // Ignore descendents
+			inatOccurrence.Taxon.ID != txnID { // Ignore descendents
 			continue
 		}
 

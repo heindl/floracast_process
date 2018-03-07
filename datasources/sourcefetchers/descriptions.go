@@ -8,13 +8,6 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
-// description is a shared provider for a taxon description
-type Description interface {
-	Citation() (string, error)
-	Text() (string, error)
-	Source() datasources.SourceType
-}
-
 func FetchDescriptions(ctx context.Context, sourceTypeProvider datasources.SourceTypeProvider, targetIDProvider datasources.TargetIDProvider) ([]Description, error) {
 
 	sourceType, err := sourceTypeProvider()

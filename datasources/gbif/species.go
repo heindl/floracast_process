@@ -1,8 +1,11 @@
 package gbif
 
 import (
+	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/utils"
 	"fmt"
+	"github.com/dropbox/godropbox/errors"
+	"strconv"
 )
 
 // A name usage is the usage of a scientific name according to one particular Checklist including
@@ -10,8 +13,28 @@ import (
 // with names that also exist in the nub will have a taxonKey that points to the related usage in the backbone.
 type species int
 
-func (s species) url() string {
-	return fmt.Sprintf("http://api.gbif.org/v1/species/%d", s)
+func targetIDToSpecies(id datasources.TargetID) (species, error) {
+	i, err := id.ToInt()
+	if err != nil {
+		return species(0), errors.Wrapf(err, "Could not cast GBIF TargetID [%s] as taxonID", id)
+	}
+	spcs := species(i)
+	if !spcs.Valid() {
+		return species(0), errors.Newf("Invalid GBIF taxonID [%s]", id)
+	}
+	return spcs, nil
+}
+
+func (Ω species) Valid() bool {
+	return Ω != 0
+}
+
+func (Ω species) TargetID() datasources.TargetID {
+	return datasources.TargetID(strconv.Itoa(int(Ω)))
+}
+
+func (Ω species) url() string {
+	return fmt.Sprintf("http://api.gbif.org/v1/species/%d?verbose=true", Ω)
 }
 
 type nameUsage struct {
@@ -21,7 +44,7 @@ type nameUsage struct {
 	CanonicalName       string          `json:"canonicalName"`
 	Confidence          int             `json:"confidence"` // From search api.
 	Issues              []interface{}   `json:"issues"`
-	Key                 taxonID         `json:"key"`
+	Key                 species         `json:"key"`
 	LastCrawled         string          `json:"lastCrawled"`
 	LastInterpreted     string          `json:"lastInterpreted"`
 	MatchType           string          `json:"matchType"` // From search api.
@@ -34,7 +57,7 @@ type nameUsage struct {
 	NumDescendants      int             `json:"numDescendants"`
 	Origin              string          `json:"origin"`
 	Parent              string          `json:"parent"`
-	ParentKey           taxonID         `json:"parentKey"`
+	ParentKey           species         `json:"parentKey"`
 	Rank                rank            `json:"rank"`
 	ScientificName      string          `json:"scientificName"`
 	SourceTaxonKey      int             `json:"sourceTaxonKey,omitempty"`
@@ -42,8 +65,8 @@ type nameUsage struct {
 	Synonym             bool            `json:"synonym"`
 	TaxonID             string          `json:"taxonID"`
 	TaxonomicStatus     taxonomicStatus `json:"taxonomicStatus"`
-	UsageKey            taxonID         `json:"usageKey"`    // From search api.
-	AcceptedKey         taxonID         `json:"acceptedKey"` // From search api.
+	UsageKey            species         `json:"usageKey"`    // From search api.
+	AcceptedKey         species         `json:"acceptedKey"` // From search api.
 	DatasetKey          string          `json:"datasetKey"`
 	ConstituentKey      string          `json:"constituentKey,omitempty"`
 	BasionymKey         int             `json:"basionymKey,omitempty"`
@@ -72,11 +95,12 @@ type classification struct {
 	SpeciesKey int    `json:"speciesKey" bson:"speciesKey"`
 }
 
-func (s species) Name() (name nameUsage, err error) {
-	if err := utils.RequestJSON(s.url(), &name); err != nil {
+func (Ω species) Name() (nameUsage, error) {
+	u := nameUsage{}
+	if err := utils.RequestJSON(Ω.url(), &u); err != nil {
 		return nameUsage{}, err
 	}
-	return
+	return u, nil
 }
 
 type parsedNameUsage struct {
@@ -93,16 +117,16 @@ type parsedNameUsage struct {
 	Type                    string `json:"type"`
 }
 
-func (s species) ParsedName() (name parsedNameUsage, err error) {
-	url := fmt.Sprintf("%s/name", s.url())
+func (Ω species) ParsedName() (name parsedNameUsage, err error) {
+	url := fmt.Sprintf("%s/name", Ω.url())
 	if err := utils.RequestJSON(url, &name); err != nil {
 		return parsedNameUsage{}, err
 	}
 	return
 }
 
-func (s species) Parents() (parents []nameUsage, err error) {
-	return s.nameUsages("parents")
+func (Ω species) Parents() ([]*nameUsage, error) {
+	return Ω.nameUsages("parents")
 }
 
 type page struct {
@@ -112,20 +136,20 @@ type page struct {
 	Count        int  `json:"count"`
 }
 
-func (s species) Children() ([]nameUsage, error) {
-	return s.nameUsagePage("children")
+func (Ω species) Children() ([]*nameUsage, error) {
+	return Ω.nameUsages("children")
 }
 
-func (s species) Related() ([]nameUsage, error) {
-	return s.nameUsagePage("related")
+func (Ω species) Related() ([]*nameUsage, error) {
+	return Ω.nameUsages("related")
 }
 
-func (s species) Synonyms() ([]nameUsage, error) {
-	return s.nameUsagePage("synonyms")
+func (Ω species) Synonyms() ([]*nameUsage, error) {
+	return Ω.nameUsages("synonyms")
 }
 
-func (s species) Combinations() (combinations []nameUsage, err error) {
-	return s.nameUsages("combinations")
+func (Ω species) Combinations() ([]*nameUsage, error) {
+	return Ω.nameUsages("combinations")
 }
 
 type distribution struct {
@@ -136,14 +160,14 @@ type distribution struct {
 	SourceTaxonKey int    `json:"sourceTaxonKey"`
 }
 
-func (s species) fetchDistributions() (distributions []distribution, err error) {
+func (Ω species) fetchDistributions() (distributions []distribution, err error) {
 	var offset int
 	for {
 		var response struct {
 			page
 			Results []distribution `json:"results"`
 		}
-		url := fmt.Sprintf("%s/distributions?offset=%d&limit=50", s.url(), offset)
+		url := fmt.Sprintf("%s/distributions?offset=%d&limit=50", Ω.url(), offset)
 		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
@@ -163,14 +187,14 @@ type reference struct {
 	Type           string `json:"type"`
 }
 
-func (s species) fetchReferences() (references []reference, err error) {
+func (Ω species) fetchReferences() (references []reference, err error) {
 	var offset int
 	for {
 		var response struct {
 			page
 			Results []reference `json:"results"`
 		}
-		url := fmt.Sprintf("%s/references?offset=%d&limit=50", s.url(), offset)
+		url := fmt.Sprintf("%s/references?offset=%d&limit=50", Ω.url(), offset)
 		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
@@ -190,14 +214,14 @@ type vernacularName struct {
 	VernacularName string `json:"vernacularName"`
 }
 
-func (s species) fetchVernacularNames() (names []vernacularName, err error) {
+func (Ω species) fetchVernacularNames() (names []vernacularName, err error) {
 	var offset int
 	for {
 		var response struct {
 			page
 			Results []vernacularName `json:"results"`
 		}
-		url := fmt.Sprintf("%s/vernacularNames?offset=%d&limit=50", s.url(), offset)
+		url := fmt.Sprintf("%s/vernacularNames?offset=%d&limit=50", Ω.url(), offset)
 		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
@@ -210,30 +234,30 @@ func (s species) fetchVernacularNames() (names []vernacularName, err error) {
 	return
 }
 
-func (s species) nameUsagePage(path string) (names []nameUsage, err error) {
-	var offset int
+func (Ω species) nameUsages(path string) (names []*nameUsage, err error) {
+
+	offset := 0
+	records := []*nameUsage{}
+
 	for {
-		var response struct {
+		var res struct {
 			page
-			Results []nameUsage `json:"results"`
+			Results []*nameUsage `json:"results"`
 		}
-		url := fmt.Sprintf("%s/%s?offset=%d&limit=50", s.url(), path, offset)
-		if err := utils.RequestJSON(url, &response); err != nil {
+
+		if err := utils.RequestJSON(
+			fmt.Sprintf("%s/%s?offset=%d&limit=300", Ω.url(), path, offset),
+			&res,
+		); err != nil {
 			return nil, err
 		}
-		names = append(names, response.Results...)
-		offset += response.Limit
-		if response.EndOfRecords {
+
+		records = append(records, res.Results...)
+		if res.EndOfRecords {
 			break
 		}
+		offset += res.Limit
 	}
-	return
-}
 
-func (s species) nameUsages(path string) (names []nameUsage, err error) {
-	url := fmt.Sprintf("%s/%s", s.url(), path)
-	if err := utils.RequestJSON(url, &names); err != nil {
-		return nil, err
-	}
-	return
+	return records, nil
 }

@@ -105,15 +105,15 @@ func (Ω *taxaFetcher) Set(æ *taxon) {
 	}
 }
 
-func (Ω *taxaFetcher) FetchTaxa(parent_taxa ...taxonID) ([]*taxon, error) {
+func (Ω *taxaFetcher) FetchTaxa(parentTaxa ...taxonID) ([]*taxon, error) {
 
 	tmb := tomb.Tomb{}
 
 	tmb.Go(func() error {
-		for _, _taxonID := range parent_taxa {
-			taxonID := _taxonID
+		for _, _txnID := range parentTaxa {
+			txnID := _txnID
 			tmb.Go(func() error {
-				return Ω.fetchTaxon(taxonID)
+				return Ω.fetchTaxon(txnID)
 			})
 		}
 		return nil
@@ -128,9 +128,9 @@ func (Ω *taxaFetcher) FetchTaxa(parent_taxa ...taxonID) ([]*taxon, error) {
 
 var globalTaxonLimiter = utils.NewLimiter(20)
 
-func (Ω *taxaFetcher) fetchTaxon(taxonID taxonID) error {
+func (Ω *taxaFetcher) fetchTaxon(txnID taxonID) error {
 
-	if Ω.IndexOf(taxonID) != -1 {
+	if Ω.IndexOf(txnID) != -1 {
 		return nil
 	}
 
@@ -140,7 +140,7 @@ func (Ω *taxaFetcher) fetchTaxon(taxonID taxonID) error {
 	}
 
 	done := globalTaxonLimiter.Go()
-	url := fmt.Sprintf("http://api.inaturalist.org/v1/taxa/%d", taxonID)
+	url := fmt.Sprintf("http://api.inaturalist.org/v1/taxa/%d", txnID)
 	if err := utils.RequestJSON(url, &response); err != nil {
 		done()
 		return err
@@ -148,11 +148,11 @@ func (Ω *taxaFetcher) fetchTaxon(taxonID taxonID) error {
 	done()
 
 	if response.TotalResults == 0 {
-		return errors.Newf("no taxon returned from ID: %s", taxonID)
+		return errors.Newf("no taxon returned from ID: %s", txnID)
 	}
 
 	if response.TotalResults > 1 {
-		return errors.Newf("taxon request has more than one result: %s", taxonID)
+		return errors.Newf("taxon request has more than one result: %s", txnID)
 	}
 
 	if Ω.includeChildren {
@@ -178,7 +178,7 @@ func (Ω *taxaFetcher) fetchTaxon(taxonID taxonID) error {
 	// Fetch synonyms? Maybe be good to have a source connection for each of them,
 	// as well as a connection to the gbif.
 	if len(response.Results[0].CurrentSynonymousTaxonIds) > 0 {
-		return errors.Newf("Sanity check failed. Have synonymous taxon ids from taxon[%s] with no way to handle.", taxonID)
+		return errors.Newf("Sanity check failed. Have synonymous taxon ids from taxon[%s] with no way to handle.", txnID)
 	}
 
 	//for _, _txn := range taxon.Ancestors{

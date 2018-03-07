@@ -15,7 +15,7 @@ import (
 // FetchOccurrences gathers a list of OccurrenceProvider interfaces.
 func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*occurrence, error) {
 
-	txnID, err := taxonIDFromTargetID(targetID)
+	spcs, err := targetIDToSpecies(targetID)
 	if err != nil {
 		return nil, err
 	}
@@ -26,11 +26,11 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 	}
 
 	apiList, err := fetchOccurrences(occurrenceSearchQuery{
-		TaxonKey:        int(txnID),
+		TaxonKey:        int(spcs),
 		LastInterpreted: lastInterpreted,
 	})
 	if err != nil {
-		return nil, errors.Wrapf(err, "Could not fetch occurrences [%d] from the gbif", txnID)
+		return nil, errors.Wrapf(err, "Could not fetch occurrences [%d] from the gbif", spcs)
 	}
 
 	res := []*occurrence{}
@@ -99,32 +99,32 @@ func (c continentEnum) IsZero() bool {
 
 // datasetKey, year, month, eventDate, lastInterpreted, decimalLatitude, decimalLongitude, country, continent, publishingCountry, elevation, depth, institutionCode, collectionCode, catalogNumber, recordedBy, recordNumber, basisOfRecord, taxonKey, scientificName, hasCoordinate, geometry, hasGeospatialIssue, issue, mediaType
 
-func (q *occurrenceSearchQuery) url(offset int) string {
+func (Ω *occurrenceSearchQuery) url(offset int) string {
 
-	if q.Limit == 0 {
-		q.Limit = 300
+	if Ω.Limit == 0 {
+		Ω.Limit = 300
 	}
 
 	u := fmt.Sprintf("http://api.gbif.org/v1/occurrence/search?taxonKey=%d&offset=%d&limit=%d",
-		q.TaxonKey,
-		offset*q.Limit,
-		q.Limit,
+		Ω.TaxonKey,
+		offset*Ω.Limit,
+		Ω.Limit,
 	)
 
-	if !q.Continent.IsZero() {
-		u += fmt.Sprintf("&continent=%s", q.Continent)
+	if !Ω.Continent.IsZero() {
+		u += fmt.Sprintf("&continent=%s", Ω.Continent)
 	}
 
-	if q.HasCoordinate {
+	if Ω.HasCoordinate {
 		u += "&hasCoordinate=true"
 	}
 
-	if q.HasGeospatialIssue {
+	if Ω.HasGeospatialIssue {
 		u += "&hasGeospatialIssue=true"
 	}
 
-	if q.LastInterpreted != "" {
-		u += fmt.Sprintf("&lastInterpreted=%s", q.LastInterpreted)
+	if Ω.LastInterpreted != "" {
+		u += fmt.Sprintf("&lastInterpreted=%s", Ω.LastInterpreted)
 	}
 
 	return u

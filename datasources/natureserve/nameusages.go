@@ -7,14 +7,15 @@ import (
 	"context"
 )
 
+// FetchNameUsages implements the NameUsage fetch interface.
 func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 
-	nameTaxa, err := FetchTaxaFromSearch(cxt, names...)
+	nameTaxa, err := fetchTaxaFromSearch(cxt, names...)
 	if err != nil {
 		return nil, err
 	}
 
-	uidTaxa, err := FetchTaxaWithUID(cxt, targetIDs.Strings()...)
+	uidTaxa, err := fetchTaxaWithUID(cxt, targetIDs.Strings()...)
 	if err != nil {
 		return nil, err
 	}
@@ -24,42 +25,42 @@ func FetchNameUsages(cxt context.Context, names []string, targetIDs datasources.
 	res := []nameusage.NameUsage{}
 
 	for _, txn := range taxa {
-
-		canonicalName, err := canonicalname.NewCanonicalName(txn.ScientificName.Name, "species")
+		usage, err := txn.asNameUsage()
 		if err != nil {
 			return nil, err
 		}
-
-		usageSource, err := nameusage.NewSource(datasources.TypeNatureServe, datasources.TargetID(txn.ID), canonicalName)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, commonName := range txn.CommonNames {
-			if err := usageSource.AddCommonNames(commonName.Name); err != nil {
-				return nil, err
-			}
-		}
-
-		for _, synonym := range txn.Synonyms {
-			synonymCanonicalName, err := canonicalname.NewCanonicalName(synonym.Name, "species")
-			if err != nil {
-				return nil, err
-			}
-			if err := usageSource.AddSynonym(synonymCanonicalName); err != nil {
-				return nil, err
-			}
-		}
-
-		usage, err := nameusage.NewNameUsage(usageSource)
-		if err != nil {
-			return nil, err
-		}
-
 		res = append(res, usage)
-
 	}
 
 	return res, nil
 
+}
+
+func (Ω *taxon) asNameUsage() (nameusage.NameUsage, error) {
+	canonicalName, err := canonicalname.NewCanonicalName(Ω.ScientificName.Name, "species")
+	if err != nil {
+		return nil, err
+	}
+
+	usageSource, err := nameusage.NewSource(datasources.TypeNatureServe, datasources.TargetID(Ω.ID), canonicalName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, commonName := range Ω.CommonNames {
+		if err := usageSource.AddCommonNames(commonName.Name); err != nil {
+			return nil, err
+		}
+	}
+
+	for _, synonym := range Ω.Synonyms {
+		synonymCanonicalName, err := canonicalname.NewCanonicalName(synonym.Name, "species")
+		if err != nil {
+			return nil, err
+		}
+		if err := usageSource.AddSynonym(synonymCanonicalName); err != nil {
+			return nil, err
+		}
+	}
+	return nameusage.NewNameUsage(usageSource)
 }

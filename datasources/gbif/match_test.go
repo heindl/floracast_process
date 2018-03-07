@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSearch(t *testing.T) {
+func TestMatch(t *testing.T) {
 
 	t.Parallel()
 
@@ -22,17 +22,17 @@ func TestSearch(t *testing.T) {
 		So(len(r.Alternatives), ShouldEqual, 2)
 	})
 
-	Convey("should provide expected search results", t, func() {
-
-		r, err := search(searchQuery{
-			Q:    "Puma",
-			Rank: []rank{rankGenus},
-		})
-		So(err, ShouldBeNil)
-		So(len(r), ShouldEqual, 4)
-		So(r[0].DatasetKey, ShouldEqual, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c")
-		So(r[0].ScientificName, ShouldEqual, "Puma Jardine, 1834")
-
-	})
+	//Convey("should provide expected search results", t, func() {
+	//
+	//	r, err := search(searchQuery{
+	//		Q:    "Puma",
+	//		Rank: []rank{rankGenus},
+	//	})
+	//	So(err, ShouldBeNil)
+	//	So(len(r), ShouldEqual, 4)
+	//	So(r[0].DatasetKey, ShouldEqual, "d7dddbf4-2cf0-4f39-9b2a-bb099caae36c")
+	//	So(r[0].ScientificName, ShouldEqual, "Puma Jardine, 1834")
+	//
+	//})
 
 }

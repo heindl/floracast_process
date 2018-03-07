@@ -2,10 +2,13 @@ package datasources
 
 import "github.com/dropbox/godropbox/errors"
 
+// SourceType identifies the data api, such as GBIF, INaturalist or MushroomObserver.
 type SourceType string
 
+// SourceTypeProvider is an interface for caller simplification.
 type SourceTypeProvider func() (SourceType, error)
 
+// NewSourceType validates an id string
 func NewSourceType(s string) (SourceType, error) {
 	srcType := SourceType(s)
 	if !srcType.Valid() {
@@ -14,6 +17,7 @@ func NewSourceType(s string) (SourceType, error) {
 	return srcType, nil
 }
 
+// Commonly used SourceTypes, though by no means all.
 const (
 	TypeGBIF             = SourceType("27")
 	TypeINaturalist      = SourceType("INAT")
@@ -22,6 +26,7 @@ const (
 	TypeRandom           = SourceType("RANDOM")
 )
 
+// HasDataSourceType is a utility function for querying a slice.
 func HasDataSourceType(srcs []SourceType, sourceType SourceType) bool {
 	for _, src := range srcs {
 		if src == sourceType {
@@ -31,12 +36,13 @@ func HasDataSourceType(srcs []SourceType, sourceType SourceType) bool {
 	return false
 }
 
+// Valid checks if this is a known SourceType
 func (Ω SourceType) Valid() bool {
-	_, ok := SchemeSourceIDMap[Ω]
+	_, ok := sourceTypeDictionary[Ω]
 	return ok
 }
 
-var SchemeSourceIDMap = map[SourceType]string{
+var sourceTypeDictionary = map[SourceType]string{
 	// Random Occurrence for Model Training
 	TypeRandom: "Random",
 	// Floracast

@@ -15,17 +15,40 @@ import (
 	"time"
 )
 
-type MushroomObserverQueryResult struct {
-	Version         float64                        `json:"version"`
-	RunDate         time.Time                      `json:"run_date"`
-	Query           string                         `json:"query"`
-	NumberOfRecords int                            `json:"number_of_records"`
-	NumberOfPages   int                            `json:"number_of_pages"`
-	PageNumber      int                            `json:"page_number"`
-	Results         []*MushroomObserverTaxonResult `json:"results"`
-	RunTime         float64                        `json:"run_time"`
+type queryResult struct {
+	NumberOfPages   int            `json:"number_of_pages"`
+	NumberOfRecords int            `json:"number_of_records"`
+	PageNumber      int            `json:"page_number"`
+	Query           string         `json:"query"`
+	Results         []*taxonResult `json:"results"`
+	RunDate         time.Time      `json:"run_date"`
+	RunTime         float64        `json:"run_time"`
+	Version         float64        `json:"version"`
 }
 
+type taxonResult struct {
+	Author        string    `json:"author"`
+	Citation      string    `json:"citation"`
+	CreatedAt     time.Time `json:"created_at"`
+	Deprecated    bool      `json:"deprecated"`
+	ID            int       `json:"id"`
+	LastViewed    time.Time `json:"last_viewed"`
+	Misspelled    bool      `json:"misspelled"`
+	Name          string    `json:"name"`
+	Notes         string    `json:"notes"`
+	NumberOfViews int       `json:"number_of_views"`
+	OkForExport   bool      `json:"ok_for_export"`
+	Rank          string    `json:"rank"`
+	Type          string    `json:"type"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+// Could not find a case in which either of these were ever rendered,
+// even when "has_synonyms" flag is used exclusively.
+//Synonyms      []interface{} `json:"synonyms,omitempty"`
+//Parents       []interface{} `json:"parents"`
+
+// FetchNameUsages impliments the NameUsage fetch interface.
 func FetchNameUsages(cxt context.Context, names []string, _ datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 
 	//TODO: If names are three, consider adding var. "Cantharellus cibarius var. cibarius"
@@ -64,8 +87,8 @@ func FetchNameUsages(cxt context.Context, names []string, _ datasources.TargetID
 
 func fetchNameUsages(name string) ([]nameusage.NameUsage, error) {
 	nameURL := getMatchNameURL(name)
-	var queryResult MushroomObserverQueryResult
-	if err := utils.RequestJSON(nameURL, &queryResult); err != nil {
+	qResult := queryResult{}
+	if err := utils.RequestJSON(nameURL, &qResult); err != nil {
 		if strings.Contains(err.Error(), "StatusCode: 503") {
 			fmt.Println(fmt.Sprintf("Warning: MushroomObserver [%s] NameUsage temporarily unavailable", nameURL))
 			return nil, nil
@@ -75,17 +98,17 @@ func fetchNameUsages(name string) ([]nameusage.NameUsage, error) {
 
 	// Since we are always fetching by a specific name, it will never be more than one page.
 	// But just to be sure ...
-	if queryResult.NumberOfPages > 1 {
+	if qResult.NumberOfPages > 1 {
 		return nil, errors.Newf("Unexpected: Multiple pages returned from MushroomObserver name query [%s]", name)
 	}
 
-	if queryResult.NumberOfRecords == 0 {
+	if qResult.NumberOfRecords == 0 {
 		return nil, nil
 	}
 
 	res := []nameusage.NameUsage{}
 
-	for _, result := range queryResult.Results {
+	for _, result := range qResult.Results {
 		targetID, err := datasources.NewDataSourceTargetIDFromInt(datasources.TypeMushroomObserver, result.ID)
 		if err != nil {
 			return nil, err
@@ -124,25 +147,4 @@ func getMatchNameURL(name string) string {
 		//fmt.Sprintf("rank=%s", rank),
 	}, "&")
 	return "http://mushroomobserver.org/api/names?" + parameters
-}
-
-type MushroomObserverTaxonResult struct {
-	ID            int       `json:"id"`
-	Type          string    `json:"type"`
-	Name          string    `json:"name"`
-	Author        string    `json:"author"`
-	Rank          string    `json:"rank"`
-	Deprecated    bool      `json:"deprecated"`
-	Misspelled    bool      `json:"misspelled"`
-	Citation      string    `json:"citation"`
-	Notes         string    `json:"notes"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	NumberOfViews int       `json:"number_of_views"`
-	LastViewed    time.Time `json:"last_viewed"`
-	OkForExport   bool      `json:"ok_for_export"`
-	// Could not find a case in which either of these were ever rendered,
-	// even when "has_synonyms" flag is used exclusively.
-	//Synonyms      []interface{} `json:"synonyms,omitempty"`
-	//Parents       []interface{} `json:"parents"`
 }

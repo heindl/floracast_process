@@ -18,14 +18,14 @@ type description struct {
 	License        string `json:"license"`
 }
 
-func (s species) fetchDescriptions() (descriptions []description, err error) {
+func (Ω species) fetchDescriptions() (descriptions []description, err error) {
 	var offset int
 	for {
 		var response struct {
 			page
 			Results []description `json:"results"`
 		}
-		url := fmt.Sprintf("%s/descriptions?offset=%d&limit=50", s.url(), offset)
+		url := fmt.Sprintf("%s/descriptions?offset=%d&limit=50", Ω.url(), offset)
 		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}

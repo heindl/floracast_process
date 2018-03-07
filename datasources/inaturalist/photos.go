@@ -39,6 +39,7 @@ func (p *photo) Source() datasources.SourceType {
 	return datasources.TypeINaturalist
 }
 
+// FetchPhotos implements the photo fetcher interface.
 func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*photo, error) {
 	taxa, err := newTaxaFetcher(ctx, false, false).FetchTaxa(taxonIDFromTargetID(targetID))
 	if err != nil {
