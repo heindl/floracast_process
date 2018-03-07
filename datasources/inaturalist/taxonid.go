@@ -30,20 +30,20 @@ func taxonIDsFromIntegers(ids ...int) (res []taxonID) {
 	return
 }
 
-type taxonIDs []taxonID
-
-func (Ω taxonIDs) IndexOf(id taxonID) int {
-	for i := range Ω {
-		if Ω[i] == id {
-			return i
-		}
-	}
-	return -1
-}
-
-func (Ω taxonIDs) AddToSet(id taxonID) taxonIDs {
-	if Ω.IndexOf(id) == -1 {
-		return append(Ω, id)
-	}
-	return Ω
-}
+//type taxonIDs []taxonID
+//
+//func (Ω taxonIDs) IndexOf(id taxonID) int {
+//	for i := range Ω {
+//		if Ω[i] == id {
+//			return i
+//		}
+//	}
+//	return -1
+//}
+//
+//func (Ω taxonIDs) AddToSet(id taxonID) taxonIDs {
+//	if Ω.IndexOf(id) == -1 {
+//		return append(Ω, id)
+//	}
+//	return Ω
+//}

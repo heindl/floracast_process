@@ -24,7 +24,7 @@ func TestMediaFetcher(t *testing.T) {
 			So(photos[i].Citation(), ShouldEqual, "Jens H. Petersen, Checklist of Danish Fungi")
 			So(photos[i].Thumbnail(), ShouldEqual, "")
 			So(photos[i].Large(), ShouldEqual, url)
-			So(photos[i].Source(), ShouldEqual, datasources.TypeGBIF)
+			So(photos[i].SourceType(), ShouldEqual, datasources.TypeGBIF)
 		}
 	})
 

@@ -2,6 +2,7 @@ package mushroomobserver
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/terra/geo"
 	"bitbucket.org/heindl/process/utils"
 	"context"
@@ -17,50 +18,52 @@ import (
 
 var fetchLmtr = utils.NewLimiter(5) // Should keep at five concurrently, because the API can not handle many requests.
 
+func fetchObservationPage(targetID datasources.TargetID, since *time.Time, page int) ([]providers.Occurrence, int, error) {
+
+	releaseLmtr := fetchLmtr.Go()
+	defer releaseLmtr()
+
+	url := occurrenceURL(targetID, since, page)
+
+	res := observationsResult{}
+	if err := utils.RequestJSON(url, &res); err != nil {
+		return nil, 0, errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", url)
+	}
+
+	occurrenceList, err := filterObservations(targetID, res.Results)
+	if err != nil {
+		return nil, 0, err
+	}
+	return occurrenceList, res.NumberOfPages, nil
+
+}
+
 // FetchOccurrences implements the OccurrenceProvider interface.
-func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*observation, error) {
+func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *time.Time) ([]providers.Occurrence, error) {
 
 	if !targetID.Valid(datasources.TypeMushroomObserver) {
 		return nil, errors.New("Invalid TargetID")
 	}
 
-	taxonID, err := targetID.ToInt()
+	res, numberOfPages, err := fetchObservationPage(targetID, since, 1)
 	if err != nil {
 		return nil, err
 	}
 
-	initRes := observationsResult{}
-	initURL := occurrenceURL(targetID, since, 1)
-	releaseOuterLmtr := fetchLmtr.Go()
-	if err := utils.RequestJSON(initURL, &initRes); err != nil {
-		releaseOuterLmtr()
-		return nil, errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", initURL)
-	}
-	releaseOuterLmtr()
-
-	res := initRes.Results
-
-	if initRes.NumberOfPages > 1 {
+	if numberOfPages > 1 {
 		lock := sync.Mutex{}
 		tmb := tomb.Tomb{}
 		tmb.Go(func() error {
-			for 𝝨 := 2; 𝝨 <= initRes.NumberOfPages; 𝝨++ {
-				releaseInnerLmtr := fetchLmtr.Go()
-				i := 𝝨
+			for 𝝨 := 2; 𝝨 <= numberOfPages; 𝝨++ {
+				page := 𝝨
 				tmb.Go(func() error {
-					defer releaseInnerLmtr()
-					localRes := observationsResult{}
-					localURL := occurrenceURL(targetID, since, i)
-					if err := utils.RequestJSON(localURL, &localRes); err != nil {
-						return errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", localURL)
-					}
-					obs, err := filterObservations(taxonID, localRes.Results)
+					list, _, err := fetchObservationPage(targetID, since, page)
 					if err != nil {
 						return err
 					}
 					lock.Lock()
 					defer lock.Unlock()
-					res = append(res, obs...)
+					res = append(res, list...)
 					return nil
 				})
 			}
@@ -78,8 +81,13 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 	return res, nil
 }
 
-func filterObservations(taxonID int, given []*observation) ([]*observation, error) {
-	res := []*observation{}
+func filterObservations(targetID datasources.TargetID, given []*observation) ([]providers.Occurrence, error) {
+	taxonID, err := targetID.ToInt()
+	if err != nil {
+		return nil, err
+	}
+
+	res := []providers.Occurrence{}
 	for _, observation := range given {
 		// Should be covered in search, but just in case.
 		if observation.Consensus.ID != taxonID {

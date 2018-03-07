@@ -38,12 +38,8 @@ func FetchNameUsages(cxt context.Context, _ []string, ids datasources.TargetIDs)
 
 func parseNameUsage(txn *taxon) (nameusage.NameUsage, error) {
 	if len(txn.CurrentSynonymousTaxonIds) > 0 {
-		return nil, errors.Newf("Unexpected synonyms [%+v] from INaturalist taxon [%d]", txn.CurrentSynonymousTaxonIds, txn.ID)
-	}
-
-	if len(txn.CurrentSynonymousTaxonIds) > 0 {
 		// So far this has never been the case, but if it is, we need to process those.
-		return nil, errors.Newf("taxon [%d] has synonymous taxon IDs [%v]", txn.ID, txn.CurrentSynonymousTaxonIds)
+		return nil, errors.Newf("INaturalist taxon [%d] has synonymous taxon IDs [%v]", txn.ID, txn.CurrentSynonymousTaxonIds)
 	}
 
 	name, err := canonicalname.NewCanonicalName(txn.Name, strings.ToLower(txn.Rank))

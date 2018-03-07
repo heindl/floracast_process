@@ -2,6 +2,7 @@ package gbif
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"fmt"
@@ -46,12 +47,12 @@ func (p *description) Text() (string, error) {
 	return p.Description, nil
 }
 
-func (p *description) Source() datasources.SourceType {
+func (p *description) SourceType() datasources.SourceType {
 	return datasources.TypeGBIF
 }
 
 // FetchDescriptions returns a list of DescriptionProviders.
-func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]*description, error) {
+func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]providers.Description, error) {
 
 	i, err := targetID.ToInt()
 	if err != nil {
@@ -63,7 +64,7 @@ func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]*d
 		return nil, errors.Wrapf(err, "Could not fetch GBIF media [%s]", targetID)
 	}
 
-	descriptions := []*description{}
+	descriptions := []providers.Description{}
 
 	// TODO: Check license here for appropriateness.
 	// TODO: Look for created time? Doesn't appear to be in all records.

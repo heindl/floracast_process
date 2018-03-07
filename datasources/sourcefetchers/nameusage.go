@@ -11,6 +11,7 @@ import (
 	"github.com/dropbox/godropbox/errors"
 )
 
+// FetchNameUsages returns taxon NameUsages from the requested source.
 func FetchNameUsages(ctx context.Context, sourceType datasources.SourceType, scientificNames []string, targetIDs datasources.TargetIDs) ([]nameusage.NameUsage, error) {
 	switch sourceType {
 	case datasources.TypeGBIF:

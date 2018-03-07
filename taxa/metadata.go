@@ -2,6 +2,7 @@ package taxa
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/datasources/sourcefetchers"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"context"
@@ -18,9 +19,9 @@ type photo struct {
 	rank      int
 }
 
-func parsePhoto(p sourcefetchers.Photo) (*photo, error) {
+func parsePhoto(p providers.Photo) (*photo, error) {
 	rank := 0
-	if p.Source() == datasources.TypeINaturalist {
+	if p.SourceType() == datasources.TypeINaturalist {
 		rank++
 	}
 	if p.Thumbnail() != "" {
@@ -93,9 +94,9 @@ type description struct {
 	rank     int
 }
 
-func parseDescription(p sourcefetchers.Description) (*description, error) {
+func parseDescription(p providers.Description) (*description, error) {
 	rank := 0
-	if p.Source() == datasources.TypeINaturalist {
+	if p.SourceType() == datasources.TypeINaturalist {
 		rank++
 	}
 	citation, err := p.Citation()

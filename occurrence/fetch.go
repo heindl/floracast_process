@@ -2,6 +2,7 @@ package occurrence
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/datasources/sourcefetchers"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/terra/ecoregions"
@@ -124,7 +125,7 @@ func fetchOccurrencesForTarget(ctx context.Context, sourceType datasources.Sourc
 	return &aggregation, nil
 }
 
-func parseOccurrenceProvider(sourceType datasources.SourceType, targetID datasources.TargetID, provided sourcefetchers.OccurrenceProvider, aggr *Aggregation) error {
+func parseOccurrenceProvider(sourceType datasources.SourceType, targetID datasources.TargetID, provided providers.Occurrence, aggr *Aggregation) error {
 	o, err := NewOccurrence(sourceType, targetID, provided.SourceOccurrenceID())
 	if err != nil {
 		return err

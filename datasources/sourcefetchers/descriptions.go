@@ -4,11 +4,13 @@ import (
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/datasources/gbif"
 	"bitbucket.org/heindl/process/datasources/inaturalist"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 )
 
-func FetchDescriptions(ctx context.Context, sourceTypeProvider datasources.SourceTypeProvider, targetIDProvider datasources.TargetIDProvider) ([]Description, error) {
+// FetchDescriptions returns descriptions from the requested source.
+func FetchDescriptions(ctx context.Context, sourceTypeProvider datasources.SourceTypeProvider, targetIDProvider datasources.TargetIDProvider) ([]providers.Description, error) {
 
 	sourceType, err := sourceTypeProvider()
 	if err != nil {
@@ -20,28 +22,13 @@ func FetchDescriptions(ctx context.Context, sourceTypeProvider datasources.Sourc
 		return nil, err
 	}
 
-	res := []Description{}
 	switch sourceType {
 	case datasources.TypeGBIF:
-		descriptions, err := gbif.FetchDescriptions(ctx, targetID)
-		if err != nil {
-			return nil, err
-		}
-		for _, d := range descriptions {
-			res = append(res, d)
-		}
+		return gbif.FetchDescriptions(ctx, targetID)
 	case datasources.TypeINaturalist:
-		descriptions, err := inaturalist.FetchDescriptions(ctx, targetID)
-		if err != nil {
-			return nil, err
-		}
-		for _, d := range descriptions {
-			res = append(res, d)
-		}
+		return inaturalist.FetchDescriptions(ctx, targetID)
 	default:
 		return nil, errors.Newf("Unsupported SourceType [%s]", sourceType)
 	}
-
-	return res, nil
 
 }

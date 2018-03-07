@@ -46,7 +46,7 @@ func TestInaturalistFetcher(t *testing.T) {
 		So(photos[0].Citation(), ShouldEqual, "(c) Leo Papandreou, some rights reserved (CC BY-NC-SA)")
 		So(photos[0].Large(), ShouldEqual, "https://farm5.staticflickr.com/4031/4710142661_38bb26fb1a_b.jpg")
 		So(photos[0].Thumbnail(), ShouldEqual, "https://farm5.staticflickr.com/4031/4710142661_38bb26fb1a_m.jpg")
-		So(photos[0].Source(), ShouldEqual, datasources.TypeINaturalist)
+		So(photos[0].SourceType(), ShouldEqual, datasources.TypeINaturalist)
 	})
 
 	Convey("should fetch occurrences", t, func() {

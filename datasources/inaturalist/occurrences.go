@@ -2,6 +2,7 @@ package inaturalist
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"fmt"
@@ -13,96 +14,97 @@ import (
 )
 
 type occurrence struct {
-	OutOfRange        bool          `json:"out_of_range"`
-	QualityGrade      string        `json:"quality_grade"`
-	TimeObservedAt    time.Time     `json:"time_observed_at"` // 2012-03-18T17:31:53-04:00
-	Annotations       []interface{} `json:"annotations"`
-	UUID              string        `json:"uuid"`
-	Photos            []interface{} `json:"photos"`
-	ObservedOnDetails struct {
-		Date  string `json:"date"`
-		Week  int    `json:"week"`
-		Month int    `json:"month"`
-		Hour  int    `json:"hour"`
-		Year  int    `json:"year"`
-		Day   int    `json:"day"`
-	} `json:"observed_on_details"`
-	ID                       int  `json:"id"`
-	CachedVotesTotal         int  `json:"cached_votes_total"`
-	IdentificationsMostAgree bool `json:"identifications_most_agree"`
-	CreatedAtDetails         struct {
-		Date  string `json:"date"`
-		Week  int    `json:"week"`
-		Month int    `json:"month"`
-		Hour  int    `json:"hour"`
-		Year  int    `json:"year"`
-		Day   int    `json:"day"`
-	} `json:"created_at_details"`
-	SpeciesGuess                string        `json:"species_guess"`
-	IdentificationsMostDisagree bool          `json:"identifications_most_disagree"`
-	Tags                        []interface{} `json:"tags"`
-	PositionalAccuracy          int           `json:"positional_accuracy"`
-	CommentsCount               int           `json:"comments_count"`
-	SiteID                      int           `json:"site_id"`
-	CreatedTimeZone             string        `json:"created_time_zone"`
-	IDPlease                    bool          `json:"id_please"`
-	LicenseCode                 string        `json:"license_code"`
-	ObservedTimeZone            string        `json:"observed_time_zone"`
-	QualityMetrics              []interface{} `json:"quality_metrics"`
-	PublicPositionalAccuracy    int           `json:"public_positional_accuracy"`
-	ReviewedBy                  []int         `json:"reviewed_by"`
-	OauthApplicationID          int           `json:"oauth_application_id"`
-	Flags                       []interface{} `json:"flags"`
-	CreatedAt                   string        `json:"created_at"`
-	Description                 string        `json:"description"`
-	TimeZoneOffset              string        `json:"time_zone_offset"`
-	ProjectIdsWithCuratorID     []int         `json:"project_ids_with_curator_id"`
-	ObservedOn                  string        `json:"observed_on"`
-	ObservedOnString            string        `json:"observed_on_string"`
-	UpdatedAt                   string        `json:"updated_at"`
-	Sounds                      []interface{} `json:"sounds"`
-	PlaceIds                    []int         `json:"place_ids"`
-	Captive                     bool          `json:"captive"`
-	Taxon                       taxon         `json:"taxon"`
-	Outlinks                    []interface{} `json:"outlinks"`
-	FavesCount                  int           `json:"faves_count"`
-	Ofvs                        []interface{} `json:"ofvs"`
-	NumIdentificationAgreements int           `json:"num_identification_agreements"`
-	Preferences                 struct {
-		PrefersCommunityTaxon interface{} `json:"prefers_community_taxon"`
-	} `json:"preferences"`
-	Comments         []interface{}   `json:"comments"`
-	MapScale         int             `json:"map_scale"`
-	URI              string          `json:"uri"`
-	ProjectIds       []int           `json:"project_ids"`
-	Identifications  identifications `json:"identifications"`
-	CommunityTaxonID interface{}     `json:"community_taxon_id"`
-	Geojson          *struct {
-		Coordinates []string `json:"coordinates"`
-		Type        string   `json:"type"`
-	} `json:"geojson"`
-	OwnersIdentificationFromVision bool                 `json:"owners_identification_from_vision"`
-	IdentificationsCount           int                  `json:"identifications_count"`
-	Obscured                       bool                 `json:"obscured"`
-	ProjectObservations            []projectObservation `json:"project_observations"`
-	NumIdentificationDisagreements int                  `json:"num_identification_disagreements"`
-	ObservationPhotos              []interface{}        `json:"observation_photos"`
-	Geoprivacy                     interface{}          `json:"geoprivacy"`
-	Location                       string               `json:"location"`
-	Votes                          []interface{}        `json:"votes"`
-	User                           user                 `json:"user"`
-	Mappable                       bool                 `json:"mappable"`
-	IdentificationsSomeAgree       bool                 `json:"identifications_some_agree"`
-	ProjectIdsWithoutCuratorID     []int                `json:"project_ids_without_curator_id"`
-	PlaceGuess                     string               `json:"place_guess"`
-	Faves                          []interface{}        `json:"faves"`
-	NonOwnerIds                    []interface{}        `json:"non_owner_ids"`
-	Application                    struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-		URL  string `json:"url"`
-		Icon string `json:"icon"`
-	} `json:"application"`
+	//Annotations                    []interface{}        `json:"annotations"`
+	Application      application `json:"application"`
+	CachedVotesTotal int         `json:"cached_votes_total"`
+	Captive          bool        `json:"captive"`
+	//Comments                       []interface{}        `json:"comments"`
+	CommentsCount int `json:"comments_count"`
+	//CommunityTaxonID               interface{}          `json:"community_taxon_id"`
+	CreatedAt        string      `json:"created_at"`
+	CreatedAtDetails timeDetails `json:"created_at_details"`
+	CreatedTimeZone  string      `json:"created_time_zone"`
+	Description      string      `json:"description"`
+	//Faves                          []interface{}        `json:"faves"`
+	FavesCount int `json:"faves_count"`
+	//Flags                          []interface{}        `json:"flags"`
+	Geojson *geoJSON `json:"geojson"`
+	//Geoprivacy                     interface{}          `json:"geoprivacy"`
+	ID                          int             `json:"id"`
+	IDPlease                    bool            `json:"id_please"`
+	Identifications             identifications `json:"identifications"`
+	IdentificationsCount        int             `json:"identifications_count"`
+	IdentificationsMostAgree    bool            `json:"identifications_most_agree"`
+	IdentificationsMostDisagree bool            `json:"identifications_most_disagree"`
+	IdentificationsSomeAgree    bool            `json:"identifications_some_agree"`
+	LicenseCode                 string          `json:"license_code"`
+	Location                    string          `json:"location"`
+	MapScale                    int             `json:"map_scale"`
+	Mappable                    bool            `json:"mappable"`
+	//NonOwnerIds                    []interface{}        `json:"non_owner_ids"`
+	NumIdentificationAgreements    int  `json:"num_identification_agreements"`
+	NumIdentificationDisagreements int  `json:"num_identification_disagreements"`
+	OauthApplicationID             int  `json:"oauth_application_id"`
+	Obscured                       bool `json:"obscured"`
+	//ObservationPhotos              []interface{}        `json:"observation_photos"`
+	ObservedOn        string      `json:"observed_on"`
+	ObservedOnDetails timeDetails `json:"observed_on_details"`
+	ObservedOnString  string      `json:"observed_on_string"`
+	ObservedTimeZone  string      `json:"observed_time_zone"`
+	//Ofvs                           []interface{}        `json:"ofvs"`
+	OutOfRange bool `json:"out_of_range"`
+	//Outlinks                       []interface{}        `json:"outlinks"`
+	OwnersIdentificationFromVision bool `json:"owners_identification_from_vision"`
+	//Photos                         []interface{}        `json:"photos"`
+	PlaceGuess                 string               `json:"place_guess"`
+	PlaceIds                   []int                `json:"place_ids"`
+	PositionalAccuracy         int                  `json:"positional_accuracy"`
+	Preferences                preferences          `json:"preferences"`
+	ProjectIds                 []int                `json:"project_ids"`
+	ProjectIdsWithCuratorID    []int                `json:"project_ids_with_curator_id"`
+	ProjectIdsWithoutCuratorID []int                `json:"project_ids_without_curator_id"`
+	ProjectObservations        []projectObservation `json:"project_observations"`
+	PublicPositionalAccuracy   int                  `json:"public_positional_accuracy"`
+	QualityGrade               string               `json:"quality_grade"`
+	//QualityMetrics                 []interface{}        `json:"quality_metrics"`
+	ReviewedBy []int `json:"reviewed_by"`
+	SiteID     int   `json:"site_id"`
+	//Sounds                         []interface{}        `json:"sounds"`
+	SpeciesGuess string `json:"species_guess"`
+	//Tags                           []interface{}        `json:"tags"`
+	Taxon          taxon     `json:"taxon"`
+	TimeObservedAt time.Time `json:"time_observed_at"` // 2012-03-18T17:31:53-04:00
+	TimeZoneOffset string    `json:"time_zone_offset"`
+	URI            string    `json:"uri"`
+	UUID           string    `json:"uuid"`
+	UpdatedAt      string    `json:"updated_at"`
+	User           user      `json:"user"`
+	//Votes                          []interface{}        `json:"votes"`
+}
+
+type preferences struct {
+	PrefersCommunityTaxon interface{} `json:"prefers_community_taxon"`
+}
+
+type application struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+	Icon string `json:"icon"`
+}
+
+type geoJSON struct {
+	Coordinates []string `json:"coordinates"`
+	Type        string   `json:"type"`
+}
+
+type timeDetails struct {
+	Date  string `json:"date"`
+	Week  int    `json:"week"`
+	Month int    `json:"month"`
+	Hour  int    `json:"hour"`
+	Year  int    `json:"year"`
+	Day   int    `json:"day"`
 }
 
 // Lat returns the latitude.
@@ -218,20 +220,22 @@ type identification struct {
 }
 
 // FetchOccurrences returns returns a slice of OccurrenceProviders.
-func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *time.Time) ([]*occurrence, error) {
+func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *time.Time) ([]providers.Occurrence, error) {
 
 	if !taxonIDFromTargetID(targetID).Valid() {
 		return nil, errors.New("Invalid taxonID")
 	}
 
-	res := []*occurrence{}
+	res := []providers.Occurrence{}
 	page := 1
 	for {
 		list, err := fetchOccurrences(page, taxonIDFromTargetID(targetID), since)
 		if err != nil && err != iterator.Done {
 			return nil, err
 		}
-		res = append(res, list...)
+		for _, o := range list {
+			res = append(res, o)
+		}
 		if err != nil && err == iterator.Done {
 			break
 		}

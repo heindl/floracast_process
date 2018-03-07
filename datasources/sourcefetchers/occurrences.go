@@ -5,41 +5,21 @@ import (
 	"bitbucket.org/heindl/process/datasources/gbif"
 	"bitbucket.org/heindl/process/datasources/inaturalist"
 	"bitbucket.org/heindl/process/datasources/mushroomobserver"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"time"
 )
 
-// OccurrenceProvider is a standard interface for sources that fetch occurrences.
-type OccurrenceProvider interface {
-	Lat() (float64, error)
-	Lng() (float64, error)
-	DateString() string
-	CoordinatesEstimated() bool
-	SourceOccurrenceID() string
-}
-
-func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) ([]OccurrenceProvider, error) {
-	res := []OccurrenceProvider{}
+// FetchOccurrences returns occurrences from the requested source.
+func FetchOccurrences(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) ([]providers.Occurrence, error) {
 	switch sourceType {
 	case datasources.TypeGBIF:
-		gvn, err := gbif.FetchOccurrences(ctx, targetID, since)
-		for i := range gvn {
-			res = append(res, gvn[i])
-		}
-		return res, err
+		return gbif.FetchOccurrences(ctx, targetID, since)
 	case datasources.TypeINaturalist:
-		gvn, err := inaturalist.FetchOccurrences(ctx, targetID, since)
-		for i := range gvn {
-			res = append(res, gvn[i])
-		}
-		return res, err
+		return inaturalist.FetchOccurrences(ctx, targetID, since)
 	case datasources.TypeMushroomObserver:
-		gvn, err := mushroomobserver.FetchOccurrences(ctx, targetID, since)
-		for i := range gvn {
-			res = append(res, gvn[i])
-		}
-		return res, err
+		return mushroomobserver.FetchOccurrences(ctx, targetID, since)
 	default:
 		return nil, errors.Newf("Unsupported SourceType [%s]", sourceType)
 	}

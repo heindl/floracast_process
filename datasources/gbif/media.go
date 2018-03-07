@@ -2,6 +2,7 @@ package gbif
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"fmt"
@@ -59,12 +60,12 @@ func (Ω *media) Large() string {
 	return Ω.Identifier
 }
 
-func (Ω *media) Source() datasources.SourceType {
+func (Ω *media) SourceType() datasources.SourceType {
 	return datasources.TypeGBIF
 }
 
 // FetchPhotos returns an interface list of PhotoProviders.
-func FetchPhotos(_ context.Context, targetID datasources.TargetID) ([]*media, error) {
+func FetchPhotos(_ context.Context, targetID datasources.TargetID) ([]providers.Photo, error) {
 
 	i, err := targetID.ToInt()
 	if err != nil {
@@ -76,7 +77,7 @@ func FetchPhotos(_ context.Context, targetID datasources.TargetID) ([]*media, er
 		return nil, errors.Wrapf(err, "Could not fetch GBIF media [%s]", targetID)
 	}
 
-	photos := []*media{}
+	photos := []providers.Photo{}
 
 	// TODO: Check license here for appropriateness.
 	// TODO: Look for created time? Doesn't appear to be in all records.

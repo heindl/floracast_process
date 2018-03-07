@@ -2,6 +2,7 @@ package inaturalist
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 )
@@ -35,12 +36,12 @@ func (p *photo) Large() string {
 	return p.LargeURL
 }
 
-func (p *photo) Source() datasources.SourceType {
+func (p *photo) SourceType() datasources.SourceType {
 	return datasources.TypeINaturalist
 }
 
 // FetchPhotos implements the photo fetcher interface.
-func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*photo, error) {
+func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]providers.Photo, error) {
 	taxa, err := newTaxaFetcher(ctx, false, false).FetchTaxa(taxonIDFromTargetID(targetID))
 	if err != nil {
 		return nil, err
@@ -52,7 +53,7 @@ func FetchPhotos(ctx context.Context, targetID datasources.TargetID) ([]*photo, 
 		return nil, errors.Newf("Multiple INaturalist taxon found for TargetID [%s]", targetID)
 	}
 
-	res := []*photo{}
+	res := []providers.Photo{}
 	for _, taxonPhoto := range taxa[0].TaxonPhotos {
 		res = append(res, &taxonPhoto.Photo)
 	}

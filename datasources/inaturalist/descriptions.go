@@ -2,6 +2,7 @@ package inaturalist
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/datasources/wikipedia"
 	"context"
 	"github.com/dropbox/godropbox/errors"
@@ -10,12 +11,12 @@ import (
 // descriptionProvider is an interface for taxon description data
 type descriptionProvider taxon
 
-// Citation formats Wikipedia citation if present, and a blank line if not.
+// MLACitation formats Wikipedia citation if present, and a blank line if not.
 func (p *descriptionProvider) Citation() (string, error) {
 	if p.WikipediaURL == "" {
 		return "", nil
 	}
-	return wikipedia.Citation(p.WikipediaURL)
+	return wikipedia.MLACitation(p.WikipediaURL)
 }
 
 // Text provides the Wikipedia summary.
@@ -24,12 +25,12 @@ func (p *descriptionProvider) Text() (string, error) {
 }
 
 // Source provides the SourceType.
-func (p *descriptionProvider) Source() datasources.SourceType {
+func (p *descriptionProvider) SourceType() datasources.SourceType {
 	return datasources.TypeGBIF
 }
 
 // FetchDescriptions provides a list of Wikipedia summaries.
-func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]*descriptionProvider, error) {
+func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]providers.Description, error) {
 
 	taxa, err := newTaxaFetcher(ctx, false, false).FetchTaxa(taxonIDFromTargetID(targetID))
 	if err != nil {
@@ -54,5 +55,5 @@ func FetchDescriptions(ctx context.Context, targetID datasources.TargetID) ([]*d
 
 	t := descriptionProvider(*taxa[0])
 
-	return []*descriptionProvider{&t}, nil
+	return []providers.Description{&t}, nil
 }

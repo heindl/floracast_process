@@ -62,7 +62,7 @@ func countRecordObject(ctx context.Context, gcsObject *storage.ObjectHandle) (in
 	for {
 		_, err := reader.ReadRecord()
 		if err == io.EOF {
-			return sum, nil
+			break
 		}
 		if err != nil {
 			return 0, errors.Wrap(err, "Could not read TfRecord")

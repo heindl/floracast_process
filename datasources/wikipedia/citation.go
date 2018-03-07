@@ -32,7 +32,8 @@ type revision struct {
 	Comment   string    `json:"comment"`
 }
 
-func Citation(wikipediaURL string) (string, error) {
+// MLACitation fetches and validates a wikipedia page and returns a Modern Language Association (MLA) formatted citation string.
+func MLACitation(wikipediaURL string) (string, error) {
 
 	wikipediaURL = strings.TrimSpace(wikipediaURL)
 

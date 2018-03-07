@@ -2,6 +2,7 @@ package gbif
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/datasources/providers"
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 )
 
 // FetchOccurrences gathers a list of OccurrenceProvider interfaces.
-func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]*occurrence, error) {
+func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since *time.Time) ([]providers.Occurrence, error) {
 
 	spcs, err := targetIDToSpecies(targetID)
 	if err != nil {
@@ -33,7 +34,7 @@ func FetchOccurrences(cxt context.Context, targetID datasources.TargetID, since 
 		return nil, errors.Wrapf(err, "Could not fetch occurrences [%d] from the gbif", spcs)
 	}
 
-	res := []*occurrence{}
+	res := []providers.Occurrence{}
 
 	for _, gbifO := range apiList {
 

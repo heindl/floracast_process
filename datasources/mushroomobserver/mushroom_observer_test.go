@@ -100,10 +100,10 @@ func TestTaxonFetcher(t *testing.T) {
 		res, err = FetchOccurrences(context.Background(), datasources.TargetID("344"), nil)
 		So(err, ShouldBeNil)
 		So(len(res), ShouldEqual, 80)
-		ids := []int{}
+		ids := []string{}
 		// Check for duplicates
 		for _, r := range res {
-			ids = utils.AddIntToSet(ids, r.ID)
+			ids = utils.AddStringToSet(ids, r.SourceOccurrenceID())
 		}
 		So(len(ids), ShouldEqual, 80)
 
