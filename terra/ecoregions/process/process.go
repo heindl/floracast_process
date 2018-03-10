@@ -43,12 +43,12 @@ func main() {
 
 	fmt.Println(fmt.Sprintf("%d Records After Initial Parse & Filter", fc.Count()))
 
-	fc_id_grouped, err := fc.GroupByProperties("ECO_ID")
+	fcIDGrouped, err := fc.GroupByProperties("ECO_ID")
 	if err != nil {
 		panic(err)
 	}
 
-	fc_id_condensed, err := fc_id_grouped.Condense(func(a, b []byte) []byte {
+	fcIDCondensed, err := fcIDGrouped.Condense(func(a, b []byte) []byte {
 		// Note that we are only storing categories, and those should all be the same as we're grouping by eco_id.
 		return b
 	})
@@ -56,14 +56,14 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(fmt.Sprintf("%d Records After Group & Condense", fc_id_condensed.Count()))
+	fmt.Println(fmt.Sprintf("%d Records After Group & Condense", fcIDCondensed.Count()))
 
-	b, err := fc_id_condensed.GeoJSON()
+	b, err := fcIDCondensed.GeoJSON()
 	if err != nil {
 		panic(err)
 	}
 
-	content := []byte("package cache\nconst ecoregionsGeoJson=`")
+	content := []byte("package cache\nconst ecoregionsGeoJSON=`")
 	content = append(content, b...)
 	content = append(content, []byte("`")...)
 

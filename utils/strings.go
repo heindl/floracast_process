@@ -43,6 +43,8 @@ func FormatTitle(s string) (string, error) {
 	s = strings.ToLower(s)
 	s = sanitize.HTML(s)
 
+	s = strings.Replace(s, `\`, `/`, -1)
+
 	stopWords := []string{"a", "about", "an", "are", "as", "at", "be", "by", "com", "for", "from", "how", "in", "is", "it", "of", "on", "or", "that", "the", "this", "to", "was", "what", "when", "where", "who", "will", "with", "the"}
 
 	fields := strings.Fields(s)

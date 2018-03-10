@@ -133,10 +133,29 @@ func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) (Feature
 	if len(property_keys) == 0 {
 		return nil, nil
 	}
+	output_holder, err := Ω.groupByProperties(property_keys)
+	if err != nil {
+		return nil, err
+	}
+
+	output := FeatureCollections{}
+
+	for _, features := range output_holder {
+		fc := FeatureCollection{}
+		if err := fc.Append(features...); err != nil {
+			return nil, err
+		}
+		output = append(output, &fc)
+	}
+
+	return output, nil
+}
+
+func (Ω *FeatureCollection) groupByProperties(propertyKeys []string) (map[string][]*Feature, error) {
 	output_holder := map[string][]*Feature{}
 	for _, feature := range Ω.features {
 		a := ""
-		for _, k := range property_keys {
+		for _, k := range propertyKeys {
 			i, err := feature.GetProperty(k)
 			if err != nil {
 				return nil, err
@@ -155,18 +174,7 @@ func (Ω *FeatureCollection) GroupByProperties(property_keys ...string) (Feature
 		}
 		output_holder[a] = append(output_holder[a], feature)
 	}
-
-	output := FeatureCollections{}
-
-	for _, features := range output_holder {
-		fc := FeatureCollection{}
-		if err := fc.Append(features...); err != nil {
-			return nil, err
-		}
-		output = append(output, &fc)
-	}
-
-	return output, nil
+	return output_holder, nil
 }
 
 func (Ω *FeatureCollection) FilterByMinimumArea(minimum_area_kilometers float64) (*FeatureCollection, error) {

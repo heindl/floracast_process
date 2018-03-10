@@ -23,7 +23,7 @@ func init() {
 		return nil
 	}
 
-	if err := geo.ParseGeoJSONFeatureCollection([]byte(ecoregionsGeoJson), callback); err != nil {
+	if err := geo.ParseGeoJSONFeatureCollection([]byte(ecoregionsGeoJSON), callback); err != nil {
 		panic(err)
 	}
 }

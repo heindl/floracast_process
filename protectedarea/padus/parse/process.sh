@@ -53,7 +53,16 @@ WI
 WY
 )
 
-STATES=(OR)
+STATES=(
+    GA
+    WV
+    SC
+    NC
+    VA
+    KY
+    TN
+    AL
+)
 
 go build
 

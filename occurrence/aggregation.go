@@ -74,8 +74,6 @@ func (Ω *Aggregation) indexOf(qKey string) (int, error) {
 // ErrCollision warns of a collision.
 var ErrCollision = errors.New("Occurrence Collision")
 
-var counter = 0
-
 // AddOccurrence adds a new record to the aggregation and returns error if it's
 // an unselected record in collision.
 func (Ω *Aggregation) AddOccurrence(q Occurrence) error {

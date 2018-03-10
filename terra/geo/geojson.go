@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"github.com/buger/jsonparser"
 	"github.com/dropbox/godropbox/errors"
+	"github.com/golang/geo/s2"
 	"github.com/paulmach/go.geojson"
 	"io/ioutil"
 	"os"
@@ -118,7 +119,8 @@ func unmarshalGeometryAsMultiPolygon(encodedGeometry []byte) (MultiPolygon, erro
 		// MultiPolygon    [][][][]float64
 		mp := MultiPolygon{}
 		for _, polygonArray := range geometry.MultiPolygon {
-			np, err := NewPolygon(polygonArray)
+			np := &s2.Polygon{}
+			np, err = NewPolygon(polygonArray)
 			if err != nil {
 				return nil, err
 			}

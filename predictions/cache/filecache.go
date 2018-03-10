@@ -20,12 +20,13 @@ type localFileCache struct {
 	filePointers map[string]*os.File
 }
 
+// NewLocalFileCache generates a PredictionCache stored as local files.
 func NewLocalFileCache() (PredictionCache, func() error, error) {
-	random_string, err := gostrgen.RandGen(10, gostrgen.Lower, "", "")
+	randomString, err := gostrgen.RandGen(10, gostrgen.Lower, "", "")
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not create temp file random string name")
 	}
-	tmp := path.Join("/tmp/", fmt.Sprintf("predictions-%s", random_string))
+	tmp := path.Join("/tmp/", fmt.Sprintf("predictions-%s", randomString))
 	if err := os.Mkdir(tmp, os.ModePerm); err != nil {
 		return nil, nil, errors.Wrap(err, "could not create tmp path")
 	}
@@ -74,11 +75,11 @@ func (Ω *localFileCache) getFilePointer(p predictions.Prediction) (*os.File, er
 	return taxonFile, nil
 }
 
-func (Ω *localFileCache) WritePredictions(prediction_list predictions.Predictions) error {
+func (Ω *localFileCache) WritePredictions(predictionList predictions.Predictions) error {
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _prediction := range prediction_list {
+		for _, _prediction := range predictionList {
 			prediction := _prediction
 			tmb.Go(func() error {
 				b, err := json.Marshal(prediction)

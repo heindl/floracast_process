@@ -9,6 +9,24 @@ type Bound struct {
 	North, South, East, West float64
 }
 
+func (Ω *Bound) Widen(b *Bound) {
+	if Ω == nil {
+		*Ω = Bound{}
+	}
+	if Ω.West == 0 || b.West < Ω.West {
+		Ω.West = b.West
+	}
+	if Ω.South == 0 || b.South < Ω.South {
+		Ω.South = b.South
+	}
+	if Ω.East == 0 || b.East > Ω.East {
+		Ω.East = b.East
+	}
+	if Ω.North == 0 || b.North > Ω.North {
+		Ω.North = b.North
+	}
+}
+
 func (Ω *Bound) WidthMeters() (float64, error) {
 	p, err := Ω.Center()
 	if err != nil {
@@ -43,24 +61,34 @@ func (Ω *Bound) HeightMeters() (float64, error) {
 
 type Bounds []*Bound
 
-func BoundFromPolygon(polygons [][][]float64) (*Bound, error) {
-	b := Bound{}
+func BoundFromPolygons(polygons [][][]float64) (*Bound, error) {
+	res := &Bound{}
 	for _, polygon := range polygons {
-		for _, coord := range polygon {
-			lng := coord[0]
-			lat := coord[1]
-			if b.West == 0 || lng < b.West {
-				b.West = lng
-			}
-			if b.South == 0 || lat < b.South {
-				b.South = lat
-			}
-			if b.East == 0 || lng > b.East {
-				b.East = lng
-			}
-			if b.North == 0 || lat > b.North {
-				b.North = lat
-			}
+		b, err := BoundFromPolygon(polygon)
+		if err != nil {
+			return nil, err
+		}
+		res.Widen(b)
+	}
+	return res, nil
+}
+
+func BoundFromPolygon(polygon [][]float64) (*Bound, error) {
+	b := Bound{}
+	for _, coord := range polygon {
+		lng := coord[0]
+		lat := coord[1]
+		if b.West == 0 || lng < b.West {
+			b.West = lng
+		}
+		if b.South == 0 || lat < b.South {
+			b.South = lat
+		}
+		if b.East == 0 || lng > b.East {
+			b.East = lng
+		}
+		if b.North == 0 || lat > b.North {
+			b.North = lat
 		}
 	}
 	return &b, nil

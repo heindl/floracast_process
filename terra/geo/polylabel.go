@@ -13,7 +13,7 @@ func PolyLabel(polygon [][][]float64, precision float64) (*Point, error) {
 	}
 
 	// find the bounding box of the outer ring
-	bound, err := BoundFromPolygon(polygon)
+	bound, err := BoundFromPolygons(polygon)
 	if err != nil {
 		return nil, err
 	}

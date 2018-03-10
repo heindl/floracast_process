@@ -11,6 +11,7 @@ import (
 	"sort"
 )
 
+// NewLocalPredictionSource returns a prediction source from the local file system.
 func NewLocalPredictionSource(cxt context.Context, localPath string) (PredictionSource, error) {
 	if localPath == "" {
 		return nil, errors.New("Invalid Local Path")

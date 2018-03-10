@@ -11,6 +11,7 @@ import (
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
+// Prediction is the standard interface for prediction data.
 type Prediction interface {
 	UsageID() (nameusage.ID, error)
 	Date() (string, error)
@@ -19,6 +20,7 @@ type Prediction interface {
 	LatLng() (float64, float64, error)
 }
 
+// NewPrediction validates and instantiates a new prediction.
 func NewPrediction(usageID nameusage.ID, date string, lat, lng, predictionValue float64) (Prediction, error) {
 	if !usageID.Valid() {
 		return nil, errors.Newf("Could not create Prediction with invalid ID [%s]", usageID)
@@ -83,12 +85,15 @@ func (Ω *prediction) LatLng() (float64, float64, error) {
 	return Ω.GeoPoint.GetLatitude(), Ω.GeoPoint.GetLongitude(), nil
 }
 
+// Predictions is a slice of predictions with utility methods.
 type Predictions []Prediction
 
+// PredictionWriter is an interface for writing predictions
 type PredictionWriter interface {
 	WritePredictions(Predictions) error
 }
 
+// Upload validates an array of predictions and saves them to FireStore.
 func (Ω Predictions) Upload(cxt context.Context, florastore store.FloraStore, writer PredictionWriter) error {
 
 	if writer == nil {
@@ -119,15 +124,4 @@ func (Ω Predictions) Upload(cxt context.Context, florastore store.FloraStore, w
 //		return "", errors.New("invalid longitude")
 //	}
 //	return fmt.Sprintf("%s|%s|%.6f|%.6f", string(p.TaxonID), p.Date.Format("20060102"), p.Location.GetLatitude(), p.Location.GetLongitude()), nil
-//}
-//
-//func (Ω *store) SetPrediction(cxt context.Context, p Prediction) error {
-//	id, err := Ω.PredictionDocumentID(p)
-//	if err != nil {
-//		return err
-//	}
-//	if _, err := Ω.FirestoreClient.Collection(CollectionTypePredictions).Doc(id).Set(cxt, p); err != nil {
-//		return err
-//	}
-//	return nil
 //}

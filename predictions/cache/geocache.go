@@ -20,14 +20,15 @@ type localGeoCacheWriter struct {
 	DB *buntdb.DB
 }
 
+// NewLocalGeoCache creates a PredictionCache with additional geoquery methods.
 func NewLocalGeoCache() (PredictionCache, func() error, error) {
 
-	random_string, err := gostrgen.RandGen(10, gostrgen.Lower, "", "")
+	randomString, err := gostrgen.RandGen(10, gostrgen.Lower, "", "")
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "could not create temp file random string name")
 	}
 
-	tmp := path.Join("/tmp/", fmt.Sprintf("predictions-%s", random_string))
+	tmp := path.Join("/tmp/", fmt.Sprintf("predictions-%s", randomString))
 	if err = os.Mkdir(tmp, os.ModePerm); err != nil {
 		return nil, nil, errors.Wrap(err, "could not create tmp path")
 	}
@@ -79,12 +80,12 @@ func (Ω *localGeoCacheWriter) ReadPredictions(lat, lng, radius float64, qDate s
 	return res, nil
 }
 
-func (Ω *localGeoCacheWriter) WritePredictions(prediction_list predictions.Predictions) error {
+func (Ω *localGeoCacheWriter) WritePredictions(predictionList predictions.Predictions) error {
 	//Species:taxon_id,date:pos
 	//taxon_id:date,id,prediction:
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for _, _prediction := range prediction_list {
+		for _, _prediction := range predictionList {
 			prediction := _prediction
 			tmb.Go(func() error {
 				transaction, err := newTransaction(prediction)

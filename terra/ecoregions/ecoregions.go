@@ -114,6 +114,7 @@ var biomeDefinitions = map[Biome]string{
 	Biome(14): "Mangroves",
 }
 
+// Valid checks the biome against a known list.
 func (Ω Biome) Valid() bool {
 	_, ok := biomeDefinitions[Ω]
 	return ok
@@ -122,6 +123,7 @@ func (Ω Biome) Valid() bool {
 // Realm is one of seven major habitats: Afrotropical, Australasia, Indo-Malayan, Nearctic, Neotropical, Oceania, Palearctic
 type Realm int
 
+// Valid checks the realm against as a known value.
 func (Ω Realm) Valid() bool {
 	return Ω > 0 && Ω < 9
 }
@@ -165,6 +167,7 @@ func (Ω realmCode) Valid() bool {
 // EcoNum is a unique number for each ecoregion within each biome nested within each realm.
 type EcoNum int
 
+// Valid checks that the EcoNum is not empty
 func (Ω EcoNum) Valid() bool {
 	return Ω != 0
 }

@@ -14,6 +14,7 @@ import (
 	"bitbucket.org/heindl/process/terra/grid"
 	"bitbucket.org/heindl/process/utils"
 	"fmt"
+	"github.com/golang/glog"
 	"gopkg.in/tomb.v2"
 )
 
@@ -86,6 +87,8 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 	}
 	batchSize := len(bounds) * 4
 
+	glog.Infof("Generating %d Random Occurrence Batches for %d Bounds", numberOfBatches, len(bounds))
+
 	recordNumberCounter := 1
 
 	tmb := tomb.Tomb{}
@@ -101,7 +104,13 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 						recordNumber := recordNumberCounter
 						recordNumberCounter++
 						gen.Unlock()
-						return gen.generateRandomOccurrence(batch, recordNumber, batchSize, bound, season)
+						err := gen.generateRandomOccurrence(batch, recordNumber, batchSize, bound, season)
+						glog.Infof("Random Occurrence [%d] Generated", recordNumber)
+						if utils.ContainsError(err, errMaxRandomGenerationAttempts) {
+							glog.Warningf("Max Attempts [%d] Reached while Generating Random Occurrence Point [%v]", maxGenerationAttempts, bound)
+							return nil
+						}
+						return err
 					})
 				}
 			}
@@ -112,8 +121,12 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 		return nil, err
 	}
 
+	glog.Infof("Uploading %d Random Occurrence Points", gen.occurrenceAggregator.Count())
+
 	return gen.occurrenceAggregator, nil
 }
+
+var errMaxRandomGenerationAttempts = fmt.Errorf("reached maximum attempts at generating random occurrence point")
 
 func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber, batchSize int, bounds geo.Bound, season Season) error {
 
@@ -126,7 +139,7 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 	for {
 		attempts++
 		if attempts > maxGenerationAttempts {
-			return nil
+			return errMaxRandomGenerationAttempts
 		}
 		//rand.Seed(time.Now().Unix())
 

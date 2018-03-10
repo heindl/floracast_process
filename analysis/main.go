@@ -15,13 +15,22 @@ func main() {
 		panic(err)
 	}
 
-	s := "gs://floracast-datamining/random/1510706694"
-	//s := "gs://floracast-datamining/protected_areas/20180302/1520210026.tfrecord.gz"
+	s := "gs://floracast-datamining/occurrences/aho2iyxvo37rjezikho6xbwmq/1519504349.tfrecords"
+	//s := "gs://floracast-datamining/random/1520448273.tfrecords"
 
-	total, err := countTFRecordsInCloudStoragePath(cxt, floraStore, s)
+	recorder, err := newTFRecorder(cxt, floraStore, s)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("TOTAL", total)
+	count, err := recorder.CountRecords(cxt)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Count", count)
+
+	if err := recorder.PrintFeature(cxt, "eco_num", featureTypeInt); err != nil {
+		panic(err)
+	}
 }

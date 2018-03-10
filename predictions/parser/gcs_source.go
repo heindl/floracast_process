@@ -4,6 +4,7 @@ import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/utils"
+	"cloud.google.com/go/storage"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
@@ -44,6 +45,10 @@ func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id name
 		return nil, err
 	}
 
+	return sortedFileNames(cxt, gcsObjects)
+}
+
+func sortedFileNames(cxt context.Context, gcsObjects []*storage.ObjectHandle) ([]string, error) {
 	dateFiles := map[string][]string{}
 	objectNames := []string{}
 	for _, gcsObject := range gcsObjects {
@@ -58,7 +63,6 @@ func (Ω *gcsSource) FetchLatestPredictionFileNames(cxt context.Context, id name
 		}
 		dateFiles[s[2]] = append(dateFiles[s[2]], s[3])
 	}
-
 	response := []string{}
 	for d, l := range dateFiles {
 		sort.Strings(l)
