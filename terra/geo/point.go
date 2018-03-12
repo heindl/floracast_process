@@ -36,10 +36,10 @@ func ValidateCoordinates(lat, lng float64) error {
 		return dropboxErrors.Wrapf(ErrInvalidCoordinates, "Longitude [%f] is out of bounds", lng)
 	}
 	// We need the decimal precision to be at least a football field, so require at least three decimal places (110m).
-	if hasDecimalPlaces(2, lat) || hasDecimalPlaces(1, lat) {
+	if hasDecimalPlaces(3, lat) || hasDecimalPlaces(3, lat) {
 		return dropboxErrors.Wrapf(ErrInvalidCoordinates, "Latitude [%f] has insufficient precision", lat)
 	}
-	if hasDecimalPlaces(2, lng) || hasDecimalPlaces(1, lng) {
+	if hasDecimalPlaces(3, lng) || hasDecimalPlaces(3, lng) {
 		return dropboxErrors.Wrapf(ErrInvalidCoordinates, "Longitude [%f] has insufficient precision", lng)
 	}
 	return nil

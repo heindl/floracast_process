@@ -112,9 +112,7 @@ func newHandler(ctx context.Context, floraStore store.FloraStore, bucket, mode s
 }
 
 type handler struct {
-	cache  cache.PredictionCache
-	prsr   parser.PredictionParser
-	source parser.PredictionSource
+	cache cache.PredictionCache
 }
 
 func (Ω *handler) close() error {

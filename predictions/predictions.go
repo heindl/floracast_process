@@ -42,7 +42,7 @@ func NewPrediction(usageID nameusage.ID, date string, lat, lng, predictionValue 
 	return &prediction{
 		ProtectedAreaID:       coordinateKey,
 		PredictionValue:       predictionValue,
-		ScaledPredictionValue: ((predictionValue - 0.5) / 0.5),
+		ScaledPredictionValue: (predictionValue - 0.5) / 0.5,
 		FormattedDate:         date,
 		GeoPoint: &latlng.LatLng{
 			Latitude:  lat,
