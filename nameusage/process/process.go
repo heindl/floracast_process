@@ -105,6 +105,9 @@ func aggregateInitialNameUsages(cxt context.Context, inaturalistTaxonIDs ...int)
 		if err != nil {
 			return nil, err
 		}
+
+		glog.Infof("%d TargetIDs from %s", len(ids), srcType)
+
 		if srcType == datasources.TypeINaturalist {
 			ids = targetIDs
 		}
@@ -113,6 +116,8 @@ func aggregateInitialNameUsages(cxt context.Context, inaturalistTaxonIDs ...int)
 		if err != nil {
 			return nil, err
 		}
+
+		glog.Infof("%d ScientificNames from %s", len(sciNames), srcType)
 
 		usages, err := sourcefetchers.FetchNameUsages(cxt, srcType, sciNames, ids)
 		if err != nil {

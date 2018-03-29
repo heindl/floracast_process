@@ -46,7 +46,7 @@ func TestSpecies(t *testing.T) {
 		Convey("should return a list of related name usages", func() {
 			r, err := spcs.Related()
 			So(err, ShouldBeNil)
-			So(len(r), ShouldEqual, 43)
+			So(len(r), ShouldEqual, 51)
 		})
 
 		Convey("should return a list of synonymical name usages", func() {
@@ -58,7 +58,7 @@ func TestSpecies(t *testing.T) {
 		Convey("should return a list of distributions", func() {
 			r, err := spcs.fetchDistributions()
 			So(err, ShouldBeNil)
-			So(len(r), ShouldEqual, 16)
+			So(len(r), ShouldEqual, 20)
 		})
 
 		Convey("should return a list of media", func() {

@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestTaxonFetcher(t *testing.T) {
+func TestNameUsageFetcher(t *testing.T) {
 
 	t.Parallel()
 

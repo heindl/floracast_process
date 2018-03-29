@@ -49,6 +49,7 @@ func RequestXML(url string, response interface{}) error {
 }
 
 func request(url string) (res []byte, err error) {
+
 	client := pester.New()
 	client.Concurrency = 1
 	client.MaxRetries = 5

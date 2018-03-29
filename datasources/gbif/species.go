@@ -34,7 +34,7 @@ func (Ω species) TargetID() datasources.TargetID {
 }
 
 func (Ω species) url() string {
-	return fmt.Sprintf("http://api.gbif.org/v1/species/%d?verbose=true", Ω)
+	return fmt.Sprintf("http://api.gbif.org/v1/species/%d", Ω)
 }
 
 type nameUsage struct {
@@ -126,7 +126,17 @@ func (Ω species) ParsedName() (name parsedNameUsage, err error) {
 }
 
 func (Ω species) Parents() ([]*nameUsage, error) {
-	return Ω.nameUsages("parents")
+
+	res := []*nameUsage{}
+
+	if err := utils.RequestJSON(
+		fmt.Sprintf("%s/%s?offset=0&limit=300", Ω.url(), "parents"),
+		&res,
+	); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 type page struct {
@@ -167,7 +177,7 @@ func (Ω species) fetchDistributions() (distributions []distribution, err error)
 			page
 			Results []distribution `json:"results"`
 		}
-		url := fmt.Sprintf("%s/distributions?offset=%d&limit=50", Ω.url(), offset)
+		url := fmt.Sprintf("%s/distributions?offset=%d&limit=300", Ω.url(), offset)
 		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
@@ -194,7 +204,7 @@ func (Ω species) fetchReferences() (references []reference, err error) {
 			page
 			Results []reference `json:"results"`
 		}
-		url := fmt.Sprintf("%s/references?offset=%d&limit=50", Ω.url(), offset)
+		url := fmt.Sprintf("%s/references?offset=%d&limit=300", Ω.url(), offset)
 		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}
@@ -221,7 +231,7 @@ func (Ω species) fetchVernacularNames() (names []vernacularName, err error) {
 			page
 			Results []vernacularName `json:"results"`
 		}
-		url := fmt.Sprintf("%s/vernacularNames?offset=%d&limit=50", Ω.url(), offset)
+		url := fmt.Sprintf("%s/vernacularNames?offset=%d&limit=300", Ω.url(), offset)
 		if err := utils.RequestJSON(url, &response); err != nil {
 			return nil, err
 		}

@@ -102,8 +102,8 @@ func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) 
 	list, err := utils.ForEachStringToStrings(names, func(name string) ([]string, error) {
 		<-wait
 		synonymMatch := fmt.Sprintf("%s.%s", storeKeyScientificName, name)
-		snaps, err := col.Where(synonymMatch, "==", true).Documents(ctx).GetAll()
-		if err != nil {
+		snaps, forEachErr := col.Where(synonymMatch, "==", true).Documents(ctx).GetAll()
+		if forEachErr != nil {
 			return nil, err
 		}
 		res := []string{}

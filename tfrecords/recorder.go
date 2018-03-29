@@ -92,7 +92,7 @@ func (Ω *tfIterator) callNextObject(ctx context.Context) error {
 		return err
 	}
 
-	reader, err := tfutils.NewReader(bufio.NewReader(gcsObjectReader), &tfutils.RecordReaderOptions{
+	reader, err := tfutils.NewReaderFromBufio(bufio.NewReader(gcsObjectReader), &tfutils.RecordReaderOptions{
 		CompressionType: tfutils.CompressionTypeNone,
 	})
 	if err != nil {
