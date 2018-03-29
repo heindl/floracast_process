@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/terra/geoembed"
 	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/genproto/googleapis/type/latlng"
@@ -94,7 +93,7 @@ type PredictionWriter interface {
 }
 
 // Upload validates an array of predictions and saves them to FireStore.
-func (Ω Predictions) Upload(cxt context.Context, florastore store.FloraStore, writer PredictionWriter) error {
+func (Ω Predictions) Upload(cxt context.Context, writer PredictionWriter) error {
 
 	if writer == nil {
 		return errors.New("Valid PredictionWriter required at this point")

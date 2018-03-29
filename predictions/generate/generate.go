@@ -12,9 +12,11 @@ import (
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"
+	"gopkg.in/tomb.v2"
 	"path"
 	"sort"
 	"strings"
+	"sync"
 )
 
 func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraStore store.FloraStore, dateRange *DateRange) (list predictions.Predictions, err error) {
@@ -46,15 +48,27 @@ func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraSto
 		return nil, err
 	}
 
-	fmt.Println("FILENAMES", filenames)
-
 	res := predictions.Predictions{}
-	for _, f := range filenames {
-		list, err := g.generatePredictionsFromGCSPath(ctx, f)
-		if err != nil {
-			return nil, err
+	tmb := tomb.Tomb{}
+	lock := sync.Mutex{}
+	tmb.Go(func() error {
+		for _, _f := range filenames {
+			f := _f
+			tmb.Go(func() error {
+				list, err := g.generatePredictionsFromGCSPath(ctx, f)
+				if err != nil {
+					return err
+				}
+				lock.Lock()
+				defer lock.Unlock()
+				res = append(res, list...)
+				return nil
+			})
 		}
-		res = append(res, list...)
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
 	}
 
 	fmt.Println("TOTAL READ", g.totalRead)

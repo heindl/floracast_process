@@ -3,7 +3,7 @@ package main
 import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/predictions/cache"
-	"bitbucket.org/heindl/process/predictions/parser"
+	"bitbucket.org/heindl/process/predictions/generate"
 	"bitbucket.org/heindl/process/store"
 	"context"
 	"flag"
@@ -17,28 +17,24 @@ import (
 func main() {
 	//writeToCache := flag.Bool("cache", false, "write to buntdb cache and initiate server?")
 	//dates := flag.String("dates", "", "Dates for which to fetch latest predictions in format YYYYMMDD,YYYYMMDD. If blank will fetch all dates.")
-	requestedUsageIDs := flag.String("usageIDs", "", "Comma seperated list of IDs to fetch predictions for.")
-	bucket := flag.String("bucket", "", "gcs bucket to fetch predictions from")
+	nameUsageIDPtr := flag.String("name_usage", "", "NameUsageID")
 	mode := flag.String("mode", "serve", "mode to handle predictions: write to temp file for javascript geofire uploader or serve for testing in local web router.")
 	flag.Parse()
 
-	if *requestedUsageIDs == "" {
-		panic("IDs required")
+	if *nameUsageIDPtr == "" {
+		panic("NameUsageID required")
 	}
 
 	cxt := context.Background()
 
-	parsedUsageIDs, err := nameusage.IDsFromStrings(strings.Split(*requestedUsageIDs, ","))
-	if err != nil {
-		panic(err)
-	}
+	nameUsageID := nameusage.ID(*nameUsageIDPtr)
 
 	floraStore, err := store.NewFloraStore(cxt)
 	if err != nil {
 		panic(err)
 	}
 
-	h, err := newHandler(cxt, floraStore, *bucket, *mode)
+	h, err := newHandler(*mode)
 	if err != nil {
 		panic(err)
 	}
@@ -48,12 +44,12 @@ func main() {
 		}
 	}()
 
-	predictions, err := h.prsr.FetchPredictions(cxt, parsedUsageIDs, nil)
+	list, err := generate.GeneratePredictions(cxt, nameUsageID, floraStore, nil)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := predictions.Upload(cxt, floraStore, h.cache); err != nil {
+	if err := list.Upload(cxt, h.cache); err != nil {
 		panic(err)
 	}
 
@@ -73,25 +69,9 @@ func main() {
 
 }
 
-func newHandler(ctx context.Context, floraStore store.FloraStore, bucket, mode string) (res *handler, err error) {
+func newHandler(mode string) (res *handler, err error) {
 
 	res = &handler{}
-	if bucket == "" {
-		res.source, err = parser.NewLocalPredictionSource(ctx, "/tmp/floracast-datamining/")
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		res.source, err = parser.NewGCSPredictionSource(ctx, floraStore)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	res.prsr, err = parser.NewPredictionParser(res.source)
-	if err != nil {
-		return nil, err
-	}
 
 	switch mode {
 	case "write":
