@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/sethgrid/pester"
 	"io/ioutil"
@@ -49,6 +50,8 @@ func RequestXML(url string, response interface{}) error {
 }
 
 func request(url string) (res []byte, err error) {
+
+	fmt.Println("url", url)
 
 	client := pester.New()
 	client.Concurrency = 1

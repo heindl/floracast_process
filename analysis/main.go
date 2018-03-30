@@ -3,6 +3,7 @@ package main
 import (
 	"bitbucket.org/heindl/process/store"
 	"context"
+	"fmt"
 )
 
 // https://github.com/galeone/tfgo
@@ -14,9 +15,26 @@ func main() {
 		panic(err)
 	}
 
-	if err := migrateOccurrenceToNameUsageMonth(floraStore); err != nil {
+	colRef, err := floraStore.FirestoreCollection(store.CollectionRandom)
+	if err != nil {
 		panic(err)
 	}
+
+	snaps, err := colRef.Documents(cxt).GetAll()
+	if err != nil {
+		panic(err)
+	}
+
+	total := 0
+	for _ = range snaps {
+		total++
+	}
+
+	fmt.Println("Random Total", total)
+
+	//if err := migrateOccurrenceToNameUsageMonth(floraStore); err != nil {
+	//	panic(err)
+	//}
 
 	//s := "gs://floracast-datamining/occurrences/aho2iyxvo37rjezikho6xbwmq/1519504349.tfrecords"
 	////s := "gs://floracast-datamining/random/1520448273.tfrecords"

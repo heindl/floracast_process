@@ -57,11 +57,11 @@ func TestInaturalistFetcher(t *testing.T) {
 
 		occurrences, err := FetchOccurrences(context.Background(), datasources.TargetID("58682"), utils.TimePtr(baseTime))
 		So(err, ShouldBeNil)
-		So(len(occurrences), ShouldEqual, 8)
+		So(len(occurrences), ShouldEqual, 11)
 
 		occurrences, err = FetchOccurrences(context.Background(), datasources.TargetID("58682"), nil)
 		So(err, ShouldBeNil)
-		So(len(occurrences), ShouldEqual, 128)
+		So(len(occurrences), ShouldEqual, 129)
 
 	})
 

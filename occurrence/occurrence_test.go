@@ -2,6 +2,7 @@ package occurrence
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"context"
 	. "github.com/smartystreets/goconvey/convey"
@@ -14,17 +15,20 @@ func TestOccurrenceFetcher(t *testing.T) {
 
 	Convey("Should Fetch Occurrences for Taxon", t, func() {
 
-		iNatAggr, err := fetchOccurrencesForTarget(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
+		nameusageId, err := nameusage.NewNameUsageID()
 		So(err, ShouldBeNil)
-		So(iNatAggr.Count(), ShouldEqual, 121)
 
-		gbifAggr, err := fetchOccurrencesForTarget(context.Background(), datasources.TypeGBIF, datasources.TargetID("2594602"), nil)
+		iNatAggr, err := fetchOccurrencesForTarget(context.Background(), nameusageId, datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
 		So(err, ShouldBeNil)
-		So(gbifAggr.Count(), ShouldEqual, 205)
+		So(iNatAggr.Count(), ShouldEqual, 120)
+
+		gbifAggr, err := fetchOccurrencesForTarget(context.Background(), nameusageId, datasources.TypeGBIF, datasources.TargetID("2594602"), nil)
+		So(err, ShouldBeNil)
+		So(gbifAggr.Count(), ShouldEqual, 191)
 
 		So(iNatAggr.Merge(gbifAggr), ShouldBeNil)
 
-		So(iNatAggr.Count(), ShouldEqual, 239)
+		So(iNatAggr.Count(), ShouldEqual, 223)
 
 	})
 
@@ -38,17 +42,20 @@ func TestOccurrenceFetcher(t *testing.T) {
 		occurrenceCollectionRef, err := floraStore.FirestoreCollection(store.CollectionOccurrences)
 		So(err, ShouldBeNil)
 
+		nameusageId, err := nameusage.NewNameUsageID()
+		So(err, ShouldBeNil)
+
 		Convey("Should generate a list of Random points and upload to FireStore", func() {
 
-			aggr, err := fetchOccurrencesForTarget(context.Background(), datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
+			aggr, err := fetchOccurrencesForTarget(context.Background(), nameusageId, datasources.TypeINaturalist, datasources.TargetID("58682"), nil)
 			So(err, ShouldBeNil)
-			So(aggr.Count(), ShouldEqual, 121)
+			So(aggr.Count(), ShouldEqual, 120)
 
 			So(aggr.Upload(context.Background(), floraStore), ShouldBeNil)
 
 			floraStoreOccurrenceCount, err := floraStore.CountTestCollection(ctx, occurrenceCollectionRef)
 			So(err, ShouldBeNil)
-			So(floraStoreOccurrenceCount, ShouldEqual, 121)
+			So(floraStoreOccurrenceCount, ShouldEqual, 120)
 
 		})
 

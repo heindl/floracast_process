@@ -31,12 +31,12 @@ func FetchOccurrences(ctx context.Context, usage nameusage.NameUsage, limitToCou
 		return nil, err
 	}
 
-	id, err := usage.ID()
+	nameUsageID, err := usage.ID()
 	if err != nil {
 		return nil, err
 	}
 
-	glog.Infof("Fetching Occurrences for NameUsage [%s, %s] with %d Sources", usage.CanonicalName(), id, len(srcs))
+	glog.Infof("Fetching Occurrences for NameUsage [%s, %s] with %d Sources", usage.CanonicalName(), nameUsageID, len(srcs))
 
 	res := &Aggregation{}
 
@@ -49,7 +49,7 @@ func FetchOccurrences(ctx context.Context, usage nameusage.NameUsage, limitToCou
 				if limitToCount && src.OccurrenceCount() == 0 {
 					return nil
 				}
-				return fetchAndMerge(ctx, src, res)
+				return fetchAndMerge(ctx, nameUsageID, src, res)
 			})
 		}
 		return nil
@@ -58,13 +58,13 @@ func FetchOccurrences(ctx context.Context, usage nameusage.NameUsage, limitToCou
 		return nil, err
 	}
 
-	glog.Infof("%d Occurrences Aggregated for NameUsage [%s, %s] with %d Sources", res.Count(), usage.CanonicalName(), id, len(srcs))
+	glog.Infof("%d Occurrences Aggregated for NameUsage [%s, %s] with %d Sources", res.Count(), usage.CanonicalName(), nameUsageID, len(srcs))
 
 	return res, nil
 
 }
 
-func fetchAndMerge(ctx context.Context, src nameusage.Source, parentAggregation *Aggregation) error {
+func fetchAndMerge(ctx context.Context, nameUsageID nameusage.ID, src nameusage.Source, parentAggregation *Aggregation) error {
 
 	srcType, err := src.SourceType()
 	if err != nil {
@@ -76,7 +76,7 @@ func fetchAndMerge(ctx context.Context, src nameusage.Source, parentAggregation 
 		return err
 	}
 
-	aggr, err := fetchOccurrencesForTarget(ctx, srcType, targetID, src.LastFetchedAt())
+	aggr, err := fetchOccurrencesForTarget(ctx, nameUsageID, srcType, targetID, src.LastFetchedAt())
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func fetchAndMerge(ctx context.Context, src nameusage.Source, parentAggregation 
 	return parentAggregation.Merge(aggr)
 }
 
-func fetchOccurrencesForTarget(ctx context.Context, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) (*Aggregation, error) {
+func fetchOccurrencesForTarget(ctx context.Context, nameUsageID nameusage.ID, sourceType datasources.SourceType, targetID datasources.TargetID, since *time.Time) (*Aggregation, error) {
 
 	glog.Infof("Fetching Occurrences [%s, %s] since %v", sourceType, targetID, since)
 
@@ -111,7 +111,7 @@ func fetchOccurrencesForTarget(ctx context.Context, sourceType datasources.Sourc
 		for _, 𝝨 := range providers {
 			provided := 𝝨
 			tmb.Go(func() error {
-				return parseOccurrenceProvider(sourceType, targetID, provided, &aggregation)
+				return parseOccurrenceProvider(nameUsageID, sourceType, targetID, provided, &aggregation)
 			})
 		}
 		return nil
@@ -125,8 +125,8 @@ func fetchOccurrencesForTarget(ctx context.Context, sourceType datasources.Sourc
 	return &aggregation, nil
 }
 
-func parseOccurrenceProvider(sourceType datasources.SourceType, targetID datasources.TargetID, provided providers.Occurrence, aggr *Aggregation) error {
-	o, err := NewOccurrence(sourceType, targetID, provided.SourceOccurrenceID())
+func parseOccurrenceProvider(nameUsageID nameusage.ID, sourceType datasources.SourceType, targetID datasources.TargetID, provided providers.Occurrence, aggr *Aggregation) error {
+	o, err := NewOccurrence(&nameUsageID, sourceType, targetID, provided.SourceOccurrenceID())
 	if err != nil {
 		return err
 	}

@@ -30,6 +30,14 @@ type NameUsage interface {
 	Upload(context.Context, store.FloraStore) (deletedUsageIDs IDs, err error)
 }
 
+type ByCanonicalName []NameUsage
+
+func (a ByCanonicalName) Len() int      { return len(a) }
+func (a ByCanonicalName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByCanonicalName) Less(i, j int) bool {
+	return a[i].CanonicalName().ScientificName() < a[j].CanonicalName().ScientificName()
+}
+
 const storeKeyScientificName = "ScientificNames"
 
 type usage struct {
@@ -43,7 +51,7 @@ type usage struct {
 // NewNameUsage provides a new NameUsage.
 func NewNameUsage(src Source) (NameUsage, error) {
 
-	id, err := newNameUsageID()
+	id, err := NewNameUsageID()
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +208,7 @@ func (Ω *usage) Synonyms() (canonicalname.Names, error) {
 	}
 	for _, src := range srcs {
 		for _, s := range src.Synonyms().AddToSet(src.CanonicalName()) {
-			if s.Equals(Ω.Cn) {
+			if Ω.Cn != nil && s != nil && s.Equals(Ω.Cn) {
 				continue
 			}
 			res = res.AddToSet(s)

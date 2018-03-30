@@ -25,19 +25,21 @@ func fetchTaxaFromSearch(cxt context.Context, names ...string) ([]*taxon, error)
 	locker := sync.Mutex{}
 	taxa := []*taxon{}
 
-	limit := utils.NewLimiter(100)
+	limit := utils.NewLimiter(1)
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
 		for _, _name := range names {
 			name := _name
+			done := limit.Go()
 			tmb.Go(func() error {
-				done := limit.Go()
+				fmt.Println("Searching", name)
 				defer done()
 				localTaxa, err := searchName(cxt, name)
 				if err != nil {
 					return err
 				}
+				fmt.Println("HAVE RESPONSE", name)
 				locker.Lock()
 				defer locker.Unlock()
 				taxa = append(taxa, localTaxa...)

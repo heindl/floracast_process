@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/taxa"
 	"context"
+	"sort"
 	"sync"
 )
 
@@ -131,6 +132,9 @@ func (Ω *Aggregate) AddUsage(usages ...nameusage.NameUsage) error {
 	defer Ω.Unlock()
 
 	Ω.list = append(Ω.list, usages...)
+	// Sort by CanonicalName to avoid strange collisions.
+
+	sort.Sort(nameusage.ByCanonicalName(Ω.list))
 
 ResetLoop:
 	for {

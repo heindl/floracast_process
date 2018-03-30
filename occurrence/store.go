@@ -190,7 +190,8 @@ func (Ω *record) fetchImbricate(tx *firestore.Transaction, collection *firestor
 	if err != nil {
 		return nil, err
 	}
-	locationQuery := q.Where("FormattedDate", "==", Ω.FormattedDate)
+	// Add NameUsageID, though this could mean occurrences are duplicated among both.
+	locationQuery := q.Where("FormattedDate", "==", Ω.FormattedDate).Where("NameUsageID", "==", Ω.NameUsageID)
 
 	imbricates, err := tx.Documents(locationQuery).GetAll()
 	if err != nil {

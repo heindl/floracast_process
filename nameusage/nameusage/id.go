@@ -81,9 +81,9 @@ func IDsFromStrings(æ []string) (IDs, error) {
 	return res, nil
 }
 
-const nameUsageIDLength = 25
+const nameUsageIDLength = 7
 
-func newNameUsageID() (ID, error) {
+func NewNameUsageID() (ID, error) {
 	rand, err := gostrgen.RandGen(nameUsageIDLength, gostrgen.Lower|gostrgen.Digit|gostrgen.Upper, "", "")
 	if err != nil {
 		return "", errors.Wrap(err, "Could not generate name usage id")

@@ -2,6 +2,7 @@ package occurrence
 
 import (
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/terra/geoembed"
 	"cloud.google.com/go/firestore"
@@ -28,7 +29,7 @@ type Occurrence interface {
 }
 
 // NewOccurrence creates and validates a new one.
-func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID, occurrenceID string) (Occurrence, error) {
+func NewOccurrence(nameUsageID *nameusage.ID, srcType datasources.SourceType, targetID datasources.TargetID, occurrenceID string) (Occurrence, error) {
 	if !srcType.Valid() {
 		return nil, dropboxError.Newf("Invalid source type [%s]", srcType)
 	}
@@ -40,6 +41,7 @@ func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID
 	}
 
 	return &record{
+		NameUsageID:     nameUsageID,
 		SrcType:         srcType,
 		TgtID:           targetID,
 		SrcOccurrenceID: occurrenceID,
@@ -47,11 +49,11 @@ func NewOccurrence(srcType datasources.SourceType, targetID datasources.TargetID
 }
 
 type record struct {
+	NameUsageID     *nameusage.ID           `json:",omitempty"` // Omitempty because will not appear if data is random.
 	SrcType         datasources.SourceType  `json:"SourceType"`
 	TgtID           datasources.TargetID    `json:"TargetID"`
 	SrcOccurrenceID string                  `json:"SourceOccurrenceID"`
 	FormattedDate   string                  `json:""`
-	FormattedMonth  string                  `json:""`
 	GeoFeatureSet   *geoembed.GeoFeatureSet `json:""`
 }
 
@@ -175,7 +177,6 @@ func (Ω *record) SetGeoSpatial(lat, lng float64, date string, coordinatesEstima
 	//}
 
 	Ω.FormattedDate = date
-	Ω.FormattedMonth = date[4:6]
 
 	return nil
 }

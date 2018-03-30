@@ -161,7 +161,7 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 		// to correctly balance against taxon occurrence count.
 		occurrenceID := fmt.Sprintf("%d-%d", recordNumber, batchSize)
 
-		o, err := NewOccurrence(datasources.TypeRandom, datasources.TargetID(strconv.Itoa(batch)), occurrenceID)
+		o, err := NewOccurrence(nil, datasources.TypeRandom, datasources.TargetID(strconv.Itoa(batch)), occurrenceID)
 		if err != nil {
 			return err
 		}

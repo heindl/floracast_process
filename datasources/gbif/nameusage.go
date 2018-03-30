@@ -151,7 +151,7 @@ func (Ω *orchestrator) parseSource(scientificName, rank string, spcs species) (
 	usageSource, err := nameusage.NewSource(datasources.TypeGBIF, spcs.TargetID(), canonicalName)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("WARNING: Invalid GBIF nameUsage [%s, %d]", canonicalName.ScientificName(), spcs))
-		return nil, err
+		return nil, nil
 	}
 
 	vernacularNames, err := species(int(spcs)).fetchVernacularNames()
@@ -173,6 +173,10 @@ func (Ω *orchestrator) parseNameUsage(scientificName, rank string, spcs species
 	usageSource, err := Ω.parseSource(scientificName, rank, spcs)
 	if err != nil {
 		return err
+	}
+	// Suggests an invalid source.
+	if usageSource == nil {
+		return nil
 	}
 
 	usage, err := nameusage.NewNameUsage(usageSource)

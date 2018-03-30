@@ -99,7 +99,9 @@ func aggregateInitialNameUsages(cxt context.Context, inaturalistTaxonIDs ...int)
 	snowball := aggregate.Aggregate{}
 
 	// Order is obviously extremely important here.
-	for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF, datasources.TypeNatureServe} {
+	// NatureServe is having significant uptime issues so ignoring for now.
+	//for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF, datasources.TypeNatureServe}
+	for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF} {
 
 		ids, err := snowball.TargetIDs(srcType)
 		if err != nil {

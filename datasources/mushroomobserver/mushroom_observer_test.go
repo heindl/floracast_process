@@ -83,7 +83,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 	})
 
-	SkipConvey("Should fetch MushroomObserver Occurrences", t, func() {
+	Convey("Should fetch MushroomObserver Occurrences", t, func() {
 
 		res, err := FetchOccurrences(context.Background(), datasources.TargetID("16103"), nil)
 		So(err, ShouldBeNil)
