@@ -17,7 +17,7 @@ type Photo interface {
 	SourceType() datasources.SourceType
 }
 
-// Occurrence is the standard interface for sources that fetch occurrences.
+// Occurrences is the standard interface for sources that fetch occurrences.
 type Occurrence interface {
 	Lat() (float64, error)
 	Lng() (float64, error)

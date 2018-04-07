@@ -87,7 +87,7 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 	}
 	batchSize := len(bounds) * 4
 
-	glog.Infof("Generating %d Random Occurrence Batches for %d Bounds", numberOfBatches, len(bounds))
+	glog.Infof("Generating %d Random Occurrences Batches for %d Bounds", numberOfBatches, len(bounds))
 
 	recordNumberCounter := 1
 
@@ -105,9 +105,9 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 						recordNumberCounter++
 						gen.Unlock()
 						err := gen.generateRandomOccurrence(batch, recordNumber, batchSize, bound, season)
-						glog.Infof("Random Occurrence [%d] Generated", recordNumber)
+						glog.Infof("Random Occurrences [%d] Generated", recordNumber)
 						if utils.ContainsError(err, errMaxRandomGenerationAttempts) {
-							glog.Warningf("Max Attempts [%d] Reached while Generating Random Occurrence Point [%v]", maxGenerationAttempts, bound)
+							glog.Warningf("Max Attempts [%d] Reached while Generating Random Occurrences Point [%v]", maxGenerationAttempts, bound)
 							return nil
 						}
 						return err
@@ -121,7 +121,7 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 		return nil, err
 	}
 
-	glog.Infof("Uploading %d Random Occurrence Points", gen.occurrenceAggregator.Count())
+	glog.Infof("Uploading %d Random Occurrences Points", gen.occurrenceAggregator.Count())
 
 	return gen.occurrenceAggregator, nil
 }

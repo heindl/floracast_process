@@ -14,7 +14,7 @@ type FloraStore interface {
 	FirestoreCollection(FireStoreCollection) (*firestore.CollectionRef, error)
 	FirestoreBatch() *firestore.WriteBatch
 	FirestoreTransaction(ctx context.Context, fn FirestoreTransactionFunc) error
-	AlgoliaIndex(indexFunc AlgoliaIndexFunc) (AlgoliaIndex, error)
+	AlgoliaIndex(name AlgoliaIndexName, settings algoliasearch.Map) (AlgoliaIndex, error)
 	//CloudStorageBucket() (*storage.BucketHandle, error)
 	CloudStorageObjects(ctx context.Context, pathname string, requiredSuffixes ...string) ([]*storage.ObjectHandle, error)
 	CloudStorageObjectNames(ctx context.Context, pathname string, requiredSuffixes ...string) ([]string, error)
@@ -131,10 +131,6 @@ type FirestoreTransactionFunc func(context.Context, *firestore.Transaction) erro
 
 func (Ω *store) FirestoreTransaction(ctx context.Context, fn FirestoreTransactionFunc) error {
 	return Ω.firestoreClient.RunTransaction(ctx, fn)
-}
-
-func (Ω *store) AlgoliaIndex(æ AlgoliaIndexFunc) (AlgoliaIndex, error) {
-	return æ(Ω.algoliaClient, Ω.isTest)
 }
 
 func (Ω *store) CountTestCollection(ctx context.Context, col *firestore.CollectionRef) (int, error) {

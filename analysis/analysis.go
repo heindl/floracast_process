@@ -290,7 +290,7 @@ package main
 //								//<- Ω.Limiter
 //								//p := store.Prediction{
 //								//	CreatedAt: utils.TimePtr(time.Now()),
-//								//	Location: latlng.LatLng{latitude, longitude},
+//								//	Location: latlng.Coordinates{latitude, longitude},
 //								//	PredictionValue: line.Probabilities[i],
 //								//	INaturalistTaxonID: store.INaturalistTaxonID(line.Classes[i]),
 //								//	Date: utils.TimePtr(date),

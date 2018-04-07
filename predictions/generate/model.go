@@ -55,6 +55,7 @@ func (Ω *modeller) FetchModel(ctx context.Context, usageID nameusage.ID) (*tg.M
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not generate temporary directory for tensorflow model")
 	}
+
 	fmt.Println("MODEL_PATH", tempModelPath)
 	Ω.modelDirectories = append(Ω.modelDirectories, tempModelPath)
 

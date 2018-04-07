@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"bitbucket.org/heindl/process/datasources"
+	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/terra/geoembed"
 	"bitbucket.org/heindl/process/utils"
@@ -19,7 +20,31 @@ import (
 
 // TODO: Should periodically check all occurrences for consistency.
 
-// Upload saves Occurrences to either the Occurrence or Random Firestore Collections.
+func FetchFromFireStore(cxt context.Context, floraStore store.FloraStore, id nameusage.ID) ([]Occurrence, error) {
+	col, err := floraStore.FirestoreCollection(store.CollectionOccurrences)
+	if err != nil {
+		return nil, err
+	}
+	res := []Occurrence{}
+	iter := col.Where("NameUsageID", "==", id).Documents(cxt)
+	for {
+		snap, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, dropboxError.Wrap(err, "Could not get Occurrence from Firestore")
+		}
+		record, err := newOccurrencefromFireStoreSnap(snap)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, record)
+	}
+	return res, nil
+}
+
+// Upload saves Occurrences to either the Occurrences or Random Firestore Collections.
 func (Ω *Aggregation) Upload(cxt context.Context, floraStore store.FloraStore) error {
 
 	glog.Infof("Uploading %d Occurrences", Ω.Count())
@@ -64,7 +89,7 @@ func ClearRandomPoints(cxt context.Context, florastore store.FloraStore) error {
 	return nil
 }
 
-// UpsertTransactionFunc returns a transaction function for adding an Occurrence to FireStore.
+// UpsertTransactionFunc returns a transaction function for adding an Occurrences to FireStore.
 func (Ω *record) UpsertTransactionFunc(florastore store.FloraStore) (store.FirestoreTransactionFunc, error) {
 	if !Ω.SrcType.Valid() || !Ω.TgtID.Valid(Ω.SrcType) || strings.TrimSpace(Ω.SrcOccurrenceID) == "" {
 		return nil, dropboxError.Newf("Invalid FireStore reference ID: %s, %s, %s", Ω.SourceType(), Ω.TargetID(), Ω.SourceOccurrenceID())
@@ -233,7 +258,7 @@ func (Ω *record) handleExistingRecord(tx *firestore.Transaction, imbDoc *firest
 		return false, err
 	}
 
-	fmt.Println(fmt.Sprintf("Warning: Imbricative Occurrence Locations [%s, %s]", originalID, imbDoc.Ref.ID))
+	fmt.Println(fmt.Sprintf("Warning: Imbricative Occurrences Locations [%s, %s]", originalID, imbDoc.Ref.ID))
 
 	occurrence, err := newOccurrencefromFireStoreSnap(imbDoc)
 	if err != nil {

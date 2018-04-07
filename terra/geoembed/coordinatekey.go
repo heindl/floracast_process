@@ -46,7 +46,7 @@ func NewCoordinateKey(lat, lng float64) (CoordinateKey, error) {
 	return CoordinateKey(k), nil
 }
 
-// CoordinateKey generates a new key from a GeoFeatureSet latlng.LatLng
+// CoordinateKey generates a new key from a GeoFeatureSet latlng.Coordinates
 func (Ω *GeoFeatureSet) CoordinateKey() (CoordinateKey, error) {
 	return NewCoordinateKey(Ω.Lat(), Ω.Lng())
 }

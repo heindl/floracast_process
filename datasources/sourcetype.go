@@ -43,7 +43,7 @@ func (Ω SourceType) Valid() bool {
 }
 
 var sourceTypeDictionary = map[SourceType]string{
-	// Random Occurrence for Model Training
+	// Random Occurrences for Model Training
 	TypeRandom: "Random",
 	// Floracast
 	TypeINaturalist: "iNaturalist",

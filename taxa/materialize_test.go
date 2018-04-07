@@ -50,13 +50,13 @@ func TestTaxonFetcher(t *testing.T) {
 		florastore, err := store.NewTestFloraStore(cxt)
 		So(err, ShouldBeNil)
 
-		So(UploadMaterializedTaxa(cxt, florastore, usage), ShouldBeNil)
+		So(UploadMaterializedTaxon(cxt, florastore, usage), ShouldBeNil)
 
 		id2 := nameusage.ID("aM3R8X2YQyLJWiLMVIGzZaU1I")
 
 		usage, err = nameusage.FromJSON(id2, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
-		So(UploadMaterializedTaxa(cxt, florastore, usage, id1), ShouldBeNil)
+		So(UploadMaterializedTaxon(cxt, florastore, usage, id1), ShouldBeNil)
 
 		So(clearMaterializedTaxa(cxt, florastore, nameusage.IDs{id2}), ShouldBeNil)
 

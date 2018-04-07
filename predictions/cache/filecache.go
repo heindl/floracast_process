@@ -7,7 +7,6 @@ import (
 	"path"
 	"sync"
 
-	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/predictions"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/elgs/gostrgen"
@@ -40,7 +39,7 @@ func NewLocalFileCache() (PredictionCache, func() error, error) {
 	return &c, c.Close, nil
 }
 
-func (Ω *localFileCache) ReadPredictions(lat, lng, radius float64, qDate string, usageID *nameusage.ID) ([]string, error) {
+func (Ω *localFileCache) ReadPredictions(bboxString string) (predictions.Predictions, error) {
 	return nil, nil
 }
 
@@ -51,7 +50,7 @@ func (Ω *localFileCache) getFilePointer(p predictions.Prediction) (*os.File, er
 		return nil, err
 	}
 
-	usageID, err := p.UsageID()
+	usageID, err := p.NameUsageID()
 	if err != nil {
 		return nil, err
 	}

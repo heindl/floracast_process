@@ -166,7 +166,7 @@ func fetchOccurrences(cxt context.Context, aggregation *aggregate.Aggregate) (*o
 		return nil, err
 	}
 
-	glog.Info("Scientific Names from Occurrence Filtered Aggregation", sciNames)
+	glog.Info("Scientific Names from Occurrences Filtered Aggregation", sciNames)
 
 	usages, err := sourcefetchers.FetchNameUsages(cxt, datasources.TypeMushroomObserver, sciNames, nil)
 	if err != nil {

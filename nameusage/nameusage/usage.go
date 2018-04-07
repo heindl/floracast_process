@@ -25,8 +25,8 @@ type NameUsage interface {
 	ShouldCombine(b NameUsage) (bool, error)
 	Combine(b NameUsage) (NameUsage, error)
 	HasScientificName(s string) (bool, error)
-	ScientificNameReferenceLedger() (nameReferenceLedger, error)
-	CommonNameReferenceLedger() (nameReferenceLedger, error)
+	ScientificNameReferenceLedger() (NameReferenceLedger, error)
+	CommonNameReferenceLedger() (NameReferenceLedger, error)
 	Upload(context.Context, store.FloraStore) (deletedUsageIDs IDs, err error)
 }
 
@@ -225,12 +225,12 @@ func (Ω *usage) AllScientificNames() ([]string, error) {
 	return utils.AddStringToSet(synonyms.ScientificNames(), Ω.CanonicalName().ScientificName()), nil
 }
 
-func (Ω *usage) ScientificNameReferenceLedger() (nameReferenceLedger, error) {
+func (Ω *usage) ScientificNameReferenceLedger() (NameReferenceLedger, error) {
 	srcs, err := Ω.Sources()
 	if err != nil {
 		return nil, err
 	}
-	ledger := nameReferenceLedger{}
+	ledger := NameReferenceLedger{}
 	for _, src := range srcs {
 		ledger = ledger.IncrementName(src.CanonicalName().ScientificName(), src.OccurrenceCount())
 		for _, synonym := range src.Synonyms() {
@@ -241,8 +241,8 @@ func (Ω *usage) ScientificNameReferenceLedger() (nameReferenceLedger, error) {
 	return ledger, nil
 }
 
-func (Ω *usage) CommonNameReferenceLedger() (nameReferenceLedger, error) {
-	ledger := nameReferenceLedger{}
+func (Ω *usage) CommonNameReferenceLedger() (NameReferenceLedger, error) {
+	ledger := NameReferenceLedger{}
 	srcs, err := Ω.Sources()
 	if err != nil {
 		return nil, err
@@ -256,7 +256,7 @@ func (Ω *usage) CommonNameReferenceLedger() (nameReferenceLedger, error) {
 }
 
 // Get the most popular common name from all sources
-// Or perhaps the most common among those those with Occurrence Counts?
+// Or perhaps the most common among those those with Occurrences Counts?
 func (Ω *usage) CommonName() (string, error) {
 
 	ledger, err := Ω.CommonNameReferenceLedger()

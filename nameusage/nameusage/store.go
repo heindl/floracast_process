@@ -11,6 +11,20 @@ import (
 	"github.com/golang/glog"
 )
 
+func Fetch(ctx context.Context, floraStore store.FloraStore, id ID) (NameUsage, error) {
+	col, err := floraStore.FirestoreCollection(store.CollectionNameUsages)
+	if err != nil {
+		return nil, err
+	}
+
+	snap, err := col.Doc(id.String()).Get(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not get NameUsage [%s] from FireStore.", id)
+	}
+
+	return parseNameUsageFirestoreSnapshot(snap)
+}
+
 // Upload validates and saves new NameUsage to FireStore
 func (Ω *usage) Upload(ctx context.Context, floraStore store.FloraStore) (deletedUsageIDs IDs, err error) {
 
@@ -136,8 +150,12 @@ func (i *Iterator) Next() (NameUsage, error) {
 	}
 	snap, err := i.iterator.Next()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Could not get next NameUsage snapshot")
 	}
+	return parseNameUsageFirestoreSnapshot(snap)
+}
+
+func parseNameUsageFirestoreSnapshot(snap *firestore.DocumentSnapshot) (NameUsage, error) {
 	b, err := json.Marshal(snap.Data())
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not Marshal NameUsage")

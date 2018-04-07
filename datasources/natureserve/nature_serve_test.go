@@ -12,7 +12,7 @@ func TestTaxonFetcher(t *testing.T) {
 	t.Parallel()
 
 	// Freezing every time so ignore until I get a response from the management.
-	SkipConvey("should fetch natureserve", t, func() {
+	Convey("should fetch natureserve", t, func() {
 
 		names := []string{"morchella deliciosa", "cantharellus cibarius", "boletus edulis"}
 

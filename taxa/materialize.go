@@ -9,15 +9,31 @@ import (
 	"strings"
 )
 
-type materializedTaxon struct {
+type MaterializedTaxon struct {
 	ScientificName string       `json:",omitempty" firestore:",omitempty"`
 	CommonName     string       `json:",omitempty" firestore:",omitempty"`
 	Photo          *photo       `json:",omitempty" firestore:",omitempty"`
 	Description    *description `json:",omitempty" firestore:",omitempty"`
 }
 
-// UploadMaterializedTaxa takes a NameUsage, materializes it, clears old references, and saves to FireStore.
-func UploadMaterializedTaxa(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.ID) error {
+func Fetch(ctx context.Context, floraStore store.FloraStore, id nameusage.ID) (*MaterializedTaxon, error) {
+	col, err := floraStore.FirestoreCollection(store.CollectionTaxa)
+	if err != nil {
+		return nil, err
+	}
+	snap, err := col.Doc(id.String()).Get(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not get MaterializedTaxon from FireStore [%s]", id)
+	}
+	txn := MaterializedTaxon{}
+	if err := snap.DataTo(&txn); err != nil {
+		return nil, errors.Wrapf(err, "Could not cast MaterializedTaxon from FireStore [%s]", id)
+	}
+	return &txn, nil
+}
+
+// UploadMaterializedTaxon takes a NameUsage, materializes it, clears old references, and saves to FireStore.
+func UploadMaterializedTaxon(ctx context.Context, florastore store.FloraStore, usage nameusage.NameUsage, deletedUsageIDs ...nameusage.ID) error {
 	if err := clearMaterializedTaxa(ctx, florastore, deletedUsageIDs); err != nil {
 		return err
 	}
@@ -64,7 +80,7 @@ func clearMaterializedTaxa(ctx context.Context, florastore store.FloraStore, all
 	return nil
 }
 
-func materialize(ctx context.Context, usage nameusage.NameUsage) (*materializedTaxon, error) {
+func materialize(ctx context.Context, usage nameusage.NameUsage) (*MaterializedTaxon, error) {
 
 	description, err := fetchDescription(ctx, usage)
 	if err != nil {
@@ -81,7 +97,7 @@ func materialize(ctx context.Context, usage nameusage.NameUsage) (*materializedT
 		return nil, err
 	}
 
-	mt := materializedTaxon{
+	mt := MaterializedTaxon{
 		ScientificName: utils.CapitalizeString(usage.CanonicalName().ScientificName()),
 		CommonName:     strings.Title(commonName),
 		Photo:          photo,

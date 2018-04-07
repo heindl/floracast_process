@@ -144,7 +144,7 @@ func parseOccurrenceProvider(nameUsageID nameusage.ID, sourceType datasources.So
 		return nil
 	}
 	if err != nil {
-		return errors.Wrap(err, "Invalid Occurrence GeoSpatial")
+		return errors.Wrap(err, "Invalid Occurrences GeoSpatial")
 	}
 
 	if err := aggr.AddOccurrence(o); err != nil && !utils.ContainsError(err, ErrCollision) {

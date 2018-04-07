@@ -13,7 +13,7 @@ import (
 	"strconv"
 )
 
-// Occurrence represents both a species record and random point.
+// Occurrences represents both a species record and random point.
 type Occurrence interface {
 	ID() (string, error)
 	Collection(florastore store.FloraStore) (*firestore.CollectionRef, error)
@@ -106,18 +106,18 @@ func (Ω *record) SourceOccurrenceID() string {
 
 func (Ω *record) Date() (string, error) {
 	if len(Ω.FormattedDate) != 8 {
-		return "", dropboxError.Newf("Invalid Occurrence Date [%s]", Ω.FormattedDate)
+		return "", dropboxError.Newf("Invalid Occurrences Date [%s]", Ω.FormattedDate)
 	}
 	return Ω.FormattedDate, nil
 }
 
 func (Ω *record) LocationKey() (string, error) {
 	if Ω == nil {
-		return "", dropboxError.New("Occurrence is Invalid")
+		return "", dropboxError.New("Occurrences is Invalid")
 	}
 
 	if Ω.GeoFeatureSet == nil {
-		return "", dropboxError.New("Occurrence GeoFeatureSet is Invalid")
+		return "", dropboxError.New("Occurrences GeoFeatureSet is Invalid")
 	}
 
 	coordKey, err := Ω.GeoFeatureSet.CoordinateKey()

@@ -5,45 +5,52 @@ import (
 	"strings"
 )
 
-type nameReferenceSummary struct {
-	OccurrenceCount int
-	ReferenceCount  int
-	Name            string
+type NameReferenceSummary struct {
+	Occurrences int
+	References  int
+	Name        string
 }
 
-type nameReferenceLedger []*nameReferenceSummary
+func (Ω NameReferenceLedger) Names() (res []string) {
+	for _, s := range Ω {
+		res = append(res, s.Name)
+	}
+	return
+}
 
-func (Ω nameReferenceLedger) Len() int {
+type NameReferenceLedger []*NameReferenceSummary
+
+func (Ω NameReferenceLedger) Len() int {
 	return len(Ω)
 }
 
-func (Ω nameReferenceLedger) Swap(i, j int) {
+func (Ω NameReferenceLedger) Swap(i, j int) {
 	Ω[i], Ω[j] = Ω[j], Ω[i]
 }
 
-func (Ω nameReferenceLedger) Less(i, j int) bool {
-	return Ω[i].ReferenceCount > Ω[j].ReferenceCount
+func (Ω NameReferenceLedger) Less(i, j int) bool {
+	return Ω[i].References > Ω[j].References
 }
 
-func (Ω nameReferenceLedger) IncrementName(name string, occurrences int) nameReferenceLedger {
+func (Ω NameReferenceLedger) IncrementName(name string, occurrences int) NameReferenceLedger {
 
 	name = strings.ToLower(name)
 
 	exists := false
 	for i := range Ω {
 		if Ω[i].Name == name {
-			Ω[i].OccurrenceCount += occurrences
-			Ω[i].ReferenceCount++
+			Ω[i].Occurrences += occurrences
+			Ω[i].References++
 			exists = true
 			break
 		}
 	}
 
 	if !exists {
-		Ω = append(Ω, &nameReferenceSummary{
-			OccurrenceCount: occurrences,
-			ReferenceCount:  1,
-			Name:            name,
+		Ω = append(Ω, &NameReferenceSummary{
+			Occurrences: occurrences,
+			References:  1,
+			Name:        name,
 		})
 	}
 

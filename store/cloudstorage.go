@@ -4,11 +4,14 @@ import (
 	"bitbucket.org/heindl/process/utils"
 	"cloud.google.com/go/storage"
 	"context"
+	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/api/iterator"
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -22,12 +25,13 @@ func (Ω *store) SyncGCSPathWithLocal(ctx context.Context, cloudPath string, loc
 		return errors.Newf("Expected local directory [%s] to be empty, instead have %d files", len(files))
 	}
 
-	objs, err := Ω.CloudStorageObjects(ctx, cloudPath)
+	objects, err := Ω.CloudStorageObjects(ctx, cloudPath)
 	if err != nil {
 		return err
 	}
 
-	for _, obj := range objs {
+	for _, obj := range objects {
+
 		attrs, err := obj.Attrs(ctx)
 		if err != nil {
 			return errors.Wrap(err, "Could not get object attributes")
@@ -37,13 +41,21 @@ func (Ω *store) SyncGCSPathWithLocal(ctx context.Context, cloudPath string, loc
 
 		fName := path.Join(localPath, strings.TrimPrefix(attrs.Name, cloudPath))
 
+		fmt.Println("filename", fName)
+
 		if isDir {
+			fmt.Println("isdir")
 			if err := os.MkdirAll(fName, os.ModePerm); err != nil {
 				return errors.Wrapf(err, "Could not make directories [%s]", fName)
 			}
 			continue
+		} else {
+			dir := filepath.Dir(fName)
+			fmt.Println("base", dir)
+			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+				return errors.Wrapf(err, "Could not make base directory [%s]", dir)
+			}
 		}
-
 		reader, err := obj.NewReader(ctx)
 		if err != nil {
 			return errors.Wrapf(err, "Could not read GCS objects [%s]", attrs.Name)
@@ -114,6 +126,9 @@ func (Ω *store) CloudStorageObjectNames(ctx context.Context, pathname string, r
 		name = strings.TrimPrefix(name, "/")
 		names = append(names, name)
 	}
+
+	sort.Strings(names)
+
 	return names, nil
 }
 

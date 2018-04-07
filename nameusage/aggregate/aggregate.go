@@ -71,7 +71,7 @@ func (Ω *Aggregate) Upload(cxt context.Context, florastore store.FloraStore) er
 		if err := algolia.UploadNameUsageObjects(ctx, florastore, usage, deletedUsageIDs...); err != nil {
 			return err
 		}
-		return taxa.UploadMaterializedTaxa(ctx, florastore, usage, deletedUsageIDs...)
+		return taxa.UploadMaterializedTaxon(ctx, florastore, usage, deletedUsageIDs...)
 	})
 
 }
