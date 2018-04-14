@@ -11,10 +11,10 @@ import (
 )
 
 // FetchOne fetches a ProtectedArea from Cloud Firestore
-func FetchOne(cxt context.Context, floraStore store.FloraStore, coordinateKey geoembed.CoordinateKey) (ProtectedArea, error) {
+func FetchOne(cxt context.Context, floraStore store.FloraStore, hashKey geoembed.S2Key) (ProtectedArea, error) {
 
-	if !coordinateKey.Valid() {
-		return nil, errors.Newf("Invalid CoordinateKey [%s]", coordinateKey)
+	if !hashKey.Valid() {
+		return nil, errors.Newf("Invalid CoordinateKey [%s]", hashKey)
 	}
 
 	col, err := floraStore.FirestoreCollection(store.CollectionProtectedAreas)
@@ -22,9 +22,9 @@ func FetchOne(cxt context.Context, floraStore store.FloraStore, coordinateKey ge
 		return nil, err
 	}
 
-	snap, err := col.Doc(string(coordinateKey)).Get(cxt)
+	snap, err := col.Doc(string(hashKey)).Get(cxt)
 	if err != nil {
-		return nil, errors.Wrapf(err, "Could not get ProtectedArea [%s]", coordinateKey)
+		return nil, errors.Wrapf(err, "Could not get ProtectedArea [%s]", hashKey)
 	}
 
 	b, err := json.Marshal(snap.Data())

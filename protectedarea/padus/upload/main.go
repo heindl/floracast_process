@@ -2,8 +2,8 @@ package main
 
 import (
 	"bitbucket.org/heindl/process/store"
+	"context"
 	"flag"
-	"golang.org/x/net/context"
 )
 
 func main() {

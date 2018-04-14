@@ -54,6 +54,7 @@ type record struct {
 	TgtID           datasources.TargetID    `json:"TargetID"`
 	SrcOccurrenceID string                  `json:"SourceOccurrenceID"`
 	FormattedDate   string                  `json:""`
+	FormattedMonth  string                  `json:""`
 	GeoFeatureSet   *geoembed.GeoFeatureSet `json:""`
 }
 
@@ -177,6 +178,7 @@ func (Ω *record) SetGeoSpatial(lat, lng float64, date string, coordinatesEstima
 	//}
 
 	Ω.FormattedDate = date
+	Ω.FormattedMonth = date[4:6]
 
 	return nil
 }

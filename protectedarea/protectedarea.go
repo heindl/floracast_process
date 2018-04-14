@@ -9,12 +9,13 @@ import (
 
 // ProtectedArea is the point recommended to the user with predictions
 type ProtectedArea interface {
-	ID() (geoembed.CoordinateKey, error)
+	ID() (geoembed.S2Key, error)
 	UpdateAccessLevel(int) error
 	UpdateProtectionLevel(int) error
 	UpdateOwner(string) error
 	UpdateDesignation(string) error
 	UpdateName(string) error
+	Kilometers() float64
 	Valid() bool
 }
 
@@ -42,8 +43,8 @@ type protectedArea struct {
 	GeoFeatureSet    *geoembed.GeoFeatureSet `json:""`
 }
 
-func (Ω *protectedArea) ID() (geoembed.CoordinateKey, error) {
-	return geoembed.NewCoordinateKey(Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng())
+func (Ω *protectedArea) ID() (geoembed.S2Key, error) {
+	return geoembed.NewS2Key(Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng())
 }
 
 func (Ω *protectedArea) UpdateName(name string) error {
@@ -90,6 +91,10 @@ func (Ω *protectedArea) UpdateAccessLevel(level int) error {
 	}
 
 	return nil
+}
+
+func (Ω *protectedArea) Kilometers() float64 {
+	return Ω.SquareKilometers
 }
 
 func (Ω *protectedArea) Valid() bool {

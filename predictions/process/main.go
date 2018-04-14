@@ -42,12 +42,13 @@ func main() {
 	//}()
 	//
 	//if *dbPtr == "" {
-	list, err := generate.GeneratePredictions(cxt, nameUsageID, floraStore, nil)
+	collection, err := generate.GeneratePredictions(cxt, nameUsageID, floraStore, nil)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Predictions Generated: ", len(list))
-	if err := list.Upload(cxt, floraStore); err != nil {
+
+	fmt.Println("Predictions Generated: ", collection.Count())
+	if err := collection.Upload(cxt); err != nil {
 		panic(err)
 	}
 	//}

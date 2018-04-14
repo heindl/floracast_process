@@ -16,10 +16,9 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"sync"
 )
 
-func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraStore store.FloraStore, dateRange *DateRange) (list predictions.Predictions, err error) {
+func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraStore store.FloraStore, dateRange *DateRange) (list predictions.Collection, err error) {
 
 	if !nameUsageID.Valid() {
 		return nil, errors.Newf("Invalid NameUsageID [%s]", nameUsageID)
@@ -36,11 +35,17 @@ func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraSto
 		return nil, err
 	}
 
+	collection, err := predictions.NewCollection(nameUsageID, floraStore)
+	if err != nil {
+		return nil, err
+	}
+
 	g := generator{
 		nameUsageID: nameUsageID,
 		model:       model,
 		dateRange:   dateRange,
 		floraStore:  floraStore,
+		collection:  collection,
 	}
 
 	filenames, err := g.fetchLatestProtectedAreaFileNames(ctx)
@@ -48,21 +53,12 @@ func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraSto
 		return nil, err
 	}
 
-	res := predictions.Predictions{}
 	tmb := tomb.Tomb{}
-	lock := sync.Mutex{}
 	tmb.Go(func() error {
 		for _, _f := range filenames {
 			f := _f
 			tmb.Go(func() error {
-				list, err := g.generatePredictionsFromGCSPath(ctx, f)
-				if err != nil {
-					return err
-				}
-				lock.Lock()
-				defer lock.Unlock()
-				res = append(res, list...)
-				return nil
+				return g.generatePredictionsFromGCSPath(ctx, f)
 			})
 		}
 		return nil
@@ -73,7 +69,7 @@ func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraSto
 
 	fmt.Println("TOTAL READ", g.totalRead)
 
-	return res, nil
+	return g.collection, nil
 
 }
 
@@ -86,6 +82,7 @@ type generator struct {
 	model       *tg.Model
 	dateRange   *DateRange
 	floraStore  store.FloraStore
+	collection  predictions.Collection
 	totalRead   int
 }
 
@@ -120,16 +117,14 @@ func (Ω *generator) fetchLatestProtectedAreaFileNames(ctx context.Context) ([]s
 	return res, nil
 }
 
-func (Ω *generator) generatePredictionsFromGCSPath(ctx context.Context, gcsPath string) (predictions.Predictions, error) {
+func (Ω *generator) generatePredictionsFromGCSPath(ctx context.Context, gcsPath string) error {
 
 	iter, err := tfrecords.NewIterator(ctx, Ω.floraStore, gcsPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	date := strings.Split(gcsPath, "/")[1]
-
-	res := predictions.Predictions{}
+	date := utils.FormattedDate(strings.Split(gcsPath, "/")[1])
 
 	for {
 		r, err := iter.Next(ctx)
@@ -137,32 +132,26 @@ func (Ω *generator) generatePredictionsFromGCSPath(ctx context.Context, gcsPath
 			break
 		}
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		p, err := Ω.predictionFromTFRecord(r, date)
-		if err != nil {
-			return nil, err
+		if err := Ω.predictTFRecord(r, date); err != nil {
+			return err
 		}
-		if p == nil {
-			continue
-		}
-
-		res = append(res, p)
 
 	}
 
-	return res, nil
+	return nil
 
 }
 
-func (Ω *generator) predictionFromTFRecord(r tfrecords.Record, date string) (predictions.Prediction, error) {
+func (Ω *generator) predictTFRecord(r tfrecords.Record, date utils.FormattedDate) error {
 
 	Ω.totalRead++
 
 	t, err := r.Tensor()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	results := Ω.model.Exec([]tf.Output{
@@ -174,18 +163,18 @@ func (Ω *generator) predictionFromTFRecord(r tfrecords.Record, date string) (pr
 	value := results[0].Value().([][]float32)
 
 	if value[0][0] > 0.5 {
-		return nil, nil
+		return nil
 	}
 
 	lng, err := r.Longitude()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	lat, err := r.Latitude()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return predictions.NewPrediction(Ω.nameUsageID, date, lat, lng, float64(value[0][1]))
+	return Ω.collection.Add(lat, lng, date, float64(value[0][1]))
 }

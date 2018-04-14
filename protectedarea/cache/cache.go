@@ -18,19 +18,19 @@ type ProtectedAreaCache interface {
 func NewProtectedAreaCache(florastore store.FloraStore) (ProtectedAreaCache, error) {
 	return &cache{
 		florastore: florastore,
-		areas:      map[geoembed.CoordinateKey]protectedarea.ProtectedArea{},
+		areas:      map[geoembed.S2Key]protectedarea.ProtectedArea{},
 	}, nil
 }
 
 type cache struct {
 	florastore store.FloraStore
 	sync.Mutex
-	areas map[geoembed.CoordinateKey]protectedarea.ProtectedArea
+	areas map[geoembed.S2Key]protectedarea.ProtectedArea
 }
 
 func (Ω *cache) GetProtectedArea(cxt context.Context, latitude, longitude float64) (protectedarea.ProtectedArea, error) {
 
-	coordKey, err := geoembed.NewCoordinateKey(latitude, longitude)
+	coordKey, err := geoembed.NewS2Key(latitude, longitude)
 	if err != nil {
 		return nil, err
 	}

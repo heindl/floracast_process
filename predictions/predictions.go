@@ -2,10 +2,7 @@ package predictions
 
 import (
 	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
 	"bitbucket.org/heindl/process/terra/geo"
-	"bitbucket.org/heindl/process/terra/geohashindex"
-	"context"
 	"github.com/dropbox/godropbox/errors"
 )
 
@@ -80,46 +77,3 @@ type Predictions []Prediction
 type PredictionWriter interface {
 	WritePredictions(Predictions) error
 }
-
-// Upload validates an array of predictions and saves them to FireStore.
-func (Ω Predictions) Upload(cxt context.Context, floraStore store.FloraStore) error {
-
-	if len(Ω) == 0 {
-		return nil
-	}
-
-	c, err := geohashindex.NewCollection(Ω[0].NameUsageID())
-	if err != nil {
-		return err
-	}
-
-	colRef, err := floraStore.FirestoreCollection(store.CollectionGeoIndex)
-	if err != nil {
-		return err
-	}
-
-	for _, p := range Ω {
-		if err := c.AddPoint(p.Latitude(), p.Longitude(), p.Date(), p.Value()); err != nil {
-			return err
-		}
-	}
-
-	return c.Upload(cxt, colRef)
-
-}
-
-//func (Ω *store) PredictionDocumentID(p Prediction) (string, error) {
-//	if !p.TaxonID.Valid() {
-//		return "", errors.New("invalid taxon id")
-//	}
-//	if p.Date == nil || p.Date.IsZero() {
-//		return "", errors.New("invalid date")
-//	}
-//	if p.Location.GetLatitude() == 0 {
-//		return "", errors.New("invalid latitude")
-//	}
-//	if p.Location.GetLongitude() == 0 {
-//		return "", errors.New("invalid longitude")
-//	}
-//	return fmt.Sprintf("%s|%s|%.6f|%.6f", string(p.TaxonID), p.Date.Format("20060102"), p.Location.GetLatitude(), p.Location.GetLongitude()), nil
-//}

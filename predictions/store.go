@@ -31,3 +31,19 @@ func FetchFromFireStore(cxt context.Context, floraStore store.FloraStore, id nam
 	}
 	return res, nil
 }
+
+//func (Ω *store) PredictionDocumentID(p Prediction) (string, error) {
+//	if !p.TaxonID.Valid() {
+//		return "", errors.New("invalid taxon id")
+//	}
+//	if p.Date == nil || p.Date.IsZero() {
+//		return "", errors.New("invalid date")
+//	}
+//	if p.Location.GetLatitude() == 0 {
+//		return "", errors.New("invalid latitude")
+//	}
+//	if p.Location.GetLongitude() == 0 {
+//		return "", errors.New("invalid longitude")
+//	}
+//	return fmt.Sprintf("%s|%s|%.6f|%.6f", string(p.TaxonID), p.Date.Format("20060102"), p.Location.GetLatitude(), p.Location.GetLongitude()), nil
+//}

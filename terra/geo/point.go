@@ -7,6 +7,7 @@ import (
 	"github.com/kellydunn/golang-geo"
 	pmgeo "github.com/paulmach/go.geo"
 	"math"
+	"strconv"
 )
 
 type Point struct {
@@ -80,12 +81,12 @@ func (Ω Point) Latitude() float64 {
 	return Ω.latlng.Lat.Degrees()
 }
 
-func (Ω *Point) S2TokenMap() map[int]string {
+func (Ω *Point) S2TokenMap() map[string]string {
 	initial_cell_id := s2.CellIDFromLatLng(*Ω.latlng)
-	feature_array := map[int]string{}
-	for i := 0; i < 8; i++ {
+	feature_array := map[string]string{}
+	for i := 0; i < 10; i++ {
 		cell_id := initial_cell_id.Parent(i)
-		feature_array[i] = cell_id.ToToken()
+		feature_array[strconv.Itoa(i)] = cell_id.ToToken()
 	}
 	return feature_array
 }

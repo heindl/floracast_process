@@ -21,7 +21,7 @@ type localStructForJSON struct {
 	EcoNum               ecoregions.EcoNum `json:""`
 	Elevation            *int              `json:",omitempty"`
 	CoordinateKey        CoordinateKey     `json:""`
-	S2Tokens             map[int]string    `json:""`
+	S2Tokens             map[string]string `json:""`
 }
 
 // UnmarshalJSON is an interface method for converting a FeatureSet to JSON

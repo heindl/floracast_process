@@ -24,8 +24,7 @@ const (
 	// CollectionProtectedAreas is a constant for the FireStore Collection name
 	CollectionProtectedAreas = FireStoreCollection("ProtectedAreas")
 	// CollectionPredictions is a constant for the FireStore Collection name
-	CollectionPredictions = FireStoreCollection("Predictions")
-	CollectionGeoIndex    = FireStoreCollection("GeoIndex")
+	CollectionPredictionIndex = FireStoreCollection("PredictionIndex")
 )
 
 // NewFirestoreLimiter is a reminder for the necessary FireStore rate limit.
