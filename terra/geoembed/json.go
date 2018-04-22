@@ -9,10 +9,6 @@ import (
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
-const (
-	keyCoordinate = "CoordinateKey"
-)
-
 type localStructForJSON struct {
 	GeoPoint             *latlng.LatLng `json:""`
 	CoordinatesEstimated bool
@@ -20,7 +16,6 @@ type localStructForJSON struct {
 	EcoBiome             ecoregions.Biome  `json:""`
 	EcoNum               ecoregions.EcoNum `json:""`
 	Elevation            *int              `json:",omitempty"`
-	CoordinateKey        CoordinateKey     `json:""`
 	S2Tokens             map[string]string `json:""`
 }
 
@@ -82,11 +77,6 @@ func (Ω *GeoFeatureSet) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	coordKey, err := Ω.CoordinateKey()
-	if err != nil {
-		return nil, err
-	}
-
 	return json.Marshal(localStructForJSON{
 		GeoPoint:             Ω.geoPoint,
 		CoordinatesEstimated: Ω.coordinatesEstimated,
@@ -95,6 +85,5 @@ func (Ω *GeoFeatureSet) MarshalJSON() ([]byte, error) {
 		EcoNum:               Ω.ecoNum,
 		S2Tokens:             terraPoint.S2TokenMap(),
 		Elevation:            elev,
-		CoordinateKey:        coordKey,
 	})
 }

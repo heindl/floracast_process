@@ -7,6 +7,7 @@ import (
 	"bitbucket.org/heindl/process/terra/geo"
 	"cloud.google.com/go/firestore"
 	"fmt"
+	"github.com/golang/geo/s2"
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
@@ -70,12 +71,13 @@ func NewGeoFeatureSet(lat, lng float64, coordinatesEstimated bool) (*GeoFeatureS
 	}, nil
 }
 
+func (Ω *GeoFeatureSet) CoordinateToken() string {
+	return s2.CellIDFromLatLng(s2.LatLngFromDegrees(Ω.Lat(), Ω.Lng())).Parent(15).ToToken()
+}
+
 // CoordinateQuery generates a FireStore query that can be used for all collections that incorporate a FeatureSet
 func CoordinateQuery(collection *firestore.CollectionRef, lat, lng float64) (*firestore.Query, error) {
-	k, err := NewCoordinateKey(lat, lng)
-	if err != nil {
-		return nil, err
-	}
-	q := collection.Where(fmt.Sprintf("GeoFeatureSet.%s", keyCoordinate), "==", k)
+	tokenID := s2.CellIDFromLatLng(s2.LatLngFromDegrees(lat, lng)).Parent(15).ToToken()
+	q := collection.Where(fmt.Sprintf("GeoFeatureSet.S2Tokens.%d", 15), "==", tokenID)
 	return &q, nil
 }

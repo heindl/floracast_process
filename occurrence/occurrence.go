@@ -121,17 +121,12 @@ func (Ω *record) LocationKey() (string, error) {
 		return "", dropboxError.New("Occurrences GeoFeatureSet is Invalid")
 	}
 
-	coordKey, err := Ω.GeoFeatureSet.CoordinateKey()
-	if err != nil {
-		return "", err
-	}
-
 	date, err := Ω.Date()
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%s|%s", coordKey, date), nil
+	return fmt.Sprintf("%s|%s", Ω.GeoFeatureSet.CoordinateToken(), date), nil
 }
 
 // ErrInvalidDate flags a date that isn't in the format 20060101

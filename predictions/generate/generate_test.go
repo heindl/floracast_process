@@ -40,7 +40,7 @@ func TestOccurrenceFetcher(t *testing.T) {
 			End:   "20180312",
 		})
 		So(err, ShouldBeNil)
-		So(len(list), ShouldEqual, 707)
+		So(list.Count(), ShouldEqual, 707)
 
 	})
 }

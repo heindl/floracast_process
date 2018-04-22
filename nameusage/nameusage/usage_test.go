@@ -33,6 +33,8 @@ func TestNameUsage(t *testing.T) {
 			src, err := NewSource(datasources.TypeGBIF, targetID, name)
 			So(err, ShouldBeNil)
 
+			So(src.RegisterOccurrenceFetch(5), ShouldBeNil)
+
 			initialUsage, err := NewNameUsage(src)
 			So(err, ShouldBeNil)
 

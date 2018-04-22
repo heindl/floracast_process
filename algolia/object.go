@@ -3,7 +3,6 @@ package algolia
 import (
 	"math"
 
-	"bitbucket.org/heindl/process/store"
 	"encoding/json"
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"
@@ -22,36 +21,36 @@ func asAlgoliaObject(i interface{}) (algoliasearch.Object, error) {
 
 }
 
-func upload(indexName store.AlgoliaIndexName) error {
-
-	indexSettings := algoliasearch.Map{}
-
-	if indexName == PredictionIndex {
-		indexSettings = predictionIndexSettings
-		Ω.Geolocations = Ω.predictionLocations
-	}
-	if indexName == OccurrenceIndex {
-		indexSettings = occurrenceIndexSettings
-		Ω.Geolocations = Ω.occurrenceLocations
-	}
-
-	index, err := Ω.floraStore.AlgoliaIndex(indexName, indexSettings)
-	if err != nil {
-		return err
-	}
-
-	predictionObject, err := Ω.asObject()
-	if err != nil {
-		return err
-	}
-
-	if _, err := index.AddObjects([]algoliasearch.Object{predictionObject}); err != nil {
-		return errors.Wrap(err, "Could not add NameUsageIndexRecord to Algolia")
-	}
-
-	return nil
-
-}
+//func upload(indexName store.AlgoliaIndexName) error {
+//
+//	indexSettings := algoliasearch.Map{}
+//
+//	if indexName == PredictionIndex {
+//		indexSettings = predictionIndexSettings
+//		Ω.Geolocations = Ω.predictionLocations
+//	}
+//	if indexName == OccurrenceIndex {
+//		indexSettings = occurrenceIndexSettings
+//		Ω.Geolocations = Ω.occurrenceLocations
+//	}
+//
+//	index, err := Ω.floraStore.AlgoliaIndex(indexName, indexSettings)
+//	if err != nil {
+//		return err
+//	}
+//
+//	predictionObject, err := Ω.asObject()
+//	if err != nil {
+//		return err
+//	}
+//
+//	if _, err := index.AddObjects([]algoliasearch.Object{predictionObject}); err != nil {
+//		return errors.Wrap(err, "Could not add NameUsageIndexRecord to Algolia")
+//	}
+//
+//	return nil
+//
+//}
 
 type objectKey string
 type object map[objectKey]interface{}

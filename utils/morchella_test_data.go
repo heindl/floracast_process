@@ -5,11 +5,11 @@ import (
 )
 
 func GetFetchedMorchellaAggregateTestData() []byte {
-	return []byte(fmt.Sprintf(`{"eM3R8X2YQyLJWiLMVIGzZaU1I": %s}`, morchellaFetched))
+	return []byte(fmt.Sprintf(`{"GzZaU1I": %s}`, morchellaFetched))
 }
 
 func GetUnFetchedMorchellaAggregateTestData() []byte {
-	return []byte(fmt.Sprintf(`{"eM3R8X2YQyLJWiLMVIGzZaU1I": %s}`, morchellaUnfetched))
+	return []byte(fmt.Sprintf(`{"eM3R8X2": %s}`, morchellaUnfetched))
 }
 
 func GetFetchedMorchellaUsageTestData() []byte {

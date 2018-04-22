@@ -56,6 +56,7 @@ func fetchPhoto(ctx context.Context, usage nameusage.NameUsage) (*photo, error) 
 			if src.OccurrenceCount() < 1 {
 				continue
 			}
+
 			tmb.Go(func() error {
 
 				fetchedPhotos, err := sourcefetchers.FetchPhotos(ctx, src.SourceType, src.TargetID)

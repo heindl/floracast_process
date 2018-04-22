@@ -132,9 +132,15 @@ func parseOccurrenceProvider(nameUsageID nameusage.ID, sourceType datasources.So
 	}
 
 	lat, latErr := provided.Lat()
+	if latErr != nil {
+		glog.Errorf("Invalid Coordinate [%s] from Occurrence Provider [%s, %s, %s]", errors.GetMessage(latErr), nameUsageID, sourceType, targetID)
+		return nil
+	}
+
 	lng, lngErr := provided.Lng()
-	if latErr != nil || lngErr != nil {
-		return errors.Wrap(err, "Invalid Coordinate")
+	if lngErr != nil {
+		glog.Errorf("Invalid Coordinate [%s] from Occurrence Provider [%s, %s, %s]", lngErr, nameUsageID, sourceType, targetID)
+		return nil
 	}
 
 	err = o.SetGeoSpatial(lat, lng, provided.DateString(), provided.CoordinatesEstimated())

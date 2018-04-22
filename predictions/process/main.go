@@ -18,13 +18,13 @@ func main() {
 
 	flag.Parse()
 
-	if *nameUsageIDPtr == "" {
-		panic("NameUsageID required")
-	}
-
 	cxt := context.Background()
 
 	nameUsageID := nameusage.ID(*nameUsageIDPtr)
+
+	if !nameUsageID.Valid() {
+		panic("NameUsageID required")
+	}
 
 	floraStore, err := store.NewFloraStore(cxt)
 	if err != nil {

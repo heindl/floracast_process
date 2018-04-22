@@ -101,7 +101,7 @@ func aggregateInitialNameUsages(cxt context.Context, inaturalistTaxonIDs ...int)
 	// Order is obviously extremely important here.
 	// NatureServe is having significant uptime issues so ignoring for now.
 	//for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF, datasources.TypeNatureServe}
-	for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF} {
+	for _, srcType := range []datasources.SourceType{datasources.TypeINaturalist, datasources.TypeGBIF, datasources.TypeNatureServe} {
 
 		ids, err := snowball.TargetIDs(srcType)
 		if err != nil {
@@ -128,12 +128,16 @@ func aggregateInitialNameUsages(cxt context.Context, inaturalistTaxonIDs ...int)
 
 		glog.Infof("%d NameUsages from %s", len(usages), srcType)
 
-		if err := snowball.AddUsage(usages...); err != nil {
+		if err := snowball.Append(usages...); err != nil {
 			return nil, err
 		}
 
 		glog.Infof("Current Aggregated Usages [%d]", snowball.Count())
 
+	}
+
+	if err := snowball.Reduce(); err != nil {
+		return nil, err
 	}
 
 	return &snowball, nil
@@ -175,7 +179,7 @@ func fetchOccurrences(cxt context.Context, aggregation *aggregate.Aggregate) (*o
 
 	glog.Infof("%d Usages from MushroomObserver", len(usages))
 
-	if err := filteredAggregation.AddUsage(usages...); err != nil {
+	if err := filteredAggregation.Combine(usages...); err != nil {
 		return nil, err
 	}
 

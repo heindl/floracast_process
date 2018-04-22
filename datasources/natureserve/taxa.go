@@ -25,7 +25,7 @@ func fetchTaxaFromSearch(cxt context.Context, names ...string) ([]*taxon, error)
 	locker := sync.Mutex{}
 	taxa := []*taxon{}
 
-	limit := utils.NewLimiter(1)
+	limit := utils.NewLimiter(20)
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
@@ -33,13 +33,11 @@ func fetchTaxaFromSearch(cxt context.Context, names ...string) ([]*taxon, error)
 			name := _name
 			done := limit.Go()
 			tmb.Go(func() error {
-				fmt.Println("Searching", name)
 				defer done()
 				localTaxa, err := searchName(cxt, name)
 				if err != nil {
 					return err
 				}
-				fmt.Println("HAVE RESPONSE", name)
 				locker.Lock()
 				defer locker.Unlock()
 				taxa = append(taxa, localTaxa...)
@@ -76,7 +74,11 @@ func searchName(cxt context.Context, name string) ([]*taxon, error) {
 	uids := []string{}
 
 	for _, sr := range searchResults.SpeciesSearchResultList.SpeciesSearchResult {
-		uids = append(uids, sr.GlobalSpeciesUID.Text)
+		//if sr.GlobalSpeciesUID == nil {
+		//	fmt.Println("NIL UID", utils.JsonOrSpew(sr))
+		//	continue
+		//}
+		uids = append(uids, sr.Attruid)
 	}
 
 	uids = utils.RemoveStringDuplicates(uids)

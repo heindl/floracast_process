@@ -27,7 +27,7 @@ type NameUsage interface {
 	HasScientificName(s string) (bool, error)
 	ScientificNameReferenceLedger() (NameReferenceLedger, error)
 	CommonNameReferenceLedger() (NameReferenceLedger, error)
-	Upload(context.Context, store.FloraStore) (deletedUsageIDs IDs, err error)
+	Upload(context.Context, store.FloraStore) (deletedNameUsageIDs IDs, err error)
 }
 
 type ByCanonicalName []NameUsage

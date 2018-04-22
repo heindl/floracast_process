@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FULL_STATES=(
+STATES=(
 #AK
 AL
 AZ
@@ -53,16 +53,16 @@ WI
 WY
 )
 
-STATES=(
-    GA
-    WV
-    SC
-    NC
-    VA
-    KY
-    TN
-    AL
-)
+#STATES=(
+#    GA
+#    WV
+#    SC
+#    NC
+#    VA
+#    KY
+#    TN
+#    AL
+#)
 
 go build
 

@@ -84,7 +84,7 @@ func (Ω Point) Latitude() float64 {
 func (Ω *Point) S2TokenMap() map[string]string {
 	initial_cell_id := s2.CellIDFromLatLng(*Ω.latlng)
 	feature_array := map[string]string{}
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 17; i++ {
 		cell_id := initial_cell_id.Parent(i)
 		feature_array[strconv.Itoa(i)] = cell_id.ToToken()
 	}

@@ -76,7 +76,7 @@ func IDsFromStrings(æ []string) (IDs, error) {
 		if !id.Valid() {
 			return nil, errors.Newf("Invalid ID [%s]", id)
 		}
-		res = append(res, id)
+		res = res.AddToSet(id)
 	}
 	return res, nil
 }

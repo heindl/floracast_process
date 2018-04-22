@@ -1,7 +1,9 @@
 package geoembed
 
 import (
+	"bitbucket.org/heindl/process/utils"
 	"encoding/json"
+	"fmt"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
@@ -15,8 +17,10 @@ func TestGeoFeatureGeneration(t *testing.T) {
 			GeoFeatureSet *GeoFeatureSet `json:""`
 		}
 
-		initialSet, err := NewGeoFeatureSet(43.4732679, -110.7998022, false)
+		initialSet, err := NewGeoFeatureSet(33.5724059, -84.7170809, false)
 		So(err, ShouldBeNil)
+
+		fmt.Println(utils.JsonOrSpew(initialSet))
 
 		embed := geoEmbeddedStruct{
 			Name:          "test",
@@ -28,9 +32,10 @@ func TestGeoFeatureGeneration(t *testing.T) {
 
 		unembedded := geoEmbeddedStruct{}
 		So(json.Unmarshal(b, &unembedded), ShouldBeNil)
+
 		So(unembedded.Name, ShouldEqual, "test")
-		So(unembedded.GeoFeatureSet.Lat(), ShouldEqual, 43.4732679)
-		So(unembedded.GeoFeatureSet.Lng(), ShouldEqual, -110.7998022)
+		So(unembedded.GeoFeatureSet.Lat(), ShouldEqual, 33.5724059)
+		So(unembedded.GeoFeatureSet.Lng(), ShouldEqual, -84.7170809)
 
 	})
 

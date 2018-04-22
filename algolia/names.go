@@ -28,7 +28,14 @@ func IndexNameUsage(ctx context.Context, floraStore store.FloraStore, nameUsageI
 
 	// Need both the NameUsage and MaterializedTaxon, which contains the thumbnail link.
 	// This is necessary because the MaterializedTaxon selects and possibly resizes the image.
+	record, err := generateNameUsage(ctx, floraStore, nameUsageID)
+	if err != nil {
+		return err
+	}
+	return record.upload()
+}
 
+func generateNameUsage(ctx context.Context, floraStore store.FloraStore, nameUsageID nameusage.ID) (*NameUsageIndexRecord, error) {
 	record := NameUsageIndexRecord{
 		StandardNameUsageRecord: StandardNameUsageRecord{
 			NameUsageID: nameUsageID,
@@ -37,14 +44,14 @@ func IndexNameUsage(ctx context.Context, floraStore store.FloraStore, nameUsageI
 	}
 
 	if err := record.hydrate(); err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := record.fetchNameReferences(); err != nil {
-		return err
+		return nil, err
 	}
 
-	return record.upload()
+	return &record, nil
 }
 
 func (Ω *NameUsageIndexRecord) fetchNameReferences() error {

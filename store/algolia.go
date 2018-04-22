@@ -45,8 +45,10 @@ func (Ω *store) AlgoliaIndex(name AlgoliaIndexName, settings algoliasearch.Map)
 
 	index := Ω.algoliaClient.InitIndex(string(name))
 
-	if _, err := index.SetSettings(settings); err != nil {
-		return nil, errors.Wrap(err, "Could not add settings to NameUsage Algolia index")
+	if settings != nil {
+		if _, err := index.SetSettings(settings); err != nil {
+			return nil, errors.Wrap(err, "Could not add settings to NameUsage Algolia index")
+		}
 	}
 
 	return AlgoliaIndex(index), nil

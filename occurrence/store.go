@@ -8,7 +8,6 @@ import (
 	"bitbucket.org/heindl/process/datasources"
 	"bitbucket.org/heindl/process/nameusage/nameusage"
 	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/terra/geoembed"
 	"bitbucket.org/heindl/process/utils"
 	"cloud.google.com/go/firestore"
 	"encoding/json"
@@ -44,13 +43,21 @@ func FetchFromFireStore(cxt context.Context, floraStore store.FloraStore, id nam
 	return res, nil
 }
 
+//var aggregationUploadLimiter = utils.NewLimiter(1)
+
 // Upload saves Occurrences to either the Occurrences or Random Firestore Collections.
 func (Ω *Aggregation) Upload(cxt context.Context, floraStore store.FloraStore) error {
 
 	glog.Infof("Uploading %d Occurrences", Ω.Count())
 
+	// TODO: Have all kinds of trouble while trying to make this concurrent. Skip for now.
+	//tmb := tomb.Tomb{}
+	//tmb.Go(func() error {
 	for _, _o := range Ω.list {
+		//releaseLimiter := aggregationUploadLimiter.Go()
 		o := _o
+		//tmb.Go(func() error {
+		//	defer releaseLimiter()
 		transactionFunc, err := o.UpsertTransactionFunc(floraStore)
 		if err != nil {
 			return err
@@ -58,7 +65,14 @@ func (Ω *Aggregation) Upload(cxt context.Context, floraStore store.FloraStore) 
 		if err := floraStore.FirestoreTransaction(cxt, transactionFunc); err != nil && !utils.ContainsError(err, ErrInvalidElevation) {
 			return err
 		}
+		//return nil
+		//})
 	}
+	//return nil
+	//})
+	//if err := tmb.Wait(); err != nil {
+	//	return err
+	//}
 
 	glog.Infof("Completed Uploading %d Occurrences", Ω.Count())
 
@@ -211,14 +225,15 @@ func (Ω *record) setInFirestore(tx *firestore.Transaction, docRef *firestore.Do
 
 func (Ω *record) fetchImbricate(tx *firestore.Transaction, collection *firestore.CollectionRef) (*firestore.DocumentSnapshot, error) {
 
-	q, err := geoembed.CoordinateQuery(collection, Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng())
-	if err != nil {
-		return nil, err
-	}
-	// Add NameUsageID, though this could mean occurrences are duplicated among both.
-	locationQuery := q.Where("FormattedDate", "==", Ω.FormattedDate).Where("NameUsageID", "==", Ω.NameUsageID)
+	fmt.Println("CoordinateToken", Ω.GeoFeatureSet.CoordinateToken())
 
-	imbricates, err := tx.Documents(locationQuery).GetAll()
+	// Add NameUsageID, though this could mean occurrences are duplicated among both.
+	q := collection.
+		Where("GeoFeatureSet.S2Tokens.15", "==", Ω.GeoFeatureSet.CoordinateToken()).
+		Where("FormattedDate", "==", Ω.FormattedDate).
+		Where("NameUsageID", "==", Ω.NameUsageID)
+
+	imbricates, err := tx.Documents(q).GetAll()
 	if err != nil {
 		return nil, dropboxError.Wrap(err, "Error searching for a list of possibly overlapping occurrences")
 	}

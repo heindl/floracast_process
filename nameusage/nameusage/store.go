@@ -26,7 +26,7 @@ func Fetch(ctx context.Context, floraStore store.FloraStore, id ID) (NameUsage, 
 }
 
 // Upload validates and saves new NameUsage to FireStore
-func (Ω *usage) Upload(ctx context.Context, floraStore store.FloraStore) (deletedUsageIDs IDs, err error) {
+func (Ω *usage) Upload(ctx context.Context, floraStore store.FloraStore) (IDs, error) {
 
 	glog.Infof("Uploading NameUsage [%s]", Ω.CanonicalName())
 
@@ -42,14 +42,23 @@ func (Ω *usage) Upload(ctx context.Context, floraStore store.FloraStore) (delet
 
 	docRef := col.Doc(id.String())
 
-	deletedUsageIDs, err = Ω.matchInStore(ctx, floraStore)
+	usageIDsToDelete, err := Ω.matchInStore(ctx, floraStore)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = clearStoreUsages(ctx, floraStore, deletedUsageIDs); err != nil {
-		return nil, err
-	}
+	// TODO: There are cases in which the same CanonicalName will be synonyms to two different species.
+	// https://www.gbif.org/search?q=boletus%20citrinus
+	// Right now, just check for warnings, compare the names and delete the conflicting sources.
+	// Generally the sources are obscure, and will not be found in the other occurrence indexes, and do not
+	// have occurrences.
+	// TODO: The future solution may be to do an additional search at the point synonyms are generated.
+	// So the search would ask, does this synonym have two species in the GBIF? If so, ignore it.
+	// Since this is a manual process right now regardless, not performed often, lets handle this manually
+	// and see how often it turns up a problem.
+	//if err = clearStoreUsages(ctx, floraStore, deletedUsageIDs); err != nil {
+	//	return nil, err
+	//}
 
 	Ω.Occrrncs, err = Ω.Occurrences()
 	if err != nil {
@@ -72,7 +81,7 @@ func (Ω *usage) Upload(ctx context.Context, floraStore store.FloraStore) (delet
 
 	glog.Infof("Completed Uploading NameUsage [%s]", Ω.CanonicalName())
 
-	return deletedUsageIDs, nil
+	return usageIDsToDelete, nil
 }
 
 func clearStoreUsages(ctx context.Context, florastore store.FloraStore, allUsageIDs IDs) error {
@@ -120,10 +129,26 @@ func (Ω *usage) matchInStore(ctx context.Context, florastore store.FloraStore) 
 		if forEachErr != nil {
 			return nil, err
 		}
+
 		res := []string{}
 		for _, snap := range snaps {
+
+			existingName, err := snap.DataAt("Name.ScientificName")
+			if err != nil {
+				return nil, errors.Wrap(err, "Could not get ScientificName from NameUsage")
+			}
+
+			glog.Warningf(
+				"Warning: Existing NameUsage [%s - %s] matches new NameUsage [%s - %s] through synonym [%s].",
+				snap.Ref.ID,
+				existingName.(string),
+				Ω.id,
+				Ω.Cn.SciName,
+				name)
+
 			res = append(res, snap.Ref.ID)
 		}
+
 		return res, nil
 	})
 	if err != nil {

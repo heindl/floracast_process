@@ -52,7 +52,7 @@ func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 		if should {
 			continue
 		}
-		if err := res.AddUsage(u); err != nil {
+		if err := res.Append(u); err != nil {
 			return nil, err
 		}
 	}
@@ -64,14 +64,26 @@ func (Ω *Aggregate) Filter(shouldFilter FilterFunction) (*Aggregate, error) {
 func (Ω *Aggregate) Upload(cxt context.Context, florastore store.FloraStore) error {
 
 	return Ω.Each(cxt, func(ctx context.Context, usage nameusage.NameUsage) error {
-		deletedUsageIDs, err := usage.Upload(ctx, florastore)
+		nameUsageID, err := usage.ID()
 		if err != nil {
 			return err
 		}
-		if err := algolia.UploadNameUsageObjects(ctx, florastore, usage, deletedUsageIDs...); err != nil {
+		_, err = usage.Upload(ctx, florastore)
+		if err != nil {
 			return err
 		}
-		return taxa.UploadMaterializedTaxon(ctx, florastore, usage, deletedUsageIDs...)
+
+		// TODO: Ignore deleted ids for now as the matching logic requires updates.
+		if err := taxa.UploadMaterializedTaxon(ctx, florastore, usage); err != nil {
+			return err
+		}
+		// TODO: Ignore deleted ids for now as the matching logic requires updates.
+		//for _, idToDelete := range deletedUsageIDs {
+		//	if err := algolia.DeleteNameUsage(ctx, florastore, idToDelete); err != nil {
+		//		return err
+		//	}
+		//}
+		return algolia.IndexNameUsage(ctx, florastore, nameUsageID)
 	})
 
 }
@@ -126,18 +138,22 @@ func (Ω *Aggregate) TargetIDs(sourceTypes ...datasources.SourceType) (datasourc
 	return res, nil
 }
 
-// AddUsage adds a new NameUsage to an aggregate, and combines Usages if necessary.
-func (Ω *Aggregate) AddUsage(usages ...nameusage.NameUsage) error {
+// Append adds a new usage to the list but does not reduce.
+func (Ω *Aggregate) Append(usages ...nameusage.NameUsage) error {
+	Ω.list = append(Ω.list, usages...)
+	return nil
+}
+
+// Reduce combines all name usages that share scientific names.
+func (Ω *Aggregate) Reduce() error {
+
 	Ω.Lock()
 	defer Ω.Unlock()
 
-	Ω.list = append(Ω.list, usages...)
-	// Sort by CanonicalName to avoid strange collisions.
-
-	sort.Sort(nameusage.ByCanonicalName(Ω.list))
-
 ResetLoop:
 	for {
+
+		sort.Sort(nameusage.ByCanonicalName(Ω.list))
 		for i := range Ω.list {
 			for k := range Ω.list {
 				if k == i {
@@ -160,8 +176,15 @@ ResetLoop:
 		}
 		break
 	}
-
 	return nil
+}
+
+// Add adds a new NameUsage to an aggregate and reduces.
+func (Ω *Aggregate) Combine(usages ...nameusage.NameUsage) error {
+	if err := Ω.Append(usages...); err != nil {
+		return err
+	}
+	return Ω.Reduce()
 }
 
 //func (Ω *Aggregate) hasCanonicalName(name canonicalname.Name) (bool, error) {

@@ -15,7 +15,7 @@ func TestTaxonFetcher(t *testing.T) {
 	t.Parallel()
 
 	Convey("Should Fetch Description", t, func() {
-		id1 := nameusage.ID("eM3R8X2YQyLJWiLMVIGzZaU1I")
+		id1 := nameusage.ID("eM3R8X2")
 		usage, err := nameusage.FromJSON(id1, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
 		desc, err := fetchDescription(context.Background(), usage)
@@ -27,7 +27,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 	Convey("Should Materialize NameUsage", t, func() {
 
-		id1 := nameusage.ID("eM3R8X2YQyLJWiLMVIGzZaU1I")
+		id1 := nameusage.ID("eM3R8X2")
 
 		usage, err := nameusage.FromJSON(id1, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
@@ -40,7 +40,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 	Convey("Should Upload Materialized NameUsage", t, func() {
 
-		id1 := nameusage.ID("eM3R8X2YQyLJWiLMVIGzZaU1I")
+		id1 := nameusage.ID("eM3R8X2")
 
 		usage, err := nameusage.FromJSON(id1, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
@@ -52,7 +52,7 @@ func TestTaxonFetcher(t *testing.T) {
 
 		So(UploadMaterializedTaxon(cxt, florastore, usage), ShouldBeNil)
 
-		id2 := nameusage.ID("aM3R8X2YQyLJWiLMVIGzZaU1I")
+		id2 := nameusage.ID("aM3R8X2")
 
 		usage, err = nameusage.FromJSON(id2, utils.GetFetchedMorchellaUsageTestData())
 		So(err, ShouldBeNil)
