@@ -4,8 +4,6 @@ import (
 	"bitbucket.org/heindl/process/terra/geo"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
-	"github.com/mmcloughlin/geohash"
-	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
 // CoordinateKey is lat/lng formatted string to the third decimal that can be used as a Firestore ID
@@ -23,11 +21,6 @@ func NewS2Key(lat, lng float64) (S2Key, error) {
 		return "", errors.Wrapf(err, "Invalid Coordinates for CoordinateKey [%f, %f]", lat, lng)
 	}
 	return S2Key(s2.CellIDFromLatLng(s2.LatLngFromDegrees(lat, lng)).Parent(16).ToToken()), nil
-}
-
-func (Ω S2Key) Parse() (*latlng.LatLng, error) {
-	lat, lng := geohash.Decode(string(Ω))
-	return &latlng.LatLng{Latitude: lat, Longitude: lng}, nil
 }
 
 // Valid checks a CoordinateKey for expected string length

@@ -7,6 +7,7 @@ import (
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/glog"
 	"github.com/sethgrid/pester"
+	"io"
 	"io/ioutil"
 	"time"
 )
@@ -47,6 +48,34 @@ func RequestXML(url string, response interface{}) error {
 	}
 
 	return nil
+}
+
+func PostJSON(url string, r io.Reader) (res []byte, err error) {
+	client := pester.New()
+	client.Concurrency = 1
+	client.MaxRetries = 5
+	client.Backoff = pester.ExponentialJitterBackoff
+	//client.KeepLog = true
+	//client.Backoff = func(retry int) time.Duration {
+	//	return time.Duration(retry) * time.Second
+	//}
+
+	resp, err := client.Post(url, "application/json", r)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not read http response body")
+	}
+	defer SafeClose(resp.Body, &err)
+
+	if resp.StatusCode != 200 {
+		return nil, errors.Wrapf(errors.New(resp.Status), "StatusCode: %d; URL: %s", resp.StatusCode, url)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not read http response body")
+	}
+
+	return body, nil
 }
 
 func request(url string) (res []byte, err error) {

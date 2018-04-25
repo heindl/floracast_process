@@ -29,26 +29,26 @@ type Season struct {
 
 // Spring is March through May
 var Spring = Season{
-	Min: time.Date(2011, time.March, 1, 0, 0, 0, 0, time.UTC).Unix(),
-	Max: time.Date(2011, time.May, 31, 0, 0, 0, 0, time.UTC).Unix(),
+	Min: time.Date(2016, time.March, 1, 0, 0, 0, 0, time.UTC).Unix(),
+	Max: time.Date(2016, time.May, 31, 0, 0, 0, 0, time.UTC).Unix(),
 }
 
 // Summer is June through August
 var Summer = Season{
-	Min: time.Date(2011, time.June, 1, 0, 0, 0, 0, time.UTC).Unix(),
-	Max: time.Date(2011, time.August, 31, 0, 0, 0, 0, time.UTC).Unix(),
+	Min: time.Date(2016, time.June, 1, 0, 0, 0, 0, time.UTC).Unix(),
+	Max: time.Date(2016, time.August, 31, 0, 0, 0, 0, time.UTC).Unix(),
 }
 
 // Autumn is September through November
 var Autumn = Season{
-	Min: time.Date(2011, time.September, 1, 0, 0, 0, 0, time.UTC).Unix(),
-	Max: time.Date(2011, time.November, 30, 0, 0, 0, 0, time.UTC).Unix(),
+	Min: time.Date(2016, time.September, 1, 0, 0, 0, 0, time.UTC).Unix(),
+	Max: time.Date(2016, time.November, 30, 0, 0, 0, 0, time.UTC).Unix(),
 }
 
 // Winter is December through February
 var Winter = Season{
-	Min: time.Date(2010, time.December, 1, 0, 0, 0, 0, time.UTC).Unix(),
-	Max: time.Date(2011, time.February, 28, 0, 0, 0, 0, time.UTC).Unix(),
+	Min: time.Date(2015, time.December, 1, 0, 0, 0, 0, time.UTC).Unix(),
+	Max: time.Date(2016, time.February, 28, 0, 0, 0, 0, time.UTC).Unix(),
 }
 
 type randomOccurrenceGenerator struct {
@@ -75,7 +75,7 @@ func newRandomOccurrenceGenerator() (*randomOccurrenceGenerator, error) {
 // GenerateRandomOccurrences generates an evenly distributed list of Random Occurrences
 // across southern Canada, northern Mexico, and the United States.
 // There will be one for each season.
-func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, error) {
+func GenerateRandomOccurrences(gridLevel, batch int) (*Aggregation, error) {
 	gen, err := newRandomOccurrenceGenerator()
 	if err != nil {
 		return nil, err
@@ -87,25 +87,26 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 	}
 	batchSize := len(bounds) * 4
 
-	glog.Infof("Generating %d Random Occurrences Batches for %d Bounds", numberOfBatches, len(bounds))
-
-	recordNumberCounter := 1
+	glog.Infof("Generating %d Random Occurrences in Batch %d for %d Bounds", batchSize, batch, len(bounds))
 
 	tmb := tomb.Tomb{}
 	tmb.Go(func() error {
-		for 𝝨 := 1; 𝝨 <= numberOfBatches; 𝝨++ {
-			batch := 𝝨
-			for _, _bound := range bounds {
-				bound := *_bound
-				for _, _season := range []Season{Spring, Summer, Autumn, Winter} {
+		for _boundCount, _bound := range bounds {
+			// 0, 1, 2 ...
+			boundCount := _boundCount
+			bound := *_bound
+
+			tmb.Go(func() error {
+				for _seasonCount, _season := range []Season{Spring, Summer, Autumn, Winter} {
+					// 0, 1, 2, 3
 					season := _season
+					seasonCount := _seasonCount
 					tmb.Go(func() error {
-						gen.Lock()
-						recordNumber := recordNumberCounter
-						recordNumberCounter++
-						gen.Unlock()
-						err := gen.generateRandomOccurrence(batch, recordNumber, batchSize, bound, season)
-						glog.Infof("Random Occurrences [%d] Generated", recordNumber)
+						err := gen.generateRandomOccurrence(
+							batch,
+							(boundCount*4)+seasonCount+1,
+							bound,
+							season)
 						if utils.ContainsError(err, errMaxRandomGenerationAttempts) {
 							glog.Warningf("Max Attempts [%d] Reached while Generating Random Occurrences Point [%v]", maxGenerationAttempts, bound)
 							return nil
@@ -113,7 +114,8 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 						return err
 					})
 				}
-			}
+				return nil
+			})
 		}
 		return nil
 	})
@@ -128,7 +130,7 @@ func GenerateRandomOccurrences(gridLevel, numberOfBatches int) (*Aggregation, er
 
 var errMaxRandomGenerationAttempts = fmt.Errorf("reached maximum attempts at generating random occurrence point")
 
-func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber, batchSize int, bounds geo.Bound, season Season) error {
+func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumber int, bounds geo.Bound, season Season) error {
 
 	timeDelta := season.Max - season.Min
 	xDelta := int(math.Ceil(bounds.East) - math.Ceil(bounds.West))
@@ -159,7 +161,7 @@ func (Ω *randomOccurrenceGenerator) generateRandomOccurrence(batch, recordNumbe
 
 		// Including all of this information so that the transform function can infer the size of the batch,
 		// to correctly balance against taxon occurrence count.
-		occurrenceID := fmt.Sprintf("%d-%d", recordNumber, batchSize)
+		occurrenceID := fmt.Sprintf("%d", recordNumber)
 
 		o, err := NewOccurrence(nil, datasources.TypeRandom, datasources.TargetID(strconv.Itoa(batch)), occurrenceID)
 		if err != nil {

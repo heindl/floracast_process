@@ -8,6 +8,7 @@ import (
 	"bitbucket.org/heindl/process/utils"
 	"fmt"
 	tg "github.com/galeone/tfgo"
+	"github.com/golang/glog"
 	"github.com/saleswise/errors/errors"
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 	"golang.org/x/net/context"
@@ -67,7 +68,12 @@ func GeneratePredictions(ctx context.Context, nameUsageID nameusage.ID, floraSto
 		return nil, err
 	}
 
-	fmt.Println("TOTAL READ", g.totalRead)
+	glog.Infof(
+		"Prediction Generation Complete for NameUsage [%s], with %d Positive Results from %d Total Predictions.",
+		nameUsageID,
+		g.collection.Count(),
+		g.totalRead,
+	)
 
 	return g.collection, nil
 

@@ -8,9 +8,7 @@ import (
 
 func TestElevationFetcher(t *testing.T) {
 
-	Convey("should fetch elevations", t, func() {
-
-		elevationBatchSize = 5
+	Convey("should fetch elevations", t, func(c C) {
 
 		coordinates := [][3]float64{
 			{42.722702, -87.784225, 192},
@@ -20,7 +18,7 @@ func TestElevationFetcher(t *testing.T) {
 			{37.910076, -122.065186, 52},
 			{33.487007, -117.143784, 304},
 			{41.653934, -81.450394, 189},
-			{46.602070, -120.505898, 325},
+			{46.602070, -120.505898, 326},
 			{28.018349, -82.764473, 17},
 			{44.949642, -93.093124, 240},
 			{47.380932, -122.234840, 13},
@@ -28,7 +26,7 @@ func TestElevationFetcher(t *testing.T) {
 			{34.704929, -81.210251, 151},
 			{43.224194, -86.235809, 197},
 			{34.426388, -117.300880, 969},
-			{34.686787, -118.154160, 724},
+			{34.686787, -118.154160, 726},
 			{25.468721, -80.477554, 7},
 			{36.850769, -76.285873, 6},
 			{36.974117, -122.030792, 7},
@@ -65,28 +63,27 @@ func TestElevationFetcher(t *testing.T) {
 			{34.092232, -117.435051, 380},
 		}
 
+		for _, c := range coordinates {
+			coordinate := c
+			So(Queue(coordinate[0], coordinate[1]), ShouldBeNil)
+		}
+		//
 		tmb := tomb.Tomb{}
 		tmb.Go(func() error {
-			for _, 𝝨 := range coordinates {
-				coordinate := 𝝨
+			for _, coord := range coordinates {
+				coordinate := coord
 				tmb.Go(func() error {
-					return Queue(coordinate[0], coordinate[1])
+					e, err := Get(coordinate[0], coordinate[1])
+					c.So(err, ShouldBeNil)
+					c.So(err, ShouldBeNil)
+					c.So(e, ShouldNotBeNil)
+					c.So(coordinate[2], ShouldEqual, float64(*e))
+					return nil
 				})
 			}
 			return nil
 		})
 		So(tmb.Wait(), ShouldBeNil)
 
-		So(fetchCount, ShouldEqual, 9)
-
-		for _, 𝝨 := range coordinates {
-			coordinate := 𝝨
-			e, err := Get(coordinate[0], coordinate[1])
-			So(err, ShouldBeNil)
-			So(e, ShouldNotBeNil)
-			So(coordinate[2], ShouldEqual, float64(*e))
-		}
-
 	})
-
 }

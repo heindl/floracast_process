@@ -6,7 +6,6 @@ import (
 	"bitbucket.org/heindl/process/store"
 	"context"
 	"flag"
-	"fmt"
 )
 
 func main() {
@@ -47,7 +46,6 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Predictions Generated: ", collection.Count())
 	if err := collection.Upload(cxt); err != nil {
 		panic(err)
 	}

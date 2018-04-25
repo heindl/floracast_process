@@ -3,8 +3,11 @@ package main
 import (
 	"bitbucket.org/heindl/process/occurrence"
 	"bitbucket.org/heindl/process/store"
+	"bitbucket.org/heindl/process/utils"
 	"context"
 	"flag"
+	"github.com/golang/glog"
+	"gopkg.in/tomb.v2"
 )
 
 // Level 4: 216
@@ -22,16 +25,31 @@ func main() {
 		panic(err)
 	}
 
-	if err = occurrence.ClearRandomPoints(ctx, floraStore); err != nil {
-		panic(err)
-	}
+	//if err = occurrence.ClearRandomPoints(ctx, floraStore); err != nil {
+	//	panic(err)
+	//}
 
-	aggr, err := occurrence.GenerateRandomOccurrences(*cellLevel, *batches)
-	if err != nil {
-		panic(err)
-	}
+	cxt := context.Background()
 
-	if err = aggr.Upload(context.Background(), floraStore); err != nil {
+	limiter := utils.NewLimiter(5)
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for i := 1; i <= *batches; i++ {
+			batch_number := i
+			release := limiter.Go()
+			tmb.Go(func() error {
+				defer release()
+				aggr, err := occurrence.GenerateRandomOccurrences(*cellLevel, batch_number)
+				if err != nil {
+					return err
+				}
+				glog.Infof("Uploading Random Batch [%d] with %d Occurrences", batch_number, aggr.Count())
+				return aggr.UnsafeUpload(cxt, floraStore)
+			})
+		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
 		panic(err)
 	}
 

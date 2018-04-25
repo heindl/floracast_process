@@ -43,6 +43,42 @@ func FetchFromFireStore(cxt context.Context, floraStore store.FloraStore, id nam
 	return res, nil
 }
 
+// UnsafeUpload does not check for an occurrence existing at the same place.
+// Meant to be used for uploading random occurrences to save time in development.
+// TODO: There are concurrency issues with original occurrence upload that need to be repaired.
+func (Ω *Aggregation) UnsafeUpload(cxt context.Context, floraStore store.FloraStore) error {
+
+	batch := floraStore.FirestoreBatch()
+	for _, o := range Ω.list {
+
+		id, err := o.ID()
+		if err != nil {
+			return err
+		}
+		col, err := o.Collection(floraStore)
+		if err != nil {
+			return err
+		}
+
+		b, err := json.Marshal(o)
+		if err != nil {
+			return dropboxError.Wrap(err, "Could not marshal record")
+		}
+
+		m := map[string]interface{}{}
+		if err := json.Unmarshal(b, &m); err != nil {
+			return dropboxError.Wrap(err, "Could not unmarshal record doc into map")
+		}
+
+		batch = batch.Set(col.Doc(id), m)
+	}
+	_, err := batch.Commit(cxt)
+	if err != nil {
+		return dropboxError.Wrap(err, "Could not commit batch")
+	}
+	return nil
+}
+
 //var aggregationUploadLimiter = utils.NewLimiter(1)
 
 // Upload saves Occurrences to either the Occurrences or Random Firestore Collections.
@@ -224,8 +260,6 @@ func (Ω *record) setInFirestore(tx *firestore.Transaction, docRef *firestore.Do
 }
 
 func (Ω *record) fetchImbricate(tx *firestore.Transaction, collection *firestore.CollectionRef) (*firestore.DocumentSnapshot, error) {
-
-	fmt.Println("CoordinateToken", Ω.GeoFeatureSet.CoordinateToken())
 
 	// Add NameUsageID, though this could mean occurrences are duplicated among both.
 	q := collection.
