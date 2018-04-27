@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/genproto/googleapis/type/latlng"
+	"time"
 )
 
 type localStructForJSON struct {
@@ -17,6 +18,7 @@ type localStructForJSON struct {
 	EcoNum               ecoregions.EcoNum `json:""`
 	Elevation            *int              `json:",omitempty"`
 	S2Tokens             map[string]string `json:""`
+	ModifiedAt           int64             `json:""` // UnixNano()
 }
 
 // UnmarshalJSON is an interface method for converting a FeatureSet to JSON
@@ -85,5 +87,6 @@ func (Ω *GeoFeatureSet) MarshalJSON() ([]byte, error) {
 		EcoNum:               Ω.ecoNum,
 		S2Tokens:             terraPoint.S2TokenMap(),
 		Elevation:            elev,
+		ModifiedAt:           time.Now().UnixNano(),
 	})
 }

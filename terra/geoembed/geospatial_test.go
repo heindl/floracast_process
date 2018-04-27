@@ -10,7 +10,14 @@ import (
 
 func TestGeoFeatureGeneration(t *testing.T) {
 
-	Convey("Should properly create GeoFeatureSet and marshal/unmarshal JSON on struct where it is embedded", t, func() {
+	Convey("GeoFeatures", t, func() {
+
+		_, err := NewS2Key(44.094082, -117.869965)
+		So(err, ShouldBeNil)
+
+	})
+
+	SkipConvey("Should properly create GeoFeatureSet and marshal/unmarshal JSON on struct where it is embedded", t, func() {
 
 		type geoEmbeddedStruct struct {
 			Name          string         `json:""`
@@ -39,7 +46,7 @@ func TestGeoFeatureGeneration(t *testing.T) {
 
 	})
 
-	Convey("Should consistently generate GeoFeatureSets", t, func() {
+	SkipConvey("Should consistently generate GeoFeatureSets", t, func() {
 
 		for _, a := range [][6]float64{
 			// Lat, Lng, Elevation, Biome, Realm, EcoNum

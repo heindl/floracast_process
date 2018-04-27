@@ -1,10 +1,12 @@
 package tfrecords
 
 import (
+	"bitbucket.org/heindl/process/utils"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/heindl/tfutils"
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
+	"strings"
 )
 
 type Record interface {
@@ -13,6 +15,24 @@ type Record interface {
 	String() string
 	Latitude() (float64, error)
 	Longitude() (float64, error)
+	Date() (utils.FormattedDate, error)
+}
+
+type Records []Record
+
+func (Ω Records) Tensor() (*tf.Tensor, error) {
+	s := []string{}
+	for _, r := range Ω {
+		s = append(s, r.String())
+	}
+
+	t, err := tf.NewTensor(s)
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not generate Tensor")
+	}
+
+	return t, nil
+
 }
 
 func NewRecord(b []byte) (Record, error) {
@@ -33,6 +53,18 @@ func (Ω *record) Tensor() (*tf.Tensor, error) {
 
 func (Ω *record) String() string {
 	return string(Ω.b)
+}
+
+func (Ω *record) Date() (utils.FormattedDate, error) {
+	date, err := Ω.GetFeatureString("date", FeatureTypeBytes)
+	if err != nil {
+		return "", nil
+	}
+	formatted := utils.FormattedDate(date)
+	if !formatted.Valid() {
+		return "", errors.Newf("Invalid Example Date [%s]", date)
+	}
+	return formatted, nil
 }
 
 func (Ω *record) Latitude() (float64, error) {
@@ -78,7 +110,13 @@ func (Ω *record) GetFeatureString(featureName string, fType FeatureType) (strin
 	default:
 		return "", errors.Newf("Unsupported FeatureType [%s]", fType)
 	}
-	return res.String(), nil
+
+	return strings.Trim(
+		strings.Replace(
+			strings.TrimSpace(
+				res.String(),
+			), "value:", "", -1),
+		`"`), nil
 }
 
 func (Ω *record) GetFloatFeature(featureName string) ([]float32, error) {

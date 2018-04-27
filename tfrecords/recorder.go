@@ -6,14 +6,53 @@ import (
 	"cloud.google.com/go/storage"
 	"context"
 	"github.com/dropbox/godropbox/errors"
+	"github.com/golang/glog"
 	"github.com/heindl/tfutils"
 	"google.golang.org/api/iterator"
 	"io"
+	"path/filepath"
 	"strings"
 )
 
 type Iterator interface {
 	Next(cxt context.Context) (Record, error)
+}
+
+type localTFIterator struct {
+	reader *tfutils.RecordReader
+}
+
+func (Ω *localTFIterator) Next(ctx context.Context) (Record, error) {
+
+	b, err := Ω.reader.ReadRecord()
+	if err == io.EOF {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not read TFRecord")
+	}
+
+	return NewRecord(b)
+
+}
+
+func NewLocalIterator(ctx context.Context, localFileGlob string) (Iterator, error) {
+
+	files, err := filepath.Glob(localFileGlob)
+
+	glog.Infof("Reading %d TFRecords from Local Path [%s]", len(files), localFileGlob)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "Could not read local TFRecords file path [%s]", localFileGlob)
+	}
+
+	r, err := tfutils.NewReader(files, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &localTFIterator{reader: r}, nil
 }
 
 func NewIterator(ctx context.Context, floraStore store.FloraStore, gcsFilePath string) (Iterator, error) {

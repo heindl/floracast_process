@@ -12,6 +12,8 @@ func main() {
 	//writeToCache := flag.Bool("cache", false, "write to buntdb cache and initiate server?")
 	//dates := flag.String("dates", "", "Dates for which to fetch latest predictions in format YYYYMMDD,YYYYMMDD. If blank will fetch all dates.")
 	nameUsageIDPtr := flag.String("name_usage", "", "NameUsageID")
+	modelPathPtr := flag.String("model_path", "", "Path to Saved Tensorflow Model")
+	protectedAreaGlobPtr := flag.String("protected_areas", "", "Glob for ProtectedArea TFRecords")
 	//mode := flag.String("mode", "serve", "mode to handle predictions: write to temp file for javascript geofire uploader or serve for testing in local web router.")
 	//dbPtr := flag.String("db", "", "existing database to use")
 
@@ -41,7 +43,14 @@ func main() {
 	//}()
 	//
 	//if *dbPtr == "" {
-	collection, err := generate.GeneratePredictions(cxt, nameUsageID, floraStore, nil)
+	collection, err := generate.GeneratePredictions(
+		cxt,
+		nameUsageID,
+		floraStore,
+		nil,
+		*modelPathPtr,
+		*protectedAreaGlobPtr,
+	)
 	if err != nil {
 		panic(err)
 	}

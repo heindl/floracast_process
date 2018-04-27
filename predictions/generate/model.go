@@ -7,66 +7,79 @@ import (
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	tg "github.com/galeone/tfgo"
+	"github.com/golang/glog"
 	"io/ioutil"
-	"os"
 	"sort"
 	"strings"
 )
 
-type Modeller interface {
-	FetchModel(ctx context.Context, usageID nameusage.ID) (*tg.Model, error)
+type FloraClassifier interface {
+	NewClassifierInstance(ctx context.Context) (*tg.Model, error)
 	Close() error
 }
 
-func NewModeller(floraStore store.FloraStore) (Modeller, error) {
-	return &modeller{
-		floraStore:       floraStore,
-		modelDirectories: []string{},
-	}, nil
-}
-
-type modeller struct {
-	floraStore       store.FloraStore
-	modelDirectories []string
-}
-
-func (Ω *modeller) Close() error {
-	// Cleanup old files
-	for _, dirName := range Ω.modelDirectories {
-		if !strings.HasPrefix(dirName, "/tmp") {
-			return errors.Newf("Expected model directory [%s] to be in the /tmp folder ", dirName)
-		}
-		if err := os.RemoveAll(dirName); err != nil {
-			return errors.Wrap(err, "Could not remove model directory")
+func NewFloraClassifier(cxt context.Context, floraStore store.FloraStore, nameUsageID nameusage.ID, modelPath string) (FloraClassifier, error) {
+	c := &classifier{
+		floraStore:  floraStore,
+		nameUsageID: nameUsageID,
+	}
+	if modelPath != "" {
+		c.modelPath = modelPath
+	} else {
+		if err := c.download(cxt); err != nil {
+			return nil, err
 		}
 	}
+
+	return c, nil
+
+}
+
+type classifier struct {
+	floraStore       store.FloraStore
+	modelDirectories []string
+	nameUsageID      nameusage.ID
+	modelPath        string
+}
+
+func (Ω *classifier) Close() error {
+	// Cleanup old files
+	//for _, dirName := range Ω.modelDirectories {
+	//	if !strings.HasPrefix(dirName, "/tmp") {
+	//		return errors.Newf("Expected model directory [%s] to be in the /tmp folder ", dirName)
+	//	}
+	//	if err := os.RemoveAll(dirName); err != nil {
+	//		return errors.Wrap(err, "Could not remove model directory")
+	//	}
+	//}
 	return nil
 }
 
-func (Ω *modeller) FetchModel(ctx context.Context, usageID nameusage.ID) (*tg.Model, error) {
-
-	latestDate, err := Ω.fetchLatestModelDate(ctx, usageID)
+func (Ω *classifier) download(ctx context.Context) error {
+	latestDate, err := Ω.fetchLatestModelDate(ctx, Ω.nameUsageID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	cloudPath := fmt.Sprintf("models/%s/%s", usageID.String(), latestDate)
-	tempModelPath, err := ioutil.TempDir("/tmp", usageID.String()+"_")
+	cloudPath := fmt.Sprintf("models/%s/%s", Ω.nameUsageID.String(), latestDate)
+	tempModelPath, err := ioutil.TempDir("/tmp", Ω.nameUsageID.String()+"_")
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not generate temporary directory for tensorflow model")
+		return errors.Wrap(err, "Could not generate temporary directory for tensorflow model")
 	}
 
-	fmt.Println("MODEL_PATH", tempModelPath)
-	Ω.modelDirectories = append(Ω.modelDirectories, tempModelPath)
+	glog.Infof("Downloading Floracast Classifier [%s] from GCS [%s] to Local Path [%s]", Ω.nameUsageID, cloudPath, tempModelPath)
 
-	if err := Ω.floraStore.SyncGCSPathWithLocal(ctx, cloudPath, tempModelPath); err != nil {
-		return nil, err
-	}
+	Ω.modelPath = tempModelPath
 
-	return tg.LoadModel(tempModelPath, []string{"serve"}, nil), nil
+	return Ω.floraStore.SyncGCSPathWithLocal(ctx, cloudPath, tempModelPath)
 }
 
-func (Ω *modeller) fetchLatestModelDate(ctx context.Context, usageID nameusage.ID) (string, error) {
+func (Ω *classifier) NewClassifierInstance(ctx context.Context) (*tg.Model, error) {
+
+	return tg.LoadModel(Ω.modelPath, []string{"serve"}, nil), nil
+}
+
+func (Ω *classifier) fetchLatestModelDate(ctx context.Context, usageID nameusage.ID) (string, error) {
 	gcsPath := fmt.Sprintf("models/%s/", usageID.String())
 	pbObjects, err := Ω.floraStore.CloudStorageObjects(ctx, gcsPath, ".pb")
 	if err != nil {

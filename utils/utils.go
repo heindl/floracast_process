@@ -76,6 +76,14 @@ func NewLimiter(amount int) Limiter {
 	return limiter
 }
 
+func (Ω Limiter) Wait() {
+	<-Ω
+}
+
+func (Ω Limiter) Release() {
+	Ω <- struct{}{}
+}
+
 func (Ω Limiter) Go() func() {
 	<-Ω
 	return func() {

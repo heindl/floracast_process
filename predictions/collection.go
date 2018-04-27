@@ -9,10 +9,13 @@ import (
 	"bitbucket.org/heindl/process/utils"
 	"context"
 	"fmt"
+	"github.com/golang/glog"
 	"github.com/saleswise/errors/errors"
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/tomb.v2"
 	"math"
 	"sync"
+	"time"
 )
 
 type Collection interface {
@@ -75,53 +78,89 @@ type minimal struct {
 type record struct {
 	AreaKilometers float64                          `firestore:"AreaKilometers,omitempty" bson:"AreaKilometers,omitempty"`
 	NameUsageID    nameusage.ID                     `firestore:"NameUsageID,omitempty" bson:"NameUsageID,omitempty"`
+	ModifiedAt     int64                            `firestore:"ModifiedAt,omitempty" bson:"ModifiedAt,omitempty"`
 	Timeline       map[utils.FormattedDate]*minimal `firestore:"Timeline,omitempty" bson:"Timeline,omitempty"`
-	Cells          map[string]string                `firestore:"Cells,omitempty" bson:"Cells,omitempty"`
+	S2Tokens       map[string]string                `firestore:"S2Tokens,omitempty" bson:"S2Tokens,omitempty"`
 }
 
-func (Ω *collection) batches(maxBatchSize float64) []map[geoembed.S2Key]*record {
+func (Ω *collection) Upload(ctx context.Context) error {
 
 	if len(Ω.records) == 0 {
 		return nil
 	}
 
-	batchCount := math.Ceil(float64(len(Ω.records)) / maxBatchSize)
-
-	res := []map[geoembed.S2Key]*record{}
-
-Outer:
-	for {
-		m := map[geoembed.S2Key]*record{}
-		for k, v := range Ω.records {
-			m[k] = v
-			delete(Ω.records, k)
-			if float64(len(m)) >= batchCount {
-				res = append(res, m)
-				continue Outer
-			}
-		}
-		break
-	}
-
-	return res
-}
-
-func (Ω *collection) Upload(cxt context.Context) error {
+	glog.Infof("Uploading Prediction Documents [%d] for NameUsage [%s]", len(Ω.records), Ω.nameUsageID)
 
 	col, err := Ω.floraStore.FirestoreCollection(store.CollectionPredictionIndex)
 	if err != nil {
 		return err
 	}
 
-	for _, m := range Ω.batches(250) {
+	startedAt := time.Now().UnixNano()
+
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		i := float64(0)
 		fireStoreBatch := Ω.floraStore.FirestoreBatch()
-		for k, v := range m {
-			doc := col.Doc(fmt.Sprintf("%s-%s", Ω.nameUsageID, k))
-			fireStoreBatch = fireStoreBatch.Set(doc, v)
+		for s2Key, predictionRecord := range Ω.records {
+			docRef := col.Doc(fmt.Sprintf("%s-%s", Ω.nameUsageID, s2Key))
+
+			if km, ok := cache.SquareKilometers[s2Key]; ok {
+				predictionRecord.AreaKilometers = km
+			} else {
+				area, err := Ω.areaCache.GetProtectedAreaWithToken(context.Background(), s2Key)
+				if err != nil {
+					return err
+				}
+				if area != nil {
+					fmt.Println(fmt.Sprintf(`"%s": %f,`, s2Key, area.Kilometers()))
+					predictionRecord.AreaKilometers = area.Kilometers()
+				}
+			}
+
+			predictionRecord.ModifiedAt = time.Now().UnixNano()
+
+			fireStoreBatch = fireStoreBatch.Set(docRef, predictionRecord)
+			if i != 0 && math.Mod(i, 400) == 0 {
+				_fireStoreBatch := *fireStoreBatch
+				fireStoreBatch = Ω.floraStore.FirestoreBatch()
+				tmb.Go(func() error {
+					if _, err := _fireStoreBatch.Commit(ctx); err != nil {
+						return errors.Wrapf(err, "Could not commit set batch for Predictions [%d]", i)
+					}
+					return nil
+				})
+			}
+			i++
 		}
-		if _, err := fireStoreBatch.Commit(cxt); err != nil {
-			return err
+		// Commit what is left
+		if _, err := fireStoreBatch.Commit(ctx); err != nil {
+			return errors.Wrapf(err, "Could not commit set batch for Predictions [%d]", i)
 		}
+		return nil
+	})
+
+	if err := tmb.Wait(); err != nil {
+		return err
+	}
+
+	docRefsToDeleted, err := col.Where("ModifiedAt", "<", startedAt).Documents(ctx).GetAll()
+	if err != nil {
+		return errors.Wrap(err, "Could not get features to delete")
+	}
+
+	if len(docRefsToDeleted) == 0 {
+		return nil
+	}
+
+	glog.Infof("Deleting stale Prediction Documents [%d] for NameUsage [%s]", len(docRefsToDeleted), Ω.nameUsageID)
+
+	fireStoreBatch := Ω.floraStore.FirestoreBatch()
+	for _, doc := range docRefsToDeleted {
+		fireStoreBatch = fireStoreBatch.Delete(doc.Ref)
+	}
+	if _, err := fireStoreBatch.Commit(ctx); err != nil {
+		return errors.Wrapf(err, "Could not delete [%d] Prediction documents", len(docRefsToDeleted))
 	}
 
 	return nil
@@ -147,21 +186,15 @@ func (Ω *collection) Add(lat, lng float64, date utils.FormattedDate, prediction
 
 	if _, ok := Ω.records[s2Key]; !ok {
 
-		area, err := Ω.areaCache.GetProtectedArea(context.Background(), lat, lng)
-		if err != nil {
-			return err
-		}
-
 		point, err := geo.NewPoint(lat, lng)
 		if err != nil {
 			return err
 		}
 
 		Ω.records[s2Key] = &record{
-			NameUsageID:    Ω.nameUsageID,
-			AreaKilometers: area.Kilometers(),
-			Timeline:       map[utils.FormattedDate]*minimal{},
-			Cells:          point.S2TokenMap(),
+			NameUsageID: Ω.nameUsageID,
+			Timeline:    map[utils.FormattedDate]*minimal{},
+			S2Tokens:    point.S2TokenMap(),
 		}
 	}
 
