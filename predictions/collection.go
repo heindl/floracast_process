@@ -144,7 +144,10 @@ func (Ω *collection) Upload(ctx context.Context) error {
 		return err
 	}
 
-	docRefsToDeleted, err := col.Where("ModifiedAt", "<", startedAt).Documents(ctx).GetAll()
+	docRefsToDeleted, err := col.
+		Where("ModifiedAt", "<", startedAt).
+		Where("NameUsageID", "==", Ω.nameUsageID).Documents(ctx).GetAll()
+
 	if err != nil {
 		return errors.Wrap(err, "Could not get features to delete")
 	}
@@ -155,9 +158,17 @@ func (Ω *collection) Upload(ctx context.Context) error {
 
 	glog.Infof("Deleting stale Prediction Documents [%d] for NameUsage [%s]", len(docRefsToDeleted), Ω.nameUsageID)
 
+	deleteBatchCount := float64(0)
 	fireStoreBatch := Ω.floraStore.FirestoreBatch()
 	for _, doc := range docRefsToDeleted {
 		fireStoreBatch = fireStoreBatch.Delete(doc.Ref)
+		if math.Mod(deleteBatchCount, 400) == 0 {
+			if _, err := fireStoreBatch.Commit(ctx); err != nil {
+				return errors.Wrapf(err, "Could not delete [%d] Prediction documents", len(docRefsToDeleted))
+			}
+			fireStoreBatch = Ω.floraStore.FirestoreBatch()
+		}
+		deleteBatchCount++
 	}
 	if _, err := fireStoreBatch.Commit(ctx); err != nil {
 		return errors.Wrapf(err, "Could not delete [%d] Prediction documents", len(docRefsToDeleted))

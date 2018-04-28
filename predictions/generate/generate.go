@@ -137,44 +137,6 @@ func GeneratePredictions(
 
 }
 
-func (Ω *generator) handleRecord(r tfrecords.Record, model *tg.Model) error {
-	Ω.totalRead++
-
-	t, err := r.Tensor()
-	if err != nil {
-		return err
-	}
-
-	results := model.Exec([]tf.Output{
-		model.Op("dnn/head/predictions/probabilities", 0),
-	}, map[tf.Output]*tf.Tensor{
-		model.Op("input_example_tensor", 0): t,
-	})
-
-	value := results[0].Value().([][]float32)
-
-	if value[0][0] > 0.5 {
-		return nil
-	}
-
-	lng, err := r.Longitude()
-	if err != nil {
-		return err
-	}
-
-	lat, err := r.Latitude()
-	if err != nil {
-		return err
-	}
-
-	date, err := r.Date()
-	if err != nil {
-		return err
-	}
-
-	return Ω.collection.Add(lat, lng, date, float64(value[0][1]))
-}
-
 func (Ω *generator) worker() tunny.Worker {
 	m, err := Ω.classifier.NewClassifierInstance(context.Background())
 	if err != nil {
@@ -234,7 +196,7 @@ func (Ω *worker) Process(i interface{}) interface{} {
 		unlikely := results[i][0]
 		likely := results[i][1]
 
-		if unlikely >= 0.5 {
+		if unlikely > 0.4 {
 			continue
 		}
 
@@ -253,7 +215,9 @@ func (Ω *worker) Process(i interface{}) interface{} {
 			return err
 		}
 
-		if err := Ω.generator.collection.Add(lat, lng, date, float64(likely)); err != nil {
+		scaled := float64((1-0)/(1-0.6)*(likely-0.6) + 0)
+
+		if err := Ω.generator.collection.Add(lat, lng, date, scaled); err != nil {
 			return err
 		}
 	}
