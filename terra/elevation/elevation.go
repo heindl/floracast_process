@@ -1,7 +1,7 @@
 package elevation
 
 import (
-	"bitbucket.org/heindl/process/terra/geo"
+	"github.com/heindl/floracast_process/terra/geo"
 	"github.com/golang/geo/s2"
 	"gopkg.in/tomb.v2"
 	"sync"

@@ -1,7 +1,7 @@
 package geoembed
 
 import (
-	"bitbucket.org/heindl/process/terra/geo"
+	"github.com/heindl/floracast_process/terra/geo"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
 )
@@ -21,6 +21,24 @@ func NewS2Key(lat, lng float64) (S2Key, error) {
 		return "", errors.Wrapf(err, "Invalid Coordinates for CoordinateKey [%f, %f]", lat, lng)
 	}
 	return S2Key(s2.CellIDFromLatLng(s2.LatLngFromDegrees(lat, lng)).Parent(16).ToToken()), nil
+}
+
+func (Ω S2Key) Parse() (float64, float64, error) {
+
+	if !Ω.Valid() {
+		return 0, 0, errors.New("Invalid S2Key")
+	}
+
+	cellID := s2.CellIDFromToken(string(Ω))
+
+	lat := cellID.LatLng().Lat.Degrees()
+	lng := cellID.LatLng().Lng.Degrees()
+
+	if err := geo.ValidateCoordinates(lat, lng); err != nil {
+		return 0, 0, errors.Wrapf(err, "Invalid Coordinates for CoordinateKey [%f, %f]", lat, lng)
+	}
+
+	return lat, lng, nil
 }
 
 // Valid checks a CoordinateKey for expected string length

@@ -1,7 +1,7 @@
 package wikipedia
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/grokify/html-strip-tags-go"

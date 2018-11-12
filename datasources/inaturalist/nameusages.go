@@ -1,9 +1,9 @@
 package inaturalist
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/canonicalname"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/canonicalname"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"strings"

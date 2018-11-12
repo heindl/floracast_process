@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"bitbucket.org/heindl/process/terra/ecoregions"
+	"github.com/heindl/floracast_process/terra/ecoregions"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )

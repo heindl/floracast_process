@@ -8,9 +8,9 @@ import (
 	"strings"
 	"sync"
 
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/predictions"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/predictions"
+	"github.com/heindl/floracast_process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
 )

@@ -31,7 +31,8 @@ type TestFloraStore interface {
 
 const (
 	gcsTestBucket = "floracast-datamining-test"
-	gcsLiveBucket = "floracast-datamining"
+	//gcsLiveBucket = "floracast-datamining"
+	gcsLiveBucket = "floracast-map-data"
 )
 
 // NewTestFloraStore returns an interface that guarantees writes to test collections.

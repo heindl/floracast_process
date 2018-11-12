@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/sourcefetchers"
-	"bitbucket.org/heindl/process/nameusage/aggregate"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/occurrence"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/sourcefetchers"
+	"github.com/heindl/floracast_process/nameusage/aggregate"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/occurrence"
+	"github.com/heindl/floracast_process/store"
 	"context"
 	"flag"
 	"github.com/golang/glog"

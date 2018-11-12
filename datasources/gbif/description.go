@@ -1,9 +1,9 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/providers"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/providers"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"

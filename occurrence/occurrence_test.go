@@ -1,9 +1,9 @@
 package occurrence
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
 	"context"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"

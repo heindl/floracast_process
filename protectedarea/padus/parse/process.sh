@@ -64,13 +64,13 @@ WY
 #    AL
 #)
 
-go build
+#go build
 
 printf '%s\n' "${STATES[@]}" | parallel -j4 "./saveState.sh {.}"
 
 echo "Parsing State Files"
 
-printf '%s\n' "${STATES[@]}" | parallel -j4 "./parse --in /tmp/gap_analysis/{.}/state.geojson --out /tmp/gap_analysis/{.}/areas"
+#printf '%s\n' "${STATES[@]}" | parallel -j4 "./parse --in /tmp/gap_analysis/{.}/state.geojson --out /tmp/gap_analysis/{.}/areas"
 
 
 

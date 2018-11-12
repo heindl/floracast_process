@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	"cloud.google.com/go/storage"
 	"context"
 	"github.com/dropbox/godropbox/errors"

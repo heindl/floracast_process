@@ -1,9 +1,9 @@
 package nameusage
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/canonicalname"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/canonicalname"
+	"github.com/heindl/floracast_process/store"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 	"google.golang.org/api/iterator"

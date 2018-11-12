@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/store"
 	"context"
 	"flag"
 )

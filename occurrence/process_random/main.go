@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/occurrence"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/occurrence"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"flag"
 	"github.com/golang/glog"

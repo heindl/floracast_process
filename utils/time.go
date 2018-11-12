@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/dropbox/godropbox/errors"
 	"strconv"
 	"time"
 )
@@ -15,6 +16,14 @@ func (Ω FormattedDate) Valid() bool {
 		return false
 	}
 	return true
+}
+
+func (Ω FormattedDate) Weekday() (time.Weekday, error) {
+	t, err := time.Parse("20060102", string(Ω))
+	if err != nil {
+		return 0, errors.Wrapf(err, "Could not parse date: %s", Ω)
+	}
+	return t.Weekday(), nil
 }
 
 func MustParseTime(layout, value string) time.Time {

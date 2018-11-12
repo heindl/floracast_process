@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/terra/geo"
+	"github.com/heindl/floracast_process/terra/geo"
 	"flag"
 	"fmt"
 	"github.com/buger/jsonparser"

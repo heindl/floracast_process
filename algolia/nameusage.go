@@ -1,13 +1,11 @@
 package algolia
 
 import (
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/taxa"
+	"github.com/heindl/floracast_process/utils"
 	"context"
-	"strings"
-
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/taxa"
-	"bitbucket.org/heindl/process/utils"
 	"gopkg.in/tomb.v2"
 	"sync"
 )
@@ -69,7 +67,10 @@ func (Ω *StandardNameUsageRecord) fetchUsageData() error {
 	if err != nil {
 		return err
 	}
-	Ω.CommonName = strings.Title(Ω.CommonName)
+	Ω.CommonName, err = utils.FormatTitle(Ω.CommonName)
+	if err != nil {
+		return err
+	}
 
 	Ω.ScientificName = utils.CapitalizeString(usage.CanonicalName().ScientificName())
 

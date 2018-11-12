@@ -1,11 +1,11 @@
 package generate
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/predictions"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/tfrecords"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/predictions"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/tfrecords"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"github.com/Jeffail/tunny"
 	tg "github.com/galeone/tfgo"

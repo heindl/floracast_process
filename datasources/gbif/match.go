@@ -1,7 +1,7 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"fmt"
 	"net/url"
 	"strings"

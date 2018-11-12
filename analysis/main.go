@@ -1,6 +1,6 @@
 package main
 
-import "bitbucket.org/heindl/process/analysis/cmd"
+import "github.com/heindl/floracast_process/analysis/cmd"
 
 func main() {
 	cmd.Execute()

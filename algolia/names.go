@@ -1,8 +1,8 @@
 package algolia
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
 	"context"
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/dropbox/godropbox/errors"

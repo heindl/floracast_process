@@ -1,7 +1,7 @@
 package tfrecords
 
 import (
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/store"
 	"bufio"
 	"cloud.google.com/go/storage"
 	"context"

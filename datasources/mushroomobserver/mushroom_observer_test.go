@@ -1,8 +1,8 @@
 package mushroomobserver
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"

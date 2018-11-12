@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/algolia"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/algolia"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
 	"flag"
 	"golang.org/x/net/context"
 )

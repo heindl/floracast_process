@@ -1,9 +1,9 @@
 package inaturalist
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/providers"
-	"bitbucket.org/heindl/process/datasources/wikipedia"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/providers"
+	"github.com/heindl/floracast_process/datasources/wikipedia"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 )

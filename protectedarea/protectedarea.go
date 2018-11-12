@@ -1,8 +1,8 @@
 package protectedarea
 
 import (
-	"bitbucket.org/heindl/process/terra/geoembed"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/terra/geoembed"
+	"github.com/heindl/floracast_process/utils"
 	"github.com/saleswise/errors/errors"
 	"strings"
 )

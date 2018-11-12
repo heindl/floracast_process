@@ -1,8 +1,8 @@
 package gbif
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/utils"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"strconv"

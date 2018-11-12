@@ -1,6 +1,9 @@
 package providers
 
-import "bitbucket.org/heindl/process/datasources"
+import (
+	"github.com/heindl/floracast_process/datasources"
+	"time"
+)
 
 // Description is a shared provider for a taxon description
 type Description interface {
@@ -24,4 +27,28 @@ type Occurrence interface {
 	DateString() string
 	CoordinatesEstimated() bool
 	SourceOccurrenceID() string
+	Classes() ([]string, error)
+	Confidence() float64
+}
+
+type Bounds struct {
+	North float64
+	South float64
+	East  float64
+	West  float64
+}
+
+var DefaultBounds = Bounds{
+	//var cutset_geometry = ee.Geometry.Rectangle({
+	//coords: [-145.1767463, 24.5465169,-49.0, 59.5747563],
+	//geodesic: false,
+	//});
+	North: 59.5747563,
+	South: 24.5465169,
+}
+
+type OccurrenceFetchRequest struct {
+	StartTime     *time.Time
+	EndTime       *time.Time
+	ParentTaxonID string
 }

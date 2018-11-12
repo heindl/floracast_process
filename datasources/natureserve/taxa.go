@@ -1,7 +1,7 @@
 package natureserve
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"fmt"
 	"github.com/kennygrant/sanitize"

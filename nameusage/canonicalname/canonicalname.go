@@ -1,7 +1,7 @@
 package canonicalname
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"strings"
 )

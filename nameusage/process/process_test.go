@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/nameusage/aggregate"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/nameusage/aggregate"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"encoding/json"
 	"fmt"

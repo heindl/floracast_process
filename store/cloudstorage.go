@@ -1,7 +1,7 @@
 package store
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"cloud.google.com/go/storage"
 	"context"
 	"fmt"

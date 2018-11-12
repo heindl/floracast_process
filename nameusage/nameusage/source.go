@@ -1,9 +1,9 @@
 package nameusage
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/canonicalname"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/canonicalname"
+	"github.com/heindl/floracast_process/utils"
 	"encoding/json"
 	"github.com/dropbox/godropbox/errors"
 	"strings"

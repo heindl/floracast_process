@@ -1,7 +1,7 @@
 package occurrence
 
 import (
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/store"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 	"testing"

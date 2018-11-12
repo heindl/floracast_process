@@ -8,7 +8,7 @@ package cache
 //	"path"
 //	"sync"
 //
-//	"bitbucket.org/heindl/process/predictions"
+//	"github.com/heindl/floracast_process/predictions"
 //	"github.com/dropbox/godropbox/errors"
 //	"github.com/elgs/gostrgen"
 //	"gopkg.in/tomb.v2"

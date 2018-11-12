@@ -1,10 +1,10 @@
 package occurrence
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/terra/geoembed"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/terra/geoembed"
 	"cloud.google.com/go/firestore"
 	"encoding/json"
 	"errors"
@@ -53,9 +53,9 @@ type record struct {
 	SrcType         datasources.SourceType  `json:"SourceType"`
 	TgtID           datasources.TargetID    `json:"TargetID"`
 	SrcOccurrenceID string                  `json:"SourceOccurrenceID"`
-	FormattedDate   string                  `json:""`
-	FormattedMonth  string                  `json:""`
-	GeoFeatureSet   *geoembed.GeoFeatureSet `json:""`
+	FormattedDate   string                  `json:"FormattedDate"`
+	FormattedMonth  string                  `json:"FormattedMonth"`
+	GeoFeatureSet   *geoembed.GeoFeatureSet `json:"GeoFeatureSet"`
 }
 
 func (Ω *record) Collection(florastore store.FloraStore) (*firestore.CollectionRef, error) {
@@ -74,24 +74,24 @@ func (Ω *record) Coordinates() (lat, lng float64, err error) {
 	return Ω.GeoFeatureSet.Lat(), Ω.GeoFeatureSet.Lng(), nil
 }
 
-func (Ω *record) UnmarshalJSON(b []byte) error {
-
-	gf := geoembed.GeoFeatureSet{}
-	if err := json.Unmarshal(b, &gf); err != nil {
-		return err
-	}
-
-	o := record{}
-	if err := json.Unmarshal(b, &o); err != nil {
-		return err
-	}
-
-	o.GeoFeatureSet = &gf
-
-	*Ω = o
-
-	return nil
-}
+//func (Ω *record) UnmarshalJSON(b []byte) error {
+//
+//	gf := geoembed.GeoFeatureSet{}
+//	if err := json.Unmarshal(b, &gf); err != nil {
+//		return err
+//	}
+//
+//	o := record{}
+//	if err := json.Unmarshal(b, &o); err != nil {
+//		return err
+//	}
+//
+//	o.GeoFeatureSet = &gf
+//
+//	*Ω = o
+//
+//	return nil
+//}
 
 func (Ω *record) SourceType() datasources.SourceType {
 	return Ω.SrcType

@@ -1,10 +1,10 @@
 package nameusage
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/canonicalname"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/canonicalname"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"encoding/json"
 	"github.com/dropbox/godropbox/errors"

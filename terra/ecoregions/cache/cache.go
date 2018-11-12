@@ -1,8 +1,8 @@
 package cache
 
 import (
-	"bitbucket.org/heindl/process/terra/ecoregions"
-	"bitbucket.org/heindl/process/terra/geo"
+	"github.com/heindl/floracast_process/terra/ecoregions"
+	"github.com/heindl/floracast_process/terra/geo"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
 	"sync"

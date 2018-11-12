@@ -1,7 +1,7 @@
 package sourcefetchers
 
 import (
-	"bitbucket.org/heindl/process/datasources"
+	"github.com/heindl/floracast_process/datasources"
 	"context"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"

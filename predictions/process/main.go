@@ -1,9 +1,9 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/predictions/generate"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/predictions/generate"
+	"github.com/heindl/floracast_process/store"
 	"context"
 	"flag"
 )

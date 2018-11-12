@@ -3,9 +3,9 @@ package predictions
 import (
 	"testing"
 
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	. "github.com/smartystreets/goconvey/convey"
 	"golang.org/x/net/context"
 	"math/rand"

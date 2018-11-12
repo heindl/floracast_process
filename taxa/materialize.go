@@ -1,9 +1,9 @@
 package taxa
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"strings"
@@ -92,6 +92,19 @@ func materialize(ctx context.Context, usage nameusage.NameUsage) (*MaterializedT
 		return nil, err
 	}
 
+	// Remove 'Mushroom' from Name
+	commonNameSlice := []string{}
+	for _, f := range strings.Fields(commonName) {
+		if !strings.Contains(strings.ToLower(f), "mushroom") {
+			commonNameSlice = append(commonNameSlice, f)
+		}
+	}
+
+	commonName, err = utils.FormatTitle(strings.Join(commonNameSlice, " "))
+	if err != nil {
+		return nil, err
+	}
+
 	photo, err := fetchPhoto(ctx, usage)
 	if err != nil {
 		return nil, err
@@ -99,7 +112,7 @@ func materialize(ctx context.Context, usage nameusage.NameUsage) (*MaterializedT
 
 	mt := MaterializedTaxon{
 		ScientificName: utils.CapitalizeString(usage.CanonicalName().ScientificName()),
-		CommonName:     strings.Title(commonName),
+		CommonName:     commonName,
 		Photo:          photo,
 		Description:    description,
 	}

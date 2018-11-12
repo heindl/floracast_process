@@ -1,7 +1,7 @@
 package inaturalist
 
 import (
-	"bitbucket.org/heindl/process/datasources"
+	"github.com/heindl/floracast_process/datasources"
 	"strconv"
 )
 

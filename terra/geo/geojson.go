@@ -1,7 +1,7 @@
 package geo
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"bufio"
 	"github.com/buger/jsonparser"
 	"github.com/dropbox/godropbox/errors"

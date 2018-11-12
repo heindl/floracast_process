@@ -15,12 +15,19 @@ rm -rf "$AREAS_PATH"
 mkdir -p "$STATE_PATH"
 mkdir -p "$AREAS_PATH"
 
+
 ogr2ogr -f 'ESRI Shapefile' \
-    -t_srs 'CRS:84' \
-    -f GeoJSON \
+    -f KML \
     -where State_Nm="'${1}'" \
-    "$STATE_PATH/state.geojson" \
+    "$STATE_PATH/state.kml" \
     "$PA_SHAPE_COMBINED"
+
+#ogr2ogr -f 'ESRI Shapefile' \
+#    -t_srs 'CRS:84' \
+#    -f GeoJSON \
+#    -where State_Nm="'${1}'" \
+#    "$STATE_PATH/state.geojson" \
+#    "$PA_SHAPE_COMBINED"
 
 
 #shp2json "$STATE_PATH/state.shp" -o "$STATE_PATH/state.json"

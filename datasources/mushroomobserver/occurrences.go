@@ -1,10 +1,10 @@
 package mushroomobserver
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/providers"
-	"bitbucket.org/heindl/process/terra/geo"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/providers"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -18,34 +18,33 @@ import (
 
 var fetchLmtr = utils.NewLimiter(5) // Should keep at five concurrently, because the API can not handle many requests.
 
-func fetchObservationPage(targetID datasources.TargetID, since *time.Time, page int) ([]providers.Occurrence, int, error) {
+func fetchObservationPage(since *time.Time, page int, targetID *datasources.TargetID) ([]providers.Occurrence, int, error) {
 
 	releaseLmtr := fetchLmtr.Go()
 	defer releaseLmtr()
 
-	url := occurrenceURL(targetID, since, page)
+	url := occurrenceURL(since, page, targetID)
 
 	res := observationsResult{}
 	if err := utils.RequestJSON(url, &res); err != nil {
 		return nil, 0, errors.Wrapf(err, "Could not fetch MushroomObserver Observations [%s]", url)
 	}
 
-	occurrenceList, err := filterObservations(targetID, res.Results)
-	if err != nil {
-		return nil, 0, err
+	if targetID != nil {
+		occurrenceList, err := filterObservations(targetID, res.Results)
+		if err != nil {
+			return nil, 0, err
+		}
 	}
+
 	return occurrenceList, res.NumberOfPages, nil
 
 }
 
 // FetchOccurrences implements the OccurrenceProvider interface.
-func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *time.Time) ([]providers.Occurrence, error) {
+func FetchOccurrences(_ context.Context, since *time.Time, targetID *datasources.TargetID) ([]providers.Occurrence, error) {
 
-	if !targetID.Valid(datasources.TypeMushroomObserver) {
-		return nil, errors.New("Invalid TargetID")
-	}
-
-	res, numberOfPages, err := fetchObservationPage(targetID, since, 1)
+	res, numberOfPages, err := fetchObservationPage(since, 1, targetID)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *t
 			for 𝝨 := 2; 𝝨 <= numberOfPages; 𝝨++ {
 				page := 𝝨
 				tmb.Go(func() error {
-					list, _, err := fetchObservationPage(targetID, since, page)
+					list, _, err := fetchObservationPage(since, page, targetID)
 					if err != nil {
 						return err
 					}
@@ -81,13 +80,22 @@ func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *t
 	return res, nil
 }
 
-func filterObservations(targetID datasources.TargetID, given []*observation) ([]providers.Occurrence, error) {
+func filterObservations(targetID *datasources.TargetID, given []*observation) ([]providers.Occurrence, error) {
+
+	res := []providers.Occurrence{}
+
+	if targetID == nil {
+		for _, observation := range given {
+			res = append(res, observation)
+		}
+		return res, nil
+	}
+
 	taxonID, err := targetID.ToInt()
 	if err != nil {
 		return nil, err
 	}
 
-	res := []providers.Occurrence{}
 	for _, observation := range given {
 		// Should be covered in search, but just in case.
 		if observation.Consensus.ID != taxonID {
@@ -103,9 +111,15 @@ func filterObservations(targetID datasources.TargetID, given []*observation) ([]
 	return res, nil
 }
 
-func occurrenceURL(targetID datasources.TargetID, since *time.Time, page int) string {
-	parameters := []string{
-		fmt.Sprintf("name=%s", string(targetID)),
+func occurrenceURL(since *time.Time, page int, targetID *datasources.TargetID) string {
+
+	parameters := []string{}
+
+	if targetID != nil {
+		parameters = append(parameters, fmt.Sprintf("name=%s", string(*targetID)))
+	}
+
+	parameters = append(parameters, []string{
 		"format=json",
 		"detail=high",
 		"has_images=true",
@@ -115,9 +129,9 @@ func occurrenceURL(targetID datasources.TargetID, since *time.Time, page int) st
 		"north=83.3",
 		"west=-178.2",
 		"south=6.6",
-		"confidence=2",
+		//"confidence=2",
 		fmt.Sprintf("page=%d", page),
-	}
+	}...)
 
 	if since != nil && !since.IsZero() {
 		parameters = append(parameters, fmt.Sprintf("updated_at=%s-%s", since.Format("2006-01-02"), time.Now().Format("2006-01-02")))
@@ -340,6 +354,10 @@ func (Ω *observation) CoordinatesEstimated() bool {
 }
 func (Ω *observation) SourceOccurrenceID() string {
 	return strconv.Itoa(Ω.ID)
+}
+
+func (Ω *observation) Classes() ([]string, error) {
+	return nil, nil
 }
 
 type namings []*naming

@@ -1,10 +1,12 @@
 package geoembed
 
 import (
-	"bitbucket.org/heindl/process/terra/ecoregions"
-	"bitbucket.org/heindl/process/terra/elevation"
-	"bitbucket.org/heindl/process/terra/geo"
+	"github.com/heindl/floracast_process/terra/ecoregions"
+	"github.com/heindl/floracast_process/terra/elevation"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/utils"
 	"encoding/json"
+	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/genproto/googleapis/type/latlng"
 	"time"
@@ -30,7 +32,8 @@ func (Ω *GeoFeatureSet) UnmarshalJSON(b []byte) error {
 	}
 
 	if local.Elevation == nil {
-		return errors.New("Invalid Elevation")
+		fmt.Println(string(b), utils.JsonOrSpew(local))
+		//return errors.New("Invalid Elevation")
 	}
 
 	Ω.coordinatesEstimated = local.CoordinatesEstimated

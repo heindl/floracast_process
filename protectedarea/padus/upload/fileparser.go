@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bitbucket.org/heindl/process/protectedarea"
-	"bitbucket.org/heindl/process/protectedarea/padus"
-	"bitbucket.org/heindl/process/terra/ecoregions"
-	"bitbucket.org/heindl/process/terra/geo"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/protectedarea"
+	"github.com/heindl/floracast_process/protectedarea/padus"
+	"github.com/heindl/floracast_process/terra/ecoregions"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"gopkg.in/tomb.v2"
 	"os"

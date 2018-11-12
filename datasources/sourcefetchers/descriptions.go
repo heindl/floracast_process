@@ -1,10 +1,10 @@
 package sourcefetchers
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/gbif"
-	"bitbucket.org/heindl/process/datasources/inaturalist"
-	"bitbucket.org/heindl/process/datasources/providers"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/gbif"
+	"github.com/heindl/floracast_process/datasources/inaturalist"
+	"github.com/heindl/floracast_process/datasources/providers"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 )

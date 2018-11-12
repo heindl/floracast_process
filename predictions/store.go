@@ -1,33 +1,51 @@
 package predictions
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/terra/geoembed"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"google.golang.org/api/iterator"
+	"strings"
 )
 
 func FetchFromFireStore(cxt context.Context, floraStore store.FloraStore, id nameusage.ID) (Predictions, error) {
-	col, err := floraStore.FirestoreCollection(store.CollectionOccurrences)
+	col, err := floraStore.FirestoreCollection(store.CollectionPredictionIndex)
 	if err != nil {
 		return nil, err
 	}
 	res := Predictions{}
 	iter := col.Where("NameUsageID", "==", id).Documents(cxt)
 	for {
+
 		snap, err := iter.Next()
 		if err == iterator.Done {
 			break
 		}
+
 		if err != nil {
 			return nil, errors.Wrap(err, "Could not get Occurrence from Firestore")
 		}
-		p := prediction{}
-		if err := snap.DataTo(&p); err != nil {
+
+		r := record{}
+		if err := snap.DataTo(&r); err != nil {
 			return nil, errors.Wrap(err, "Could not cast Firestore data to Prediction")
 		}
-		res = append(res, &p)
+
+		lat, lng, err := geoembed.S2Key(strings.Split(snap.Ref.ID, "-")[1]).Parse()
+		if err != nil {
+			return nil, err
+		}
+
+		for date, m := range r.Timeline {
+			p, err := NewPrediction(r.NameUsageID, utils.FormattedDate(date), lat, lng, m.Value)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, p)
+		}
 	}
 	return res, nil
 }

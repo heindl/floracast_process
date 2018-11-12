@@ -1,9 +1,9 @@
 package occurrence
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/terra/geo"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/utils"
 	"encoding/json"
 	"errors"
 	"fmt"

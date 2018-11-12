@@ -1,10 +1,10 @@
 package grid
 
 import (
-	"bitbucket.org/heindl/process/terra/ecoregions"
-	"bitbucket.org/heindl/process/terra/ecoregions/cache"
-	"bitbucket.org/heindl/process/terra/geo"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/terra/ecoregions"
+	"github.com/heindl/floracast_process/terra/ecoregions/cache"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/utils"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
 	"github.com/paulmach/go.geojson"
@@ -32,6 +32,25 @@ var NorthAmerica = &geo.Bound{
 	West:  -137.8424302, // Glacier Bay
 	East:  -53.1078873,  // St. Johns, Newfoundland
 	South: 20.6737777,   // Guadalajara, Mexico
+}
+
+func CountNorthAmericaAtLevel(level int) int {
+	region := s2.Region(
+		s2.RectFromLatLng(
+			s2.LatLngFromDegrees(
+				NorthAmerica.North,
+				NorthAmerica.East,
+			),
+		).AddPoint(
+			s2.LatLngFromDegrees(
+				NorthAmerica.South,
+				NorthAmerica.West,
+			),
+		),
+	)
+	regionCoverer := &s2.RegionCoverer{MaxLevel: level, MinLevel: level}
+
+	return len(regionCoverer.Covering(region))
 }
 
 func (Ω *generator) SubDivide(g *geo.Bound, level int) (geo.Bounds, error) {

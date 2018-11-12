@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/store"
 	//"cloud.google.com/go/firestore"
 	"context"
 	//"fmt"

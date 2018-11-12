@@ -4,7 +4,6 @@ import (
 	"errors"
 	dropboxErrors "github.com/dropbox/godropbox/errors"
 	"github.com/golang/geo/s2"
-	"github.com/kellydunn/golang-geo"
 	pmgeo "github.com/paulmach/go.geo"
 	"math"
 	"strconv"
@@ -127,4 +126,12 @@ func (Ω *Point) DistanceKilometers(np *Point) float64 {
 		return 0
 	}
 	return dist / 1000.0
+}
+
+func (Ω *Point) MarshalJSON() ([]byte, error) {
+	f := geojson.NewPointFeature(Ω.AsArray())
+	for k, v := range Ω.properties {
+		f.SetProperty(k, v)
+	}
+	return f.MarshalJSON()
 }

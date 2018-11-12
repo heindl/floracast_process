@@ -1,12 +1,12 @@
 package sourcefetchers
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/gbif"
-	"bitbucket.org/heindl/process/datasources/inaturalist"
-	"bitbucket.org/heindl/process/datasources/mushroomobserver"
-	"bitbucket.org/heindl/process/datasources/natureserve"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/gbif"
+	"github.com/heindl/floracast_process/datasources/inaturalist"
+	"github.com/heindl/floracast_process/datasources/mushroomobserver"
+	"github.com/heindl/floracast_process/datasources/natureserve"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 )

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	"cloud.google.com/go/firestore"
 	"encoding/json"
 	"errors"
@@ -206,7 +206,9 @@ func (Ω *record) returnTransaction(docRef *firestore.DocumentRef) store.Firesto
 
 		if idAlreadyExists && imbricate != nil {
 			// This suggests the location has changed somewhere. Update code if we see this.
-			return dropboxError.Newf("Unexpected: record with id [%s] idAlreadyExists and is imbricative to another doc [%s]", docRef.ID, imbricate.Ref.ID)
+			//return dropboxError.Newf("Unexpected: record with id [%s] idAlreadyExists and is imbricative to another doc [%s]", docRef.ID, imbricate.Ref.ID)
+			fmt.Println(fmt.Sprintf("Unexpected: record with id [%s] idAlreadyExists and is imbricative to another doc [%s]", docRef.ID, imbricate.Ref.ID))
+			return nil
 		}
 
 		if imbricate != nil && !idAlreadyExists {

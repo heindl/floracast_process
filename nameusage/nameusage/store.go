@@ -1,8 +1,8 @@
 package nameusage
 
 import (
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	"cloud.google.com/go/firestore"
 	"context"
 	"encoding/json"
@@ -175,7 +175,7 @@ func (i *Iterator) Next() (NameUsage, error) {
 	}
 	snap, err := i.iterator.Next()
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get next NameUsage snapshot")
+		return nil, err
 	}
 	return parseNameUsageFirestoreSnapshot(snap)
 }

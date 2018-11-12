@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"

@@ -1,19 +1,86 @@
 package occurrence
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/providers"
-	"bitbucket.org/heindl/process/datasources/sourcefetchers"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/terra/ecoregions"
-	"bitbucket.org/heindl/process/terra/geo"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/providers"
+	"github.com/heindl/floracast_process/datasources/sourcefetchers"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/terra/ecoregions"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/glog"
 	"gopkg.in/tomb.v2"
+	"os"
 	"time"
 )
+
+func FetchPylumOccurrences(ctx context.Context, targetID datasources.TargetID, filepath string) error {
+
+	providers, err := sourcefetchers.FetchOccurrences(
+		ctx,
+		datasources.TypeINaturalist,
+		targetID,
+		utils.TimePtr(time.Date(2002, 0, 0, 0, 0, 0, 0, time.UTC)),
+	)
+	if err != nil {
+		return err
+	}
+
+	glog.Infof(
+		"Recieved %d Occurrences for NameUsage Source [%s, %s]",
+		len(providers),
+		datasources.TypeINaturalist,
+		targetID,
+	)
+
+	f, err := os.OpenFile(filepath, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	tmb := tomb.Tomb{}
+	tmb.Go(func() error {
+		for _, _p := range providers {
+			p := _p
+			tmb.Go(func() error {
+
+				date := p.DateString()
+
+				lat, err := p.Lat()
+				if err != nil {
+					return nil
+				}
+
+				lng, err := p.Lng()
+				if err != nil {
+					return nil
+				}
+
+				classes, err := p.Classes()
+				if err != nil {
+					return err
+				}
+
+				if _, err = f.WriteString(text); err != nil {
+					panic(err)
+				}
+
+				return
+			})
+		}
+		return nil
+	})
+	if err := tmb.Wait(); err != nil {
+		return nil, err
+	}
+
+	glog.Infof("Processed %d Occurrences for NameUsage Source [%s, %s]", aggregation.Count(), sourceType, targetID)
+
+	return nil
+}
 
 // FetchOccurrences takes sources from NameUsage, fetches occurrences for each, and updates the fetch time.
 func FetchOccurrences(ctx context.Context, usage nameusage.NameUsage, limitToCount bool, sourceTypes ...datasources.SourceType) (*Aggregation, error) {

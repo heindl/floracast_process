@@ -1,10 +1,10 @@
 package taxa
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/providers"
-	"bitbucket.org/heindl/process/datasources/sourcefetchers"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/providers"
+	"github.com/heindl/floracast_process/datasources/sourcefetchers"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
 	"context"
 	"github.com/grokify/html-strip-tags-go"
 	"gopkg.in/tomb.v2"

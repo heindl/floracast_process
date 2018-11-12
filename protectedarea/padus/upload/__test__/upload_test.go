@@ -3,8 +3,8 @@ package upload_test
 import (
 	"testing"
 
-	"bitbucket.org/heindl/process/protectedarea"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/protectedarea"
+	"github.com/heindl/floracast_process/store"
 	"context"
 	. "github.com/smartystreets/goconvey/convey"
 )

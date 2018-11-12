@@ -1,12 +1,12 @@
 package predictions
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/protectedarea/cache"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/terra/geo"
-	"bitbucket.org/heindl/process/terra/geoembed"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/protectedarea/cache"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/terra/geoembed"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"fmt"
 	"github.com/golang/glog"
@@ -76,11 +76,11 @@ type minimal struct {
 }
 
 type record struct {
-	AreaKilometers float64                          `firestore:"AreaKilometers,omitempty" bson:"AreaKilometers,omitempty"`
-	NameUsageID    nameusage.ID                     `firestore:"NameUsageID,omitempty" bson:"NameUsageID,omitempty"`
-	ModifiedAt     int64                            `firestore:"ModifiedAt,omitempty" bson:"ModifiedAt,omitempty"`
-	Timeline       map[utils.FormattedDate]*minimal `firestore:"Timeline,omitempty" bson:"Timeline,omitempty"`
-	S2Tokens       map[string]string                `firestore:"S2Tokens,omitempty" bson:"S2Tokens,omitempty"`
+	AreaKilometers float64             `firestore:"AreaKilometers,omitempty" bson:"AreaKilometers,omitempty"`
+	NameUsageID    nameusage.ID        `firestore:"NameUsageID,omitempty" bson:"NameUsageID,omitempty"`
+	ModifiedAt     int64               `firestore:"ModifiedAt,omitempty" bson:"ModifiedAt,omitempty"`
+	Timeline       map[string]*minimal `firestore:"Timeline,omitempty" bson:"Timeline,omitempty"`
+	S2Tokens       map[string]string   `firestore:"S2Tokens,omitempty" bson:"S2Tokens,omitempty"`
 }
 
 func (Ω *collection) Upload(ctx context.Context) error {
@@ -204,12 +204,12 @@ func (Ω *collection) Add(lat, lng float64, date utils.FormattedDate, prediction
 
 		Ω.records[s2Key] = &record{
 			NameUsageID: Ω.nameUsageID,
-			Timeline:    map[utils.FormattedDate]*minimal{},
+			Timeline:    map[string]*minimal{},
 			S2Tokens:    point.S2TokenMap(),
 		}
 	}
 
-	Ω.records[s2Key].Timeline[date] = &minimal{
+	Ω.records[s2Key].Timeline[string(date)] = &minimal{
 		Exists: true,
 		Value:  prediction,
 	}

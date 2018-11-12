@@ -2,7 +2,7 @@ package cache
 
 //
 //import (
-//	"bitbucket.org/heindl/process/predictions"
+//	"github.com/heindl/floracast_process/predictions"
 //)
 //
 //// PredictionCache is an interface for reading and writing predictions.

@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
 	"context"
 )
 

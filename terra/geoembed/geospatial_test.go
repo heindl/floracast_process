@@ -1,7 +1,7 @@
 package geoembed
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"encoding/json"
 	"fmt"
 	. "github.com/smartystreets/goconvey/convey"

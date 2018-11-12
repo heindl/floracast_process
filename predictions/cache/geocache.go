@@ -5,7 +5,7 @@ package cache
 //	"fmt"
 //	"strings"
 //
-//	"bitbucket.org/heindl/process/predictions"
+//	"github.com/heindl/floracast_process/predictions"
 //	"github.com/dropbox/godropbox/errors"
 //	"github.com/tidwall/buntdb"
 //	"gopkg.in/tomb.v2"

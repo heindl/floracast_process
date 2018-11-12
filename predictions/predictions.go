@@ -1,22 +1,23 @@
 package predictions
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/terra/geo"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/terra/geo"
+	"github.com/heindl/floracast_process/utils"
 	"github.com/dropbox/godropbox/errors"
 )
 
 // Prediction is the standard interface for prediction data.
 type Prediction interface {
 	NameUsageID() nameusage.ID
-	Date() string
+	Date() utils.FormattedDate
 	Latitude() float64
 	Longitude() float64
 	Value() float64
 }
 
 // NewPrediction validates and instantiates a new prediction.
-func NewPrediction(usageID nameusage.ID, date string, lat, lng, predictionValue float64) (Prediction, error) {
+func NewPrediction(usageID nameusage.ID, date utils.FormattedDate, lat, lng, predictionValue float64) (Prediction, error) {
 	if !usageID.Valid() {
 		return nil, errors.Newf("Prediction requires valid NameUsageID [%s]", usageID)
 	}
@@ -46,7 +47,7 @@ func NewPrediction(usageID nameusage.ID, date string, lat, lng, predictionValue 
 type prediction struct {
 	lat, lng      float64
 	nameUsageID   nameusage.ID
-	formattedDate string
+	formattedDate utils.FormattedDate
 	value         float64
 }
 
@@ -54,7 +55,7 @@ func (Ω *prediction) NameUsageID() nameusage.ID {
 	return Ω.nameUsageID
 }
 
-func (Ω *prediction) Date() string {
+func (Ω *prediction) Date() utils.FormattedDate {
 	return Ω.formattedDate
 }
 

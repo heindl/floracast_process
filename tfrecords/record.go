@@ -1,7 +1,7 @@
 package tfrecords
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/heindl/tfutils"

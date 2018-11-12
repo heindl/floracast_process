@@ -1,7 +1,7 @@
 package aggregate
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
 	"encoding/json"
 	"github.com/dropbox/godropbox/errors"
 )

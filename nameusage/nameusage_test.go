@@ -1,12 +1,12 @@
 package algolia
 
 import (
-	"bitbucket.org/heindl/process/algolia"
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/nameusage/canonicalname"
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/taxa"
+	"github.com/heindl/floracast_process/algolia"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/nameusage/canonicalname"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/taxa"
 	"context"
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"

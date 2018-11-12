@@ -1,10 +1,10 @@
 package geoembed
 
 import (
-	"bitbucket.org/heindl/process/terra/ecoregions"
-	"bitbucket.org/heindl/process/terra/ecoregions/cache"
-	"bitbucket.org/heindl/process/terra/elevation"
-	"bitbucket.org/heindl/process/terra/geo"
+	"github.com/heindl/floracast_process/terra/ecoregions"
+	"github.com/heindl/floracast_process/terra/ecoregions/cache"
+	"github.com/heindl/floracast_process/terra/elevation"
+	"github.com/heindl/floracast_process/terra/geo"
 	"cloud.google.com/go/firestore"
 	"fmt"
 	"github.com/golang/geo/s2"

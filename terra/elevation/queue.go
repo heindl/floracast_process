@@ -1,7 +1,7 @@
 package elevation
 
 import (
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/utils"
 	"bytes"
 	"encoding/json"
 	"github.com/dropbox/godropbox/errors"

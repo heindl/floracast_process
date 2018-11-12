@@ -1,9 +1,9 @@
 package inaturalist
 
 import (
-	"bitbucket.org/heindl/process/datasources"
-	"bitbucket.org/heindl/process/datasources/providers"
-	"bitbucket.org/heindl/process/utils"
+	"github.com/heindl/floracast_process/datasources"
+	"github.com/heindl/floracast_process/datasources/providers"
+	"github.com/heindl/floracast_process/utils"
 	"context"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
@@ -135,6 +135,29 @@ func (Ω *occurrence) CoordinatesEstimated() bool {
 	return false
 }
 
+func (Ω *occurrence) Classes() ([]string, error) {
+	// Rounded to 5 decimal place. Not what I expected.
+	// isEstimated := s.Issues.hasIssue(ogbif.OCCURRENCE_ISSUE_COORDINATE_ROUNDED)
+	synonyms, err := GetCachedNamesAndSynonyms(Ω.Taxon.CurrentSynonymousTaxonIds...)
+	if err != nil {
+		return nil, err
+	}
+	return append([]string{Ω.Taxon.Name}, synonyms...), nil
+}
+
+func (Ω *occurrence) Confidence() float64 {
+	if Ω.QualityGrade == "research" {
+		return 0.75
+	}
+	if Ω.PositionalAccuracy > 100 {
+		return 0.25
+	}
+	if Ω.IdentificationsCount >= 2 {
+		return 0.5
+	}
+	return 0.25
+}
+
 // SourceOccurrenceID upholds the occurrence interface.
 func (Ω *occurrence) SourceOccurrenceID() string {
 	return strconv.Itoa(Ω.ID)
@@ -220,7 +243,7 @@ type identification struct {
 }
 
 // FetchOccurrences returns returns a slice of OccurrenceProviders.
-func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *time.Time) ([]providers.Occurrence, error) {
+func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *time.Time, researchQuality bool) ([]providers.Occurrence, error) {
 
 	if !taxonIDFromTargetID(targetID).Valid() {
 		return nil, errors.New("Invalid taxonID")
@@ -229,7 +252,7 @@ func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *t
 	res := []providers.Occurrence{}
 	page := 1
 	for {
-		list, err := fetchOccurrences(page, taxonIDFromTargetID(targetID), since)
+		list, err := fetchOccurrences(page, taxonIDFromTargetID(targetID), since, researchQuality)
 		if err != nil && err != iterator.Done {
 			return nil, err
 		}
@@ -247,7 +270,7 @@ func FetchOccurrences(_ context.Context, targetID datasources.TargetID, since *t
 
 var throttle = time.NewTicker(time.Second / 20)
 
-func fetchOccurrences(page int, txnID taxonID, since *time.Time) ([]*occurrence, error) {
+func fetchOccurrences(page int, txnID taxonID, since *time.Time, researchQuality bool) ([]*occurrence, error) {
 	var response struct {
 		TotalResults int           `json:"total_results"`
 		Page         int           `json:"page"`
@@ -255,7 +278,10 @@ func fetchOccurrences(page int, txnID taxonID, since *time.Time) ([]*occurrence,
 		Results      []*occurrence `json:"results"`
 	}
 
-	u := "https://api.inaturalist.org/v1/observations?place_id=97394&quality_grade=research&captive=false&per_page=200&geoprivacy=open"
+	u := "https://api.inaturalist.org/v1/observations?place_id=97394&captive=false&per_page=200&geoprivacy=open"
+	if researchQuality {
+		u += "&quality_grade=research"
+	}
 	u += fmt.Sprintf("&taxon_id=%d", txnID)
 	u += fmt.Sprintf("&page=%d", page)
 	if since != nil && !since.IsZero() {

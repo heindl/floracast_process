@@ -1,9 +1,9 @@
 package cache
 
 import (
-	"bitbucket.org/heindl/process/protectedarea"
-	"bitbucket.org/heindl/process/store"
-	"bitbucket.org/heindl/process/terra/geoembed"
+	"github.com/heindl/floracast_process/protectedarea"
+	"github.com/heindl/floracast_process/store"
+	"github.com/heindl/floracast_process/terra/geoembed"
 	"context"
 	"github.com/dropbox/godropbox/errors"
 	"github.com/golang/glog"

@@ -1,8 +1,8 @@
 package generate
 
 import (
-	"bitbucket.org/heindl/process/nameusage/nameusage"
-	"bitbucket.org/heindl/process/store"
+	"github.com/heindl/floracast_process/nameusage/nameusage"
+	"github.com/heindl/floracast_process/store"
 	"context"
 	"fmt"
 	"github.com/dropbox/godropbox/errors"
